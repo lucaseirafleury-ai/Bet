@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+.venv/
+ligas_live_app/data/*.json

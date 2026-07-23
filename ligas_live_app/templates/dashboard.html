@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel de Sinais — Ligas Nórdicas/Bálticas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-left">
+    <span class="brand">SINAIS<span class="brand-accent">·</span>LIVE</span>
+    <span class="subbrand">painel de análise pré-live &amp; ao vivo</span>
+  </div>
+  <div class="ticker" id="ticker">
+    {% for id, nome in ligas.items() %}
+      <span class="ticker-item"><i class="dot"></i>{{ nome }}</span>
+    {% endfor %}
+  </div>
+  <div class="topbar-right">
+    <span id="relogio-status" class="status-pill status-off">monitor: parado</span>
+  </div>
+</header>
+
+<main class="layout">
+
+  <section class="col col-controls">
+    <div class="panel">
+      <h2>Controles</h2>
+      <button id="btn-prelive" class="btn btn-primary">Rodar análise pré-live</button>
+      <p class="hint">Busca os próximos jogos das 5 ligas e monta o esperado (placar modal, favoritos de posse/pressão/xG).</p>
+
+      <div class="divider"></div>
+
+      <button id="btn-live-start" class="btn btn-live-on">Iniciar monitoramento ao vivo</button>
+      <button id="btn-live-stop" class="btn btn-live-off">Parar monitoramento</button>
+      <p class="hint">A partir do minuto {{ 15 }}, compara o jogo real com o esperado e gera sinais quando o desvio passa do limiar.</p>
+
+      <div class="divider"></div>
+
+      <div class="status-block">
+        <div class="status-row"><span>Última checagem</span><span id="status-ultima-checagem">—</span></div>
+        <div class="status-row"><span>Jogos ao vivo monitorados</span><span id="status-qtd-jogos">0</span></div>
+        <div class="status-row"><span>Relatórios pré-live</span><span id="status-qtd-prelive">0</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="col col-prelive">
+    <div class="panel">
+      <h2>Jogos ao vivo agora</h2>
+      <div id="live-lista" class="card-grid">
+        <p class="empty-state">Nenhum jogo ao vivo monitorado no momento.</p>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <h2>Esperado para os próximos jogos <span class="muted" id="prelive-gerado-em"></span></h2>
+      <div id="prelive-lista" class="card-grid">
+        <p class="empty-state">Nenhuma análise pré-live ainda. Clique em "Rodar análise pré-live".</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="col col-live">
+    <div class="panel">
+      <h2>Sinais ao vivo</h2>
+      <div id="insights-feed" class="feed">
+        <p class="empty-state">Nenhum sinal gerado ainda.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>window.MARGEM_VALOR = {{ margem_valor }};</script>
+<script src="/static/app.js"></script>
+</body>
+</html>

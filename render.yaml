@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: painel-sinais-ligas
+    runtime: python
+    plan: free
+    rootDir: ligas_live_app
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    envVars:
+      - key: RENDER
+        value: "true"
+      - key: SPORTMONKS_TOKEN
+        sync: false
