@@ -488,8 +488,11 @@ def gerar_shortlist(teamA, teamB, hist_A, hist_B, jdd_A, jdd_B, favorito,
     """Reproduz o fluxo manual de Lucas pra 1 jogo:
       1. Avalia os 20 mercados com o desvio-padrão padrão (2.5).
       2. Filtra P.Comb >= p_comb_min (65% por padrão).
-      3. Reavalia SÓ o P.Plan com o desvio-padrão de robustez (1.25 por
-         padrão) e descarta quem cair abaixo de p_comb_min nessa reavaliação.
+      3. Reavalia o P.Plan com o desvio-padrão de robustez (1.25 por padrão),
+         recalcula o P.Comb com esse P.Plan robusto (mesmo P.Font de antes) e
+         descarta quem cair abaixo de p_comb_min nesse P.Comb robusto — NÃO
+         no P.Plan robusto isolado (mudou em 23/07: comparar P.Plan puro
+         contra o piso de P.Comb misturava duas escalas diferentes).
       4. Descarta odd de mercado > odd_max (2.0 por padrão).
       5. Cruza a aba Padrões dos dois times (padroes_em_comum).
     Retorna dict(entradas=[...], padroes_comuns=[...]).
@@ -515,10 +518,13 @@ def gerar_shortlist(teamA, teamB, hist_A, hist_B, jdd_A, jdd_B, favorito,
             continue
         if l["odd_mercado"] > odd_max:
             continue
-        if plan_robusto.get(l["mercado"], 0.0) < p_comb_min:
+        plan_r = plan_robusto.get(l["mercado"], 0.0)
+        comb_r = p_comb(plan_r, l["p_font"])
+        if comb_r < p_comb_min:
             continue
         l2 = dict(l)
-        l2["p_plan_robusto"] = plan_robusto.get(l["mercado"])
+        l2["p_plan_robusto"] = plan_r
+        l2["p_comb_robusto"] = comb_r
         entradas.append(l2)
 
     comuns = padroes_em_comum(teamA, teamB, csv_glob, mando_A=mando_A, mando_B=mando_B)
@@ -541,13 +547,13 @@ def relatorio_dia(games_com_csv_glob):
         if not r["entradas"]:
             partes.append("_Nenhuma entrada passou nos filtros (P.Comb ≥ 65%, robusto a σ=1.25, odd ≤ 2.0)._")
         else:
-            partes.append("| Mercado | P.Plan | P.Font | P.Mkt | P.Comb | Odd Gatilho | Odd Mercado | Edge | Stake | Critério |")
-            partes.append("|---|---|---|---|---|---|---|---|---|---|")
+            partes.append("| Mercado | P.Plan | P.Font | P.Mkt | P.Comb | P.Comb robusto (σ=1.25) | Odd Gatilho | Odd Mercado | Edge | Stake | Critério |")
+            partes.append("|---|---|---|---|---|---|---|---|---|---|---|")
             for l in sorted(r["entradas"], key=lambda x: -x["p_comb"]):
                 stake_txt = f"{l['stake']:.1f}" if l.get("stake") is not None else "—"
                 partes.append(
                     f"| {l['mercado']} | {l['p_plan']:.0%} | {l['p_font']:.0%} | "
-                    f"{l['p_mkt']:.0%} | {l['p_comb']:.0%} | {l['odd_gatilho']:.2f} | "
+                    f"{l['p_mkt']:.0%} | {l['p_comb']:.0%} | {l['p_comb_robusto']:.0%} | {l['odd_gatilho']:.2f} | "
                     f"{l['odd_mercado']:.2f} | {l['edge']:+.0%} | {stake_txt} | {l['criterio']} |"
                 )
         if r["padroes_comuns"]:
