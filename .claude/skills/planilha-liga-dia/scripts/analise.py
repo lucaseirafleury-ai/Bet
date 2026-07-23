@@ -537,32 +537,37 @@ def relatorio_dia(games_com_csv_glob):
     odds_and_pfont, data_jogo, csv_glob, e opcionalmente displayA/displayB/
     mando_A/mando_B/p_comb_min/mult_dp_robustez/odd_max).
     Retorna uma string markdown com a lista final pronta pra ler, sem abrir
-    Excel."""
-    partes = []
+    Excel. Formato de entrega (decidido com Lucas em 23/07): tabela única,
+    só Jogo/Mercado/P.Comb/P.Mercado/Odd Gatilho/Odd Mercado — sem P.Plan,
+    P.Font, Edge, Stake, Critério (esses continuam calculados internamente
+    e disponíveis em gerar_shortlist(), só não vão pra entrega padrão)."""
+    todas_entradas = []
+    todos_padroes = []
     for g in games_com_csv_glob:
         kwargs = {k: v for k, v in g.items() if k not in ("teamA", "teamB")}
         r = gerar_shortlist(g["teamA"], g["teamB"], **kwargs)
-        titulo = f"## {g['teamA']} x {g['teamB']}"
-        partes.append(titulo)
-        if not r["entradas"]:
-            partes.append("_Nenhuma entrada passou nos filtros (P.Comb ≥ 65%, robusto a σ=1.25, odd ≤ 2.0)._")
-        else:
-            partes.append("| Mercado | P.Plan | P.Font | P.Mkt | P.Comb | P.Comb robusto (σ=1.25) | Odd Gatilho | Odd Mercado | Edge | Stake | Critério |")
-            partes.append("|---|---|---|---|---|---|---|---|---|---|---|")
-            for l in sorted(r["entradas"], key=lambda x: -x["p_comb"]):
-                stake_txt = f"{l['stake']:.1f}" if l.get("stake") is not None else "—"
-                partes.append(
-                    f"| {l['mercado']} | {l['p_plan']:.0%} | {l['p_font']:.0%} | "
-                    f"{l['p_mkt']:.0%} | {l['p_comb']:.0%} | {l['p_comb_robusto']:.0%} | {l['odd_gatilho']:.2f} | "
-                    f"{l['odd_mercado']:.2f} | {l['edge']:+.0%} | {stake_txt} | {l['criterio']} |"
-                )
-        if r["padroes_comuns"]:
-            partes.append("\n**Padrões em comum (stake sugerido 1.0):**")
-            for c in r["padroes_comuns"]:
-                partes.append(
-                    f"- {c['metrica']} {c['direcao']} de {c['limiar']} — "
-                    f"{g['teamA']} {c['pct_A']:.0f}% (n={c['n_A']}) e "
-                    f"{g['teamB']} {c['pct_B']:.0f}% (n={c['n_B']})"
-                )
-        partes.append("")
+        jogo = f"{g['teamA']} x {g['teamB']}"
+        for l in r["entradas"]:
+            todas_entradas.append(dict(jogo=jogo, **l))
+        todos_padroes.extend(r["padroes_comuns"])
+
+    partes = []
+    if not todas_entradas:
+        partes.append("_Nenhuma entrada passou nos filtros (P.Comb ≥ 65%, robusto a σ=1.25, odd ≤ 2.0)._")
+    else:
+        partes.append("| Jogo | Mercado | P.Comb | P.Mercado | Odd Gatilho | Odd Mercado |")
+        partes.append("|---|---|---|---|---|---|")
+        for l in sorted(todas_entradas, key=lambda x: (x["jogo"], -x["p_comb"])):
+            partes.append(
+                f"| {l['jogo']} | {l['mercado']} | {l['p_comb']:.0%} | "
+                f"{l['p_mkt']:.0%} | {l['odd_gatilho']:.2f} | {l['odd_mercado']:.2f} |"
+            )
+
+    if todos_padroes:
+        partes.append("\n**Padrões em comum (stake sugerido 1.0):**")
+        for c in todos_padroes:
+            partes.append(
+                f"- {c['jogo']}: {c['metrica']} {c['direcao']} de {c['limiar']} "
+                f"({c['pct_A']:.0f}% n={c['n_A']} / {c['pct_B']:.0f}% n={c['n_B']})"
+            )
     return "\n".join(partes)
