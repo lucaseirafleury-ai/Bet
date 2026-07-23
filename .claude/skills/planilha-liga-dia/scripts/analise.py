@@ -365,6 +365,20 @@ def criterios_tag(plan, font, mkt, comb, odd, edge):
     return "❌ Sem critério"
 
 
+def stake_kelly(odd):
+    """Mercados!P (Stake) — mesma fórmula de fracional-Kelly do template,
+    usada lá sobre 'Odd Betano' (a odd JÁ CONFIRMADA na casa). Aqui é
+    aplicada sobre a odd pesquisada (odd_mercado) na falta de uma odd
+    confirmada separada — trate como SUGESTÃO, não como odd validada
+    (Regra 6 do protocolo: nunca recomendar 'entrar' sem odd real
+    conferida). Retorna None se a odd não é utilizável (<=1)."""
+    if odd is None or odd <= 1:
+        return None
+    if odd < 1 / 0.483:
+        return 0.0
+    return round(min(3, max(0.5, 0.25 * ((odd * 0.483 - 1) / (odd - 1)) * 10)), 1)
+
+
 def avaliar_mercados(teamA, teamB, favorito, odds_and_pfont, la, lb,
                       displayA=None, displayB=None):
     """Para os 20 mercados de MERCADOS_TEMPLATE_20 (mesma ordem/textos do
@@ -398,6 +412,7 @@ def avaliar_mercados(teamA, teamB, favorito, odds_and_pfont, la, lb,
             odd_gatilho=odd_gatilho, odd_mercado=odd, edge=edge,
             veredito=veredito_tag(comb, edge),
             criterio=criterios_tag(plan, font, mkt, comb, odd, edge),
+            stake=stake_kelly(odd),
         ))
     return linhas
 
@@ -526,12 +541,14 @@ def relatorio_dia(games_com_csv_glob):
         if not r["entradas"]:
             partes.append("_Nenhuma entrada passou nos filtros (P.Comb ≥ 65%, robusto a σ=1.25, odd ≤ 2.0)._")
         else:
-            partes.append("| Mercado | P.Plan | P.Font | P.Mkt | P.Comb | Odd | Critério |")
-            partes.append("|---|---|---|---|---|---|---|")
+            partes.append("| Mercado | P.Plan | P.Font | P.Mkt | P.Comb | Odd Gatilho | Odd Mercado | Edge | Stake | Critério |")
+            partes.append("|---|---|---|---|---|---|---|---|---|---|")
             for l in sorted(r["entradas"], key=lambda x: -x["p_comb"]):
+                stake_txt = f"{l['stake']:.1f}" if l.get("stake") is not None else "—"
                 partes.append(
                     f"| {l['mercado']} | {l['p_plan']:.0%} | {l['p_font']:.0%} | "
-                    f"{l['p_mkt']:.0%} | {l['p_comb']:.0%} | {l['odd_mercado']:.2f} | {l['criterio']} |"
+                    f"{l['p_mkt']:.0%} | {l['p_comb']:.0%} | {l['odd_gatilho']:.2f} | "
+                    f"{l['odd_mercado']:.2f} | {l['edge']:+.0%} | {stake_txt} | {l['criterio']} |"
                 )
         if r["padroes_comuns"]:
             partes.append("\n**Padrões em comum (stake sugerido 1.0):**")
