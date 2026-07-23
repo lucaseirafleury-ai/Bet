@@ -75,13 +75,22 @@ atual + estilo tático + fonte citada):
   Cruzeiro, Grêmio, Atlético PR, Remo, Santos, Chapecoense) têm identidade
   tática indireta (análise de jornalista/discurso de apresentação) em vez de
   citação direta e consistente do próprio técnico.
-- **`estilos_serieb.json` — em andamento.** Banco do zero (não havia nenhuma
-  pesquisa qualitativa prévia para reaproveitar). Uma primeira tentativa
-  esbarrou no limite de sessão da API antes de escrever qualquer coisa (sem
-  dano ao arquivo); uma segunda tentativa está rodando salvando em lotes
-  parciais para não perder progresso se cair de novo. Ver o próprio arquivo
-  para o estado atual — enquanto um time ainda tiver o texto "[Derivado de
-  dados FootyStats 2026, sem scouting manual]", ele não foi atualizado ainda.
+- **`estilos_serieb.json` — concluído.** Banco reescrito do zero (não havia
+  nenhuma pesquisa qualitativa prévia para reaproveitar — uma primeira
+  tentativa esbarrou no limite de sessão da API antes de escrever qualquer
+  coisa, sem dano ao arquivo; a segunda tentativa completou os 20 times
+  salvando em lotes). Resultado: 8 confiança alta, 11 media, 1 baixa (Goiás —
+  Mozart Santos anunciado em 22-23/07/2026, zero jogos no comando até a data,
+  notas necessariamente provisórias; reavaliar com 3-4 jogos de amostra).
+  Times com amostra rasa por troca de técnico recentíssima (Ponte Preta,
+  Sport Recife) ou fonte mais genérica (CRB, Botafogo SP, Operário PR) ficaram
+  em "media" — considerar revisão manual prioritária nesses. Vários técnicos
+  trocaram de posição entre si dentro da própria Série B em 2026 (Roger
+  Silva: América-MG → Sport → Atlético GO; Daniel Paulista: Goiás → Ceará;
+  Mozart: Ceará → Goiás; Umberto Louzer: Vila Nova → América Mineiro) —
+  confirmado o posicionamento de cada um em 23/07/2026, mas essa liga está
+  trocando comando com frequência incomum; reconferir se aparecer notícia
+  mais recente.
 
 Mesmo pesquisado, este é um banco de **estimativas de estilo, não um dado
 objetivo** — é normal e esperado revisar/corrigir manualmente quando o

@@ -1,22 +1,182 @@
 {
- "América Mineiro": {"estilo_text": "[Derivado de dados FootyStats 2026, sem scouting manual] Posse média 55%, 5.53 esc/jogo, 1.65 gols sofridos/jogo, 13.9 faltas/jogo — perfil estimado por estatística agregada, não por observação de jogos. Validar/ajustar antes de usar.", "confianca": "baixa", "bb": 1, "pa": 2, "tr": 2, "pos": 4, "bp": 3},
- "Athletic Club": {"estilo_text": "[Derivado de dados FootyStats 2026, sem scouting manual] Posse média 44%, 4.88 esc/jogo, 0.94 gols sofridos/jogo, 16.2 faltas/jogo — perfil estimado por estatística agregada, não por observação de jogos. Validar/ajustar antes de usar.", "confianca": "baixa", "bb": 3, "pa": 4, "tr": 3, "pos": 1, "bp": 1},
- "Atlético GO": {"estilo_text": "[Derivado de dados FootyStats 2026, sem scouting manual] Posse média 47%, 5.71 esc/jogo, 1.12 gols sofridos/jogo, 15.1 faltas/jogo — perfil estimado por estatística agregada, não por observação de jogos. Validar/ajustar antes de usar.", "confianca": "baixa", "bb": 2, "pa": 3, "tr": 3, "pos": 2, "bp": 5},
- "Avaí": {"estilo_text": "[Derivado de dados FootyStats 2026, sem scouting manual] Posse média 49%, 3.76 esc/jogo, 1.41 gols sofridos/jogo, 14.5 faltas/jogo — perfil estimado por estatística agregada, não por observação de jogos. Validar/ajustar antes de usar.", "confianca": "baixa", "bb": 1, "pa": 4, "tr": 1, "pos": 2, "bp": 1},
- "Botafogo SP": {"estilo_text": "[Derivado de dados FootyStats 2026, sem scouting manual] Posse média 48%, 6.47 esc/jogo, 1.06 gols sofridos/jogo, 14.8 faltas/jogo — perfil estimado por estatística agregada, não por observação de jogos. Validar/ajustar antes de usar.", "confianca": "baixa", "bb": 2, "pa": 3, "tr": 2, "pos": 1, "bp": 4},
- "CRB": {"estilo_text": "[Derivado de dados FootyStats 2026, sem scouting manual] Posse média 52%, 5.35 esc/jogo, 1.82 gols sofridos/jogo, 11.7 faltas/jogo — perfil estimado por estatística agregada, não por observação de jogos. Validar/ajustar antes de usar.", "confianca": "baixa", "bb": 1, "pa": 1, "tr": 3, "pos": 3, "bp": 3},
- "Ceará": {"estilo_text": "[Derivado de dados FootyStats 2026, sem scouting manual] Posse média 51%, 6.00 esc/jogo, 1.18 gols sofridos/jogo, 13.9 faltas/jogo — perfil estimado por estatística agregada, não por observação de jogos. Validar/ajustar antes de usar.", "confianca": "baixa", "bb": 3, "pa": 2, "tr": 1, "pos": 3, "bp": 4},
- "Criciúma": {"estilo_text": "[Derivado de dados FootyStats 2026, sem scouting manual] Posse média 52%, 6.53 esc/jogo, 0.71 gols sofridos/jogo, 13.8 faltas/jogo — perfil estimado por estatística agregada, não por observação de jogos. Validar/ajustar antes de usar.", "confianca": "baixa", "bb": 4, "pa": 1, "tr": 1, "pos": 3, "bp": 4},
- "Cuiabá": {"estilo_text": "[Derivado de dados FootyStats 2026, sem scouting manual] Posse média 48%, 4.76 esc/jogo, 0.65 gols sofridos/jogo, 15.7 faltas/jogo — perfil estimado por estatística agregada, não por observação de jogos. Validar/ajustar antes de usar.", "confianca": "baixa", "bb": 4, "pa": 4, "tr": 4, "pos": 1, "bp": 1},
- "Fortaleza": {"estilo_text": "[Derivado de dados FootyStats 2026, sem scouting manual] Posse média 50%, 5.47 esc/jogo, 1.00 gols sofridos/jogo, 15.8 faltas/jogo — perfil estimado por estatística agregada, não por observação de jogos. Validar/ajustar antes de usar.", "confianca": "baixa", "bb": 3, "pa": 4, "tr": 1, "pos": 2, "bp": 3},
- "Goiás": {"estilo_text": "[Derivado de dados FootyStats 2026, sem scouting manual] Posse média 52%, 4.24 esc/jogo, 1.35 gols sofridos/jogo, 13.9 faltas/jogo — perfil estimado por estatística agregada, não por observação de jogos. Validar/ajustar antes de usar.", "confianca": "baixa", "bb": 1, "pa": 2, "tr": 2, "pos": 3, "bp": 1},
- "Juventude": {"estilo_text": "[Derivado de dados FootyStats 2026, sem scouting manual] Posse média 50%, 4.29 esc/jogo, 0.47 gols sofridos/jogo, 15.6 faltas/jogo — perfil estimado por estatística agregada, não por observação de jogos. Validar/ajustar antes de usar.", "confianca": "baixa", "bb": 5, "pa": 5, "tr": 4, "pos": 2, "bp": 2},
- "Londrina": {"estilo_text": "[Derivado de dados FootyStats 2026, sem scouting manual] Posse média 44%, 5.18 esc/jogo, 1.47 gols sofridos/jogo, 13.7 faltas/jogo — perfil estimado por estatística agregada, não por observação de jogos. Validar/ajustar antes de usar.", "confianca": "baixa", "bb": 2, "pa": 1, "tr": 3, "pos": 1, "bp": 2},
- "Novorizontino": {"estilo_text": "[Derivado de dados FootyStats 2026, sem scouting manual] Posse média 48%, 5.24 esc/jogo, 0.94 gols sofridos/jogo, 14.4 faltas/jogo — perfil estimado por estatística agregada, não por observação de jogos. Validar/ajustar antes de usar.", "confianca": "baixa", "bb": 3, "pa": 2, "tr": 5, "pos": 1, "bp": 2},
- "Náutico": {"estilo_text": "[Derivado de dados FootyStats 2026, sem scouting manual] Posse média 60%, 6.71 esc/jogo, 1.24 gols sofridos/jogo, 15.1 faltas/jogo — perfil estimado por estatística agregada, não por observação de jogos. Validar/ajustar antes de usar.", "confianca": "baixa", "bb": 1, "pa": 3, "tr": 1, "pos": 5, "bp": 5},
- "Operário PR": {"estilo_text": "[Derivado de dados FootyStats 2026, sem scouting manual] Posse média 51%, 5.35 esc/jogo, 1.06 gols sofridos/jogo, 13.1 faltas/jogo — perfil estimado por estatística agregada, não por observação de jogos. Validar/ajustar antes de usar.", "confianca": "baixa", "bb": 2, "pa": 2, "tr": 4, "pos": 3, "bp": 3},
- "Ponte Preta": {"estilo_text": "[Derivado de dados FootyStats 2026, sem scouting manual] Posse média 43%, 5.06 esc/jogo, 1.94 gols sofridos/jogo, 16.5 faltas/jogo — perfil estimado por estatística agregada, não por observação de jogos. Validar/ajustar antes de usar.", "confianca": "baixa", "bb": 1, "pa": 5, "tr": 4, "pos": 1, "bp": 2},
- "Sport Recife": {"estilo_text": "[Derivado de dados FootyStats 2026, sem scouting manual] Posse média 55%, 5.06 esc/jogo, 0.88 gols sofridos/jogo, 11.9 faltas/jogo — perfil estimado por estatística agregada, não por observação de jogos. Validar/ajustar antes de usar.", "confianca": "baixa", "bb": 4, "pa": 1, "tr": 1, "pos": 4, "bp": 2},
- "São Bernardo": {"estilo_text": "[Derivado de dados FootyStats 2026, sem scouting manual] Posse média 49%, 3.82 esc/jogo, 0.94 gols sofridos/jogo, 11.4 faltas/jogo — perfil estimado por estatística agregada, não por observação de jogos. Validar/ajustar antes de usar.", "confianca": "baixa", "bb": 3, "pa": 1, "tr": 5, "pos": 2, "bp": 1},
- "Vila Nova": {"estilo_text": "[Derivado de dados FootyStats 2026, sem scouting manual] Posse média 52%, 4.65 esc/jogo, 1.12 gols sofridos/jogo, 13.6 faltas/jogo — perfil estimado por estatística agregada, não por observação de jogos. Validar/ajustar antes de usar.", "confianca": "baixa", "bb": 2, "pa": 1, "tr": 2, "pos": 3, "bp": 1}
+ "América Mineiro": {
+  "estilo_text": "Umberto Louzer — assumiu em jun/2026 (estreou dia 7/jun contra o Atlético-GO) no lugar de Roger Silva, com o time na lanterna da Série B; contrato até 30/nov/2026. Time joga em bloco baixo reativo, marcação recuada permitindo trocas de passe do rival no meio-campo; Louzer trata a organização defensiva como sistema coletivo (não culpa só zaga/goleiro) e fala em 'ser resiliente e ter muita força mental' como prioridade imediata. Fonte: O Tempo (mai-jul/2026).",
+  "confianca": "media",
+  "bb": 4,
+  "pa": 1,
+  "tr": 2,
+  "pos": 2,
+  "bp": 2
+ },
+ "Athletic Club": {
+  "estilo_text": "Alex de Souza — assumiu em fev/2026 no lugar de Rui Duarte (demitido após rebaixamento no Mineiro); ídolo do Cruzeiro como jogador, em seu quinto trabalho como técnico. Time joga com organização defensiva sólida (menos de 0,9 gol sofrido/jogo em casa, muitos clean sheets), meio-campo pressiona a saída de bola do rival (12,4 interceptações/jogo) e a dupla de zaga (Jemerson/Augusto) faz média de 16,2 rebatidas/jogo — mas ataque bastante limitado (3 gols em 6 jogos recentes). Perfil defensivo/físico, pouca produção ofensiva. Fonte: Netflu, Betfair análise (jul/2026).",
+  "confianca": "media",
+  "bb": 3,
+  "pa": 3,
+  "tr": 2,
+  "pos": 2,
+  "bp": 4
+ },
+ "Atlético GO": {
+  "estilo_text": "Roger Silva — contratado em jul/2026 para substituir Renan Brito, estreou vencendo o Fortaleza por 1x0; antes comandou o América-MG (9 jogos, 2 vitórias) e o Sport (campeão pernambucano, 6 vitórias em 12 jogos). Estilo ofensivo e vertical, com laterais participando ativamente da construção de jogo; imprensa mineira destacou seu 'estilo ofensivo' e ele é conhecido por cobranças exigentes ao elenco. Fonte: Dragão Goiano, Mais Goiás (jul/2026).",
+  "confianca": "alta",
+  "bb": 1,
+  "pa": 3,
+  "tr": 4,
+  "pos": 3,
+  "bp": 3
+ },
+ "Avaí": {
+  "estilo_text": "Allan Aal — contratado em 9/jul/2026 após demissão de Cauan de Almeida (saída em 7/jul, após derrota por 3x1 para o Botafogo-SP); treinador com passagens recentes por Cuiabá (acesso histórico à Série A) e Vila Nova (campanha forte). Time busca amplitude ofensiva e jogo pelos lados, com aceleração via cruzamentos das pontas para aumentar ameaça ofensiva (xT). Amostra ainda pequena no comando. Fonte: ND Mais, avai.com.br, Band (jul/2026).",
+  "confianca": "media",
+  "bb": 3,
+  "pa": 2,
+  "tr": 3,
+  "pos": 2,
+  "bp": 3
+ },
+ "Botafogo SP": {
+  "estilo_text": "Cláudio Tencati — contratado em jan/2026; disse na apresentação: 'meus times atacam e defendem de forma organizada e equilibrada' e projeta 'mudança de patamar' para o clube. Time joga de forma controlada e equilibrada, sem grande vocação ofensiva nem extremo bloco baixo (perfil considerado mais conservador por análises agregadas, poucos gols marcados na competição). Técnico elogiou 'entrega tática' do elenco após empates recentes, indicando trabalho ainda em evolução. Fonte: Revide, Botafogo Futebol SA (jan-jul/2026).",
+  "confianca": "media",
+  "bb": 3,
+  "pa": 3,
+  "tr": 2,
+  "pos": 3,
+  "bp": 3
+ },
+ "CRB": {
+  "estilo_text": "Eduardo Barroca — mantido para 2026 após identidade tática consolidada em 2025; diretoria optou pela continuidade da base (9 dos 11 titulares seguem no elenco) e do modelo de jogo, considerado peça-chave na 'identidade' construída pelo técnico. Defesa é o alicerce (goleiro Matheus Albino titular absoluto; zaga Fábio Alemão/Henri), com estabilidade e entrosamento coletivo priorizados sobre mudanças bruscas. Fonte: Gazetaweb, Tribuna do Sertão (jan-jul/2026).",
+  "confianca": "media",
+  "bb": 3,
+  "pa": 2,
+  "tr": 3,
+  "pos": 3,
+  "bp": 3
+ },
+ "Ceará": {
+  "estilo_text": "Daniel Paulista — chegou em 25/jun/2026 vindo do Goiás (onde tinha 56% de aproveitamento e havia sido campeão goiano), contratado após demissão de Mozart em 31/mai/2026; contrato até o fim de 2026. Perfil tático compacto, com transições ofensivas rápidas, participação constante dos laterais no ataque e jogo pouco dependente de posse de bola; fama de estrategista que monta times com marcação encaixada e verticalidade. Em 23/jul/2026 classificou a situação do Ceará na Série B como 'constrangedora', evidenciando pressão por reação rápida. Fonte: URB News, NE45, OneFootball (jun-jul/2026).",
+  "confianca": "alta",
+  "bb": 3,
+  "pa": 3,
+  "tr": 4,
+  "pos": 2,
+  "bp": 3
+ },
+ "Criciúma": {
+  "estilo_text": "Eduardo Baptista — no comando desde mai/2025 (maior longevidade entre os técnicos da atual Série B), renovado até dez/2027; time líder da Série B em jul/2026. Trabalha com linha de três zagueiros e 4-2-3-1, explorando os lados de campo com Nicolas mais centralizado; treinos intensos combinam trabalho técnico-tático com foco em bola parada, que o próprio técnico já indicou poder ser decisiva nos jogos. Recentemente admitiu estudar mudança no esquema. Fonte: Placar, 4oito, NSC Total (2025-2026).",
+  "confianca": "alta",
+  "bb": 3,
+  "pa": 2,
+  "tr": 3,
+  "pos": 3,
+  "bp": 4
+ },
+ "Cuiabá": {
+  "estilo_text": "Eduardo Barros — promovido a técnico efetivo em ago/2025 (era auxiliar de Guto Ferreira, demitido após derrota para o Avaí) e renovado para 2026. Estratégia reativa, buscando neutralizar o ímpeto inicial do rival; aplica postura defensiva mais fechada ('ferrolho tático') principalmente fora de casa, escapando em contra-ataques rápidos pelas descidas de Rodrigo Rodrigues e Vinicius Peixoto. Jogo pragmático, pouca posse, aposta em velocidade na transição. Fonte: Olhar Direto, CBN Cuiabá, análise Betfair (2025-2026).",
+  "confianca": "media",
+  "bb": 4,
+  "pa": 1,
+  "tr": 4,
+  "pos": 1,
+  "bp": 2
+ },
+ "Fortaleza": {
+  "estilo_text": "Thiago Carpini — contratado em dez/2025 após rebaixamento e saída de Martín Palermo; contrato até dez/2026 com cláusulas de acesso. Estilo com saída curta de zagueiros/meio-campo para atrair marcação e abrir espaços, pressão alta, triangulações e jogo pelos lados com pontas atuando no ataque e na reposição defensiva, exigindo intensidade nos duelos; varia entre 4-2-3-1, 4-3-3 e 4-4-2 conforme adversário. Levou o Juventude ao vice na Série B com apenas 4 derrotas em 34 jogos e foi campeão da Supercopa do Brasil 2024 pelo São Paulo. Fonte: Lance!, Portal Tela (dez/2025).",
+  "confianca": "alta",
+  "bb": 2,
+  "pa": 4,
+  "tr": 3,
+  "pos": 3,
+  "bp": 3
+ },
+ "Goiás": {
+  "estilo_text": "Mozart Santos — anunciado em 22-23/jul/2026 (praticamente hoje) para substituir Daniel Paulista, que saiu para o rival Ceará (que por sua vez havia demitido o próprio Mozart em mai/2026); chega direto do Ceará com o auxiliar Denis Iwamura. Na apresentação disse que busca 'equilíbrio tático' e não quer ser rotulado nem como ofensivo nem como defensivo, e é reconhecido por organização tática e histórico de acessos consecutivos (2024 e 2025). Amostra zero de jogos no comando do Goiás até 23/jul/2026 — avaliação necessariamente provisória. Fonte: Mais Goiás, Gazeta Esportiva, Esporte Goiano (jul/2026).",
+  "confianca": "baixa",
+  "bb": 3,
+  "pa": 3,
+  "tr": 3,
+  "pos": 3,
+  "bp": 3
+ },
+ "Juventude": {
+  "estilo_text": "Maurício Barbieri — apresentado para 2026 após passagem pelo Athletico-PR; definiu os pilares do seu modelo: 'Eu sempre gosto de equipes que sejam intensas, que sejam agressivas e que procurem ser protagonistas'. Monta o Juventude com forte imposição física e transições rápidas no Alfredo Jaconi, priorizando intensidade e agressividade sobre construção pausada. Fonte: Rádio Caxias, juventude.com.br (2026).",
+  "confianca": "alta",
+  "bb": 2,
+  "pa": 4,
+  "tr": 4,
+  "pos": 3,
+  "bp": 4
+ },
+ "Londrina": {
+  "estilo_text": "Rogério Micale — mantém modelo de jogo consolidado com a base do elenco preservada. Time aposta em contra-ataques velozes pelos corredores (trio Vitinho, Paulinho Moccelin e Pablo Dyego como principal arma nas transições), compactação defensiva para reduzir espaços, e aproveitamento de bolas paradas (escanteios e faltas laterais) como fonte extra de gols; Robson segue como referência ofensiva. Perfil mais reativo que propositivo com a bola. Fonte: Gazeta do Paraná, Terra, Betfair análise (jul/2026).",
+  "confianca": "media",
+  "bb": 4,
+  "pa": 1,
+  "tr": 5,
+  "pos": 1,
+  "bp": 3
+ },
+ "Novorizontino": {
+  "estilo_text": "Enderson Moreira — treinador tricampeão da Série B (Goiás-2012, América-MG-2017, Botafogo-2021), contratado para buscar acesso inédito à Série A. Time joga com 'asfixia territorial' (pressão alta que força erros na saída de bola do rival) e centraliza a posse no terço final, usando a visão periférica de Rômulo para abastecer o ataque e maximizar xG. Segue banco o elenco mesmo após derrotas, destacando a superioridade de criação de jogadas do time. Fonte: ESPN, Futebol Interior, Betfair análise (2026).",
+  "confianca": "alta",
+  "bb": 2,
+  "pa": 4,
+  "tr": 3,
+  "pos": 4,
+  "bp": 3
+ },
+ "Náutico": {
+  "estilo_text": "Hélio dos Anjos — segue no comando em 2026. Destaca a pressão alta (iniciada pelo centroavante) como uma das principais características do time, com postura agressiva mantida tanto em casa quanto fora — 'não podemos mudar', segundo o próprio técnico, valorizando consistência do modelo independentemente de desfalques. Contrapartida: produção ofensiva em declínio, com dificuldade de criar chances claras em 2026. Fonte: Diário de Pernambuco, NE45, Papo de Peso (mai-jul/2026).",
+  "confianca": "alta",
+  "bb": 2,
+  "pa": 4,
+  "tr": 3,
+  "pos": 3,
+  "bp": 3
+ },
+ "Operário PR": {
+  "estilo_text": "Alex de Souza — no comando desde jun/2025 (substituiu Bruno Pivetti), manteve o time na Série B ao fim de 2025 e renovou contrato até o final de 2026. Estilo ofensivo e organizado; para 2026 buscou reforçar o elenco com atletas mais agressivos e fisicamente fortes, principalmente na defesa, definindo a meta de 'assertividade e agressividade'. Time reconhecido pela forte compactação fora de casa, somando empates até contra rivais da metade superior da tabela. Fonte: Ric.com.br, aRede, edmaisesporte (2025-2026).",
+  "confianca": "media",
+  "bb": 3,
+  "pa": 2,
+  "tr": 3,
+  "pos": 3,
+  "bp": 3
+ },
+ "Ponte Preta": {
+  "estilo_text": "Márcio Zanardi — contratado em jun/2026 para substituir Rodrigo Santana (que por sua vez sucedera Marcelo Fernandes, saído por pedido próprio em fev/2026 após rebaixamento no Paulistão); chegou com o time na vice-lanterna da Série B (8 pontos, 5 derrotas seguidas). Perfil de técnico estudioso, com experiência internacional e já construiu 'uma das filosofias de jogo mais sólidas do futebol paulista' no acesso à Série C com o São Bernardo em 2022. Na apresentação, evitou usar atraso de salários como desculpa e definiu a meta tática imediata: 'parar de tomar gols' — prioridade defensiva clara dado o momento crítico do time. Fonte: Gazeta Esportiva, Portal CB, CBN Campinas (jun/2026).",
+  "confianca": "media",
+  "bb": 4,
+  "pa": 2,
+  "tr": 2,
+  "pos": 2,
+  "bp": 2
+ },
+ "Sport Recife": {
+  "estilo_text": "Gilmar Dal Pozzo — contratado no fim de jun/2026 (estreou em 4/jul/2026, derrota para o Criciúma) para substituir Márcio Goiano, demitido em 29/jun após derrota para o Fortaleza; antes, Roger Silva havia sido demitido em mar/2026 e Goiano efetivado em abr/2026 com ótimo aproveitamento (76,92%). Dal Pozzo (ex-Chapecoense, acesso à Série A em 2025) busca flexibilidade tática — já usou linha de três zagueiros (Benevenuto, Marcelo Ajul, Zé Marcos) para neutralizar jogo de cruzamentos do rival — priorizando equilíbrio defensivo sem abrir mão da força ofensiva de Barletta e Perotti. Amostra ainda pequena no comando. Fonte: sportrecife.com.br, MeuSport, Papo de Peso (jun-jul/2026).",
+  "confianca": "media",
+  "bb": 3,
+  "pa": 2,
+  "tr": 3,
+  "pos": 3,
+  "bp": 3
+ },
+ "São Bernardo": {
+  "estilo_text": "Ricardo Catalá — segue no comando, com o São Bernardo na liderança da Série B em mai/2026 (pedindo cautela apesar da posição). Trabalha com 'periodização tática' em vez de blocos físicos isolados, visão holística de treino; time muito consistente defensivamente mas treinado para jogar para frente. Catalá cobra ambiente de crítica e crescimento constante do elenco: 'meu papel é desconfortar'. Fonte: Diário do Grande ABC, Encontra São Bernardo, abcdoabc (mai/2026).",
+  "confianca": "media",
+  "bb": 2,
+  "pa": 3,
+  "tr": 3,
+  "pos": 4,
+  "bp": 3
+ },
+ "Vila Nova": {
+  "estilo_text": "Guto Ferreira ('Rei do Acesso') — contratado em 22/mar/2026 para substituir Umberto Louzer (demitido em 18/mar após eliminação na Copa do Brasil), estreou em 1/abr contra o Sport; vinha de acesso pelo Remo. Time de imposição física e jogo direto, arquitetura tática baseada em cruzamentos e jogo pelos lados, com média de 5 a 6 escanteios por jogo em casa; em 8 jogos sob seu comando, 6 vitórias e 2 empates (83% de aproveitamento), com 2º melhor ataque da Série B. Fonte: ESPN, Futebol Interior, Mais Goiás (mar-jul/2026).",
+  "confianca": "alta",
+  "bb": 3,
+  "pa": 2,
+  "tr": 3,
+  "pos": 2,
+  "bp": 4
+ }
 }

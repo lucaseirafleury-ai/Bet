@@ -133,20 +133,17 @@ NOVOS = {
 attach_estilo(hist_A, estilo_db_path=db, overrides=NOVOS)
 save_estilo_db(NOVOS, estilo_db_path=db)   # salva pro banco persistente, próximas sessões reaproveitam
 ```
-**`data/estilos_seriea.json`** foi revisado em 23/07/2026 com pesquisa real
-(técnico atual + estilo tático + fonte, WebSearch por time) — ver
-`docs/MIGRACAO.md` para o resumo de quais times mudaram de técnico e quais
-ficaram com `confianca: "media"` por falta de citação direta.
-
-⚠️ **`data/estilos_serieb.json` ainda está em atualização** — a versão
-anterior era um RASCUNHO gerado só por estatística agregada (posse,
-escanteios/jogo, gols sofridos/jogo, faltas/jogo), sem pesquisa qualitativa
-nem validação do Lucas (o banco original com notas de 12/07 foi perdido num
-export anterior, ver `docs/MIGRACAO.md`). Está sendo substituído por uma
-versão com pesquisa real; se ainda encontrar entradas com o texto "[Derivado
-de dados FootyStats 2026, sem scouting manual]", essa atualização não chegou
-nesse time ainda — trate como rascunho e revise com overrides antes de
-confiar no Princípio 5.
+**`data/estilos_seriea.json`** e **`data/estilos_serieb.json`** foram
+revisados em 23/07/2026 com pesquisa real (técnico atual + estilo tático +
+fonte, WebSearch por time) — ver `docs/MIGRACAO.md` para o resumo de quais
+times mudaram de técnico e quais ficaram com `confianca: "media"`/`"baixa"`
+por falta de citação direta ou por técnico recém-chegado sem jogos ainda
+(ex.: Goiás, Mozart Santos anunciado em 22-23/07/2026, zero jogos no comando
+até a data — notas necessariamente provisórias). São estimativas de estilo,
+não dado objetivo: revisar/corrigir manualmente com `overrides=` +
+`save_estilo_db()` sempre que você discordar de uma nota específica, e
+reavaliar Goiás (e qualquer outro técnico recém-chegado) assim que houver
+3-4 jogos de amostra.
 
 ### 4. Enriquecimento por liga — SÓ Série A/B (o que a Copa não tinha)
 ```python
