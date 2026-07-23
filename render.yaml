@@ -11,3 +11,5 @@ services:
         value: "true"
       - key: SPORTMONKS_TOKEN
         sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
