@@ -1,0 +1,182 @@
+{
+ "Vitória": {
+  "estilo_text": "Jair Ventura — Postura defensiva/pragmática — time lutando contra rebaixamento",
+  "confianca": "media",
+  "bb": 4,
+  "pa": 2,
+  "tr": 3,
+  "pos": 2,
+  "bp": 2
+ },
+ "Flamengo": {
+  "estilo_text": "Leonardo Jardim (confirmado por Lucas) — busca equilíbrio coletivo e controle emocional do jogo, mais pragmático que a fase Filipe Luís; time mantém qualidade técnica alta mas sem depender só de talento individual",
+  "confianca": "media",
+  "bb": 3,
+  "pa": 4,
+  "tr": 3,
+  "pos": 4,
+  "bp": 3
+ },
+ "Cruzeiro": {
+  "estilo_text": "Tite — Solidez defensiva, construção paciente, triangulações; forte em bola parada",
+  "confianca": "alta",
+  "bb": 3,
+  "pa": 4,
+  "tr": 2,
+  "pos": 4,
+  "bp": 4
+ },
+ "Grêmio": {
+  "estilo_text": "Luís Castro — Organização defensiva em evolução, posse moderada",
+  "confianca": "media",
+  "bb": 3,
+  "pa": 3,
+  "tr": 2,
+  "pos": 3,
+  "bp": 3
+ },
+ "São Paulo": {
+  "estilo_text": "Hernán Crespo — Perfil ofensivo mas sem descrição tática 2026 confirmada",
+  "confianca": "media",
+  "bb": 2,
+  "pa": 3,
+  "tr": 3,
+  "pos": 3,
+  "bp": 3
+ },
+ "Palmeiras": {
+  "estilo_text": "Abel Ferreira — Pressão alta, bloco médio-alto, transições rápidas pós-recuperação",
+  "confianca": "alta",
+  "bb": 2,
+  "pa": 4,
+  "tr": 4,
+  "pos": 4,
+  "bp": 3
+ },
+ "Atlético Mineiro": {
+  "estilo_text": "Eduardo Domínguez ('Barba') — jogo direto e vertical, recupera a bola e acelera; frase do próprio técnico: 'não queremos posse de bola por tê-la, mas para machucar o rival'. Só teve mais posse que o rival em 2 de 6 jogos no comando. Marcação forte e compacta em linhas, prioriza organização defensiva sobre posse. Fonte: coletivas do técnico + análise tática (Itatiaia, abr/2026).",
+  "confianca": "alta",
+  "bb": 3,
+  "pa": 1,
+  "tr": 4,
+  "pos": 2,
+  "bp": 3
+ },
+ "Atlético PR": {
+  "estilo_text": "Odair Hellmann — Perfil pragmático e organizado, historicamente sólido defensivamente",
+  "confianca": "media",
+  "bb": 3,
+  "pa": 3,
+  "tr": 3,
+  "pos": 3,
+  "bp": 3
+ },
+ "Corinthians": {
+  "estilo_text": "Dorival Júnior — Pragmático, adapta esquema por adversário — sem identidade fixa forte",
+  "confianca": "alta",
+  "bb": 3,
+  "pa": 3,
+  "tr": 3,
+  "pos": 3,
+  "bp": 3
+ },
+ "Vasco da Gama": {
+  "estilo_text": "Fernando Diniz — Extrema posse de bola, ataque constante; historicamente defesa frágil",
+  "confianca": "alta",
+  "bb": 1,
+  "pa": 5,
+  "tr": 2,
+  "pos": 4,
+  "bp": 2
+ },
+ "Coritiba": {
+  "estilo_text": "Fernando Seabra — Recém-promovido, tende a postura mais reativa/defensiva",
+  "confianca": "media",
+  "bb": 4,
+  "pa": 2,
+  "tr": 3,
+  "pos": 2,
+  "bp": 2
+ },
+ "Internacional": {
+  "estilo_text": "Pezzolano — Futebol ofensivo e vertical, gosta de atacar rápido",
+  "confianca": "alta",
+  "bb": 2,
+  "pa": 3,
+  "tr": 5,
+  "pos": 3,
+  "bp": 3
+ },
+ "Bragantino": {
+  "estilo_text": "Vagner Mancini — Contra-ataques organizados como arma principal",
+  "confianca": "alta",
+  "bb": 3,
+  "pa": 2,
+  "tr": 4,
+  "pos": 2,
+  "bp": 3
+ },
+ "Remo": {
+  "estilo_text": "Juan Carlos Osorio — prioriza posse de bola e jogo posicional, tenta empurrar o rival para trás e ocupar o campo adversário, pressão alta após perda de bola. Alta rotatividade de escalação (não repete time). ⚠️ Ressalva: é o discurso/identidade do técnico — Remo é recém-promovido e pode não ter elenco pra sustentar essa proposta ambiciosa contra times grandes. Fonte: múltiplas entrevistas do próprio técnico (Lance, O Liberal, dez/2025-jan/2026).",
+  "confianca": "alta",
+  "bb": 2,
+  "pa": 4,
+  "tr": 2,
+  "pos": 4,
+  "bp": 3
+ },
+ "Santos": {
+  "estilo_text": "Cuca (desde mar/2026, não Vojvoda) — dado desatualizado no banco anterior; sem estilo tático 2026 pesquisado ainda para Cuca no Santos",
+  "confianca": "baixa",
+  "bb": 3,
+  "pa": 3,
+  "tr": 3,
+  "pos": 3,
+  "bp": 3
+ },
+ "Botafogo": {
+  "estilo_text": "Franclim Carvalho — agressivo, vertical, ofensivo; ele mesmo diz 'não gosto de controlar o jogo com a bola, de ser muito paciente'. Time líder do Brasil em remates, ataques, escanteios e passes progressivos desde sua chegada — mas vulnerável defensivamente (~2 gols sofridos/jogo). Fonte: entrevistas diretas do técnico (Conferência Bola Branca, mai/2026) e cobertura recorrente.",
+  "confianca": "alta",
+  "bb": 1,
+  "pa": 2,
+  "tr": 5,
+  "pos": 3,
+  "bp": 4
+ },
+ "Fluminense": {
+  "estilo_text": "Luis Zubeldía — Tendência a posse organizada e pressão (perfil ex-São Paulo)",
+  "confianca": "media",
+  "bb": 2,
+  "pa": 4,
+  "tr": 3,
+  "pos": 4,
+  "bp": 3
+ },
+ "Chapecoense": {
+  "estilo_text": "Gilmar Dal Pozzo — Recém-promovido, provável postura reativa como time menor",
+  "confianca": "media",
+  "bb": 4,
+  "pa": 2,
+  "tr": 3,
+  "pos": 2,
+  "bp": 2
+ },
+ "Bahia": {
+  "estilo_text": "Rogério Ceni — Jogo posicional, movimentação e infiltração — posse construída",
+  "confianca": "alta",
+  "bb": 2,
+  "pa": 4,
+  "tr": 3,
+  "pos": 4,
+  "bp": 3
+ },
+ "Mirassol": {
+  "estilo_text": "Rafael Guanaes — Vertical, intenso, linhas altas, marcação por zona, chegadas rápidas",
+  "confianca": "alta",
+  "bb": 2,
+  "pa": 3,
+  "tr": 5,
+  "pos": 3,
+  "bp": 3
+ }
+}
