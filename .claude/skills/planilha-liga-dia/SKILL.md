@@ -226,6 +226,19 @@ Over/Under 1.5/3.5, 1º Tempo), calibrar um Poisson simples com os λ que
 reproduzem a linha de Over/Under 2.5 e o moneyline realmente cotados, e
 derivar as demais probabilidades a partir daí.
 
+⚠️ **Isso é um lembrete fácil de esquecer** (já esqueci uma vez, 23/07):
+"Over 0.5 gols 1ºT"/"Under 0.5 gols 1ºT" em `analise.py`
+(`p_plan`/`avaliar_mercados`) usam `lambda_ft = (la+lb)*0.42` — o MESMO λ do
+jogo, sem depender de nenhuma odd externa. Isso significa que **não existe
+odd real pra pesquisar nesse mercado** (nem em Handicap Asiático/O-U
+1.5/3.5, no fundo) — o "P.Font"/"Odd Mercado" desses mercados no fluxo
+original sempre foram o PRÓPRIO P.Plan travestido de odd (dá pra conferir
+no arquivo do Lucas: P.Font e P.Mkt de "Over 0.5 gols 1ºT" ficam a menos de
+3pp do P.Plan em todo jogo — não é coincidência, é auto-referência). Se for
+montar P.Comb/Edge/Critério pra esses mercados, deixar claro pro usuário que
+é o modelo comparando com ele mesmo, não uma checagem contra o mercado real
+— o valor está em ver o P.Plan isolado, não em fingir que há edge.
+
 Preencher (mesmo formato nas 3 ligas):
 ```python
 jdd_A = dict(estilo_time=..., estilo_adv=..., fav=0.610,  # prob. normalizada
