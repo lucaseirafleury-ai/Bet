@@ -27,24 +27,11 @@
 
 <main class="layout">
 
-  <section class="col col-controls">
+  <section class="col col-live">
     <div class="panel">
-      <h2>Controles</h2>
-      <button id="btn-prelive" class="btn btn-primary">Rodar análise pré-live</button>
-      <p class="hint">Busca os próximos jogos das 5 ligas e monta o esperado (placar modal, favoritos de posse/pressão/xG).</p>
-
-      <div class="divider"></div>
-
-      <button id="btn-live-start" class="btn btn-live-on">Iniciar monitoramento ao vivo</button>
-      <button id="btn-live-stop" class="btn btn-live-off">Parar monitoramento</button>
-      <p class="hint">A partir do minuto {{ 15 }}, compara o jogo real com o esperado e gera sinais quando o desvio passa do limiar.</p>
-
-      <div class="divider"></div>
-
-      <div class="status-block">
-        <div class="status-row"><span>Última checagem</span><span id="status-ultima-checagem">—</span></div>
-        <div class="status-row"><span>Jogos ao vivo monitorados</span><span id="status-qtd-jogos">0</span></div>
-        <div class="status-row"><span>Relatórios pré-live</span><span id="status-qtd-prelive">0</span></div>
+      <h2>Sinais ao vivo</h2>
+      <div id="insights-feed" class="feed">
+        <p class="empty-state">Nenhum sinal gerado ainda.</p>
       </div>
     </div>
   </section>
@@ -58,18 +45,9 @@
     </div>
 
     <div class="panel" style="margin-top:16px">
-      <h2>Esperado para os próximos jogos <span class="muted" id="prelive-gerado-em"></span></h2>
+      <h2>Próximos jogos <span class="muted" id="prelive-gerado-em"></span></h2>
       <div id="prelive-lista" class="card-grid">
-        <p class="empty-state">Nenhuma análise pré-live ainda. Clique em "Rodar análise pré-live".</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="col col-live">
-    <div class="panel">
-      <h2>Sinais ao vivo</h2>
-      <div id="insights-feed" class="feed">
-        <p class="empty-state">Nenhum sinal gerado ainda.</p>
+        <p class="empty-state">Nenhuma análise pré-live ainda.</p>
       </div>
     </div>
   </section>

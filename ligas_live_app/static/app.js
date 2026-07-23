@@ -1,10 +1,5 @@
 const $ = (sel) => document.querySelector(sel);
 
-async function postJSON(url) {
-  const r = await fetch(url, { method: "POST" });
-  return r.json();
-}
-
 async function getJSON(url) {
   const r = await fetch(url);
   return r.json();
@@ -14,10 +9,9 @@ function renderPrelive(data) {
   const lista = $("#prelive-lista");
   const relatorios = data.relatorios || [];
   $("#prelive-gerado-em").textContent = data.gerado_em ? `— gerado em ${data.gerado_em}` : "";
-  $("#status-qtd-prelive").textContent = relatorios.length;
 
   if (relatorios.length === 0) {
-    lista.innerHTML = `<p class="empty-state">Nenhuma análise pré-live ainda. Clique em "Rodar análise pré-live".</p>`;
+    lista.innerHTML = `<p class="empty-state">Nenhuma análise pré-live ainda.</p>`;
     return;
   }
 
@@ -191,11 +185,6 @@ function renderInsights(lista) {
 }
 
 function renderStatus(status) {
-  $("#status-ultima-checagem").textContent = status.ultima_checagem
-    ? new Date(status.ultima_checagem).toLocaleTimeString("pt-BR")
-    : "—";
-  $("#status-qtd-jogos").textContent = status.jogos_ao_vivo_monitorados ?? 0;
-
   const pill = $("#relogio-status");
   if (status.monitor_ativo) {
     pill.textContent = "monitor: ativo";
@@ -218,21 +207,6 @@ async function atualizarTudo() {
   renderStatus(status);
   renderLive(liveSnapshots);
 }
-
-$("#btn-prelive").addEventListener("click", async () => {
-  const r = await postJSON("/api/rodar-prelive");
-  alert(r.mensagem);
-});
-
-$("#btn-live-start").addEventListener("click", async () => {
-  const r = await postJSON("/api/iniciar-live");
-  alert(r.mensagem);
-});
-
-$("#btn-live-stop").addEventListener("click", async () => {
-  const r = await postJSON("/api/parar-live");
-  alert(r.mensagem);
-});
 
 atualizarTudo();
 setInterval(atualizarTudo, 15000); // atualiza a cada 15s
