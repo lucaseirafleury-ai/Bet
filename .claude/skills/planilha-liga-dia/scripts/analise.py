@@ -29,7 +29,7 @@ Uso típico:
     import sys
     sys.path.insert(0, "/mnt/skills/user/planilha-liga-dia/scripts")
     from planilha_lib import get_historico, attach_estilo, load_all_matches, buscar_padroes_liga
-    from ligas import estilo_db_path
+    from ligas import estilo_db_path, mando_shrink_k_default
     from analise import analisar_jogo, relatorio_dia
 
     df = load_all_matches()
@@ -41,7 +41,9 @@ Uso típico:
     jogo = dict(teamA="Ceará", teamB="Athletic Club", hist_A=hist_A, hist_B=hist_B,
                 jdd_A=jdd_A, jdd_B=jdd_B, favorito="A",
                 odds_and_pfont=[("50%", 1.9)] * 20,   # 20 tuplas, ordem de MERCADOS_TEMPLATE_20
-                data_jogo="13/07/2026")
+                data_jogo="13/07/2026",
+                mando_A="Casa", mando_B="Fora",              # Ceará manda o jogo hoje
+                mando_k=mando_shrink_k_default("serieb"))    # OBRIGATÓRIO em Série A/B (NUNCA em Copa)
 
     print(relatorio_dia([jogo], csv_glob=".../data/matches/*seriebmatches*.csv"))
 """
@@ -116,12 +118,20 @@ def aderencia_favoritismo(rec, jdd):
     return 1 - abs(fav_hist - jdd["fav"])
 
 
-def preparar_historico(hist, jdd, data_jogo):
+def preparar_historico(hist, jdd, data_jogo, mando_hoje=None, mando_k=None):
     """Enriquece cada registro do histórico (já com attach_estilo aplicado)
     com aderencia_estilo/aderencia_favoritismo/peso_recencia/peso_final/valid
     — a mesma coisa que Times!AG/AH/AI/AK fazem na planilha, mas calculado
     direto em Python. Não depende de mult_dp (isso só entra em
-    pro_contra_stat). Retorna uma NOVA lista (não modifica hist original)."""
+    pro_contra_stat). Retorna uma NOVA lista (não modifica hist original).
+
+    mando_hoje/mando_k: equivalente a aplicar_ajuste_mando (planilha_lib) —
+    OBRIGATÓRIO para Série A/B (torneios com mando real), NUNCA usar na Copa
+    (neutra). mando_hoje = "Casa" ou "Fora" (o mando do time HOJE); mando_k =
+    fator de encolhimento dos jogos do mando oposto (pegue de
+    ligas.mando_shrink_k_default(liga), não invente um valor). Se
+    mando_hoje for None, o ajuste de mando NÃO é aplicado (equivale a k=1.0,
+    "sem mando" — correto só para a Copa)."""
     hoje = _parse_data(data_jogo)
     out = []
     for rec in hist:
@@ -130,7 +140,11 @@ def preparar_historico(hist, jdd, data_jogo):
         r["_ah"] = aderencia_favoritismo(rec, jdd)
         dias = (hoje - _parse_data(rec["data"])).days
         r["_ai"] = peso_recencia(dias)
-        r["_ak"] = r["_ag"] * r["_ah"] * r["_ai"]
+        fator_mando = 1.0
+        if mando_hoje is not None:
+            fator_mando = 1.0 if rec.get("mando") == mando_hoje else mando_k
+        r["_fator_mando"] = fator_mando
+        r["_ak"] = r["_ag"] * r["_ah"] * r["_ai"] * fator_mando
         r["_valid"] = (r["_ag"] >= 0.65) and (r["_ah"] >= 0.65)
         out.append(r)
     return out
@@ -394,12 +408,23 @@ def avaliar_mercados(teamA, teamB, favorito, odds_and_pfont, la, lb,
 
 def analisar_jogo(teamA, teamB, hist_A, hist_B, jdd_A, jdd_B, favorito,
                    odds_and_pfont, data_jogo, displayA=None, displayB=None,
-                   mult_dp=CORTE_MULTIPLICADOR_DP_DEFAULT):
-    """Pipeline completo pra 1 jogo, sem Excel: aderência/peso -> Pró/Contra
-    V2 -> λ -> P.Plan/P.Comb/Critérios pros 20 mercados. Retorna a lista de
-    linhas de avaliar_mercados()."""
-    hp_A = preparar_historico(hist_A, jdd_A, data_jogo)
-    hp_B = preparar_historico(hist_B, jdd_B, data_jogo)
+                   mult_dp=CORTE_MULTIPLICADOR_DP_DEFAULT,
+                   mando_A=None, mando_B=None, mando_k=None):
+    """Pipeline completo pra 1 jogo, sem Excel: aderência/peso/mando ->
+    Pró/Contra V2 -> λ -> P.Plan/P.Comb/Critérios pros 20 mercados. Retorna
+    a lista de linhas de avaliar_mercados().
+
+    mando_A/mando_B ("Casa"/"Fora") + mando_k: equivalente a
+    aplicar_ajuste_mando (planilha_lib) — OBRIGATÓRIO pra Série A/B (ver
+    ligas.mando_shrink_k_default(liga)), NUNCA passar pra Copa (neutra). O
+    ajuste só é de fato aplicado se mando_k não for None — assim
+    gerar_shortlist() pode ter mando_A/mando_B com default ("Casa"/"Fora",
+    usados só pra padroes_em_comum) sem acidentalmente ligar o ajuste de
+    mando sem um k explícito."""
+    mando_A_ok = mando_A if mando_k is not None else None
+    mando_B_ok = mando_B if mando_k is not None else None
+    hp_A = preparar_historico(hist_A, jdd_A, data_jogo, mando_hoje=mando_A_ok, mando_k=mando_k)
+    hp_B = preparar_historico(hist_B, jdd_B, data_jogo, mando_hoje=mando_B_ok, mando_k=mando_k)
     stats_A = jdd_stats(hp_A, mult_dp=mult_dp)
     stats_B = jdd_stats(hp_B, mult_dp=mult_dp)
     la, lb = lambda_ab(stats_A, stats_B)
@@ -444,7 +469,7 @@ def gerar_shortlist(teamA, teamB, hist_A, hist_B, jdd_A, jdd_B, favorito,
                      odds_and_pfont, data_jogo, csv_glob,
                      displayA=None, displayB=None,
                      p_comb_min=0.65, mult_dp_robustez=1.25, odd_max=2.0,
-                     mando_A="Casa", mando_B="Fora"):
+                     mando_A="Casa", mando_B="Fora", mando_k=None):
     """Reproduz o fluxo manual de Lucas pra 1 jogo:
       1. Avalia os 20 mercados com o desvio-padrão padrão (2.5).
       2. Filtra P.Comb >= p_comb_min (65% por padrão).
@@ -453,13 +478,20 @@ def gerar_shortlist(teamA, teamB, hist_A, hist_B, jdd_A, jdd_B, favorito,
       4. Descarta odd de mercado > odd_max (2.0 por padrão).
       5. Cruza a aba Padrões dos dois times (padroes_em_comum).
     Retorna dict(entradas=[...], padroes_comuns=[...]).
+
+    mando_A/mando_B: mando de cada time HOJE ("Casa"/"Fora") — usados tanto
+    no ajuste de mando do λ quanto no cruzamento de Padrões. mando_k: pegue
+    de ligas.mando_shrink_k_default(liga); passe None só para Copa (torneio
+    neutro, sem ajuste de mando).
     """
     linhas_base = analisar_jogo(teamA, teamB, hist_A, hist_B, jdd_A, jdd_B, favorito,
                                  odds_and_pfont, data_jogo, displayA, displayB,
-                                 mult_dp=CORTE_MULTIPLICADOR_DP_DEFAULT)
+                                 mult_dp=CORTE_MULTIPLICADOR_DP_DEFAULT,
+                                 mando_A=mando_A, mando_B=mando_B, mando_k=mando_k)
     linhas_robustas = analisar_jogo(teamA, teamB, hist_A, hist_B, jdd_A, jdd_B, favorito,
                                      odds_and_pfont, data_jogo, displayA, displayB,
-                                     mult_dp=mult_dp_robustez)
+                                     mult_dp=mult_dp_robustez,
+                                     mando_A=mando_A, mando_B=mando_B, mando_k=mando_k)
     plan_robusto = {l["mercado"]: l["p_plan"] for l in linhas_robustas}
 
     entradas = []

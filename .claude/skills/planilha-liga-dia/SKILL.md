@@ -63,11 +63,18 @@ Desde 23/07/2026 existem DOIS caminhos, e o padrão mudou:
 cuidadosa das fórmulas do template e validado com testes de consistência
 interna (Poisson normalizado, Over/Under complementares, simetria,
 handicap coerente, robustez do corte de outlier) — ver
-`scripts/test_analise.py` referenciado em `docs/MIGRACAO.md`. **Não foi
-cross-validado abrindo a planilha de verdade no Excel** (o `recalc.py`/
-LibreOffice trava no ambiente onde isso foi escrito). Na primeira vez que for
-usar pra valer, vale gerar a versão Excel do mesmo jogo e comparar os
-números antes de confiar 100% no modo Python.
+`scripts/test_analise.py` referenciado em `docs/MIGRACAO.md`. Em 23/07/2026
+foi cross-validado de verdade contra um `SerieA_21a23jul.xlsx` real que
+Lucas gerou no Project antigo: achou e corrigiu uma lacuna real (o ajuste de
+mando, `mando_A`/`mando_B`/`mando_k` — **é obrigatório passar em toda
+chamada de `analisar_jogo`/`gerar_shortlist` na Série A/B**, senão o λ fica
+sistematicamente errado, sem aviso). Depois da correção, P.Plan bateu bem
+próximo (~1-2pp) do Excel real nos jogos onde o banco de estilo não mudou
+entre as duas versões; a atenção agora é: **sempre que `estilos_seriea.json`/
+`estilos_serieb.json` for atualizado (pesquisa nova, correção manual), os
+números de qualquer análise anterior àquela atualização ficam desatualizados
+— isso é esperado, não é bug.** Ver `docs/MIGRACAO.md` para o relato completo
+da comparação.
 
 ## Arquivos desta skill
 

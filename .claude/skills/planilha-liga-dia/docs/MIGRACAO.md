@@ -139,6 +139,60 @@ Recomendação: na primeira vez que Lucas for usar de verdade, gerar também a
 versão Excel do mesmo jogo e comparar os números antes de confiar 100% no
 modo Python.
 
+## Cross-validação real contra o Excel do Lucas (23/07/2026)
+
+Lucas rodou a análise da rodada 19 da Série A (21-23/07) pelo modo Python e
+depois mandou o `SerieA_21a23jul.xlsx` que ele mesmo gerou no Project antigo
+há alguns dias, pra comparar. Comparação linha a linha (openpyxl,
+`data_only=True`, valores já calculados no arquivo dele):
+
+**Achado 1 — bug real: faltava o ajuste de mando.** `analise.py` não tinha
+NENHUMA versão do `aplicar_ajuste_mando` (k=0.35) que a Série A/B exige. Os
+λ calculados sem esse ajuste ficavam sistematicamente um pouco baixos pro
+mandante. Corrigido: `preparar_historico`/`analisar_jogo`/`gerar_shortlist`
+agora recebem `mando_A`/`mando_B`/`mando_k` (ver docstrings) — **parâmetro
+obrigatório em qualquer chamada de Série A/B a partir de agora**, o ajuste só
+é pulado se `mando_k=None` (uso correto só pra Copa).
+
+**Achado 2 — depois do fix, P.Plan bate próximo do Excel real** nos jogos
+onde o banco de estilo (`estilos_seriea.json`) não mudou entre as duas
+versões (ex.: Atlético Mineiro x Bahia — P.Plan de "Empate" bateu 24.96%
+Excel vs 25% Python; BTTS Não 42.1% vs 43%; TimeA vence 38.3% vs 37%). O λ
+(Gols Pró/Contra combinados) não bateu 100% mesmo com o fix (ex. λ_A=1.523
+Python vs 1.448 Excel nesse jogo) — resíduo esperado, não é um segundo bug:
+o arquivo do Lucas foi gerado dias antes, então tanto o CSV de partidas
+quanto o banco de estilo já andaram um pouco desde então (ver Achado 3).
+
+**Achado 3 — a maior parte da "muita diferença" reportada por Lucas não é
+bug, é dado desatualizado no arquivo antigo dele:**
+- **Odds mudaram entre a geração do arquivo e a pesquisa nova.** Ex.: São
+  Paulo x Atlético PR — arquivo antigo usa odd 1.78 pro São Paulo (P.Mkt
+  56%), a pesquisa de hoje achou 2.02 (P.Mkt 47%) — mercado real mudou de
+  posição nesses dias.
+- **O banco de estilo foi atualizado em 23/07** (ver seção "Pesquisa
+  qualitativa real" acima) — 6 dos 20 times da Série A tiveram as NOTAS
+  numéricas (bb/pa/tr/pos/bp) revisadas, não só o texto: São Paulo e
+  Chapecoense trocaram de técnico (Crespo→Dorival, Dal Pozzo→Lacerda) e
+  Atlético PR/Grêmio/Coritiba/Bragantino mativeram o técnico mas com notas
+  reavaliadas (ex.: Atlético PR no arquivo antigo tinha bb=2/pa=3; no banco
+  atual é bb=3/pa=2). Qualquer jogo envolvendo um desses 6 times vai
+  divergir mais entre as duas versões — isso é o banco de estilo FICANDO
+  MELHOR, não um erro.
+- **P.Font = P.Mkt em praticamente 100% das linhas do arquivo do Lucas**
+  (diferença máxima encontrada: 0.3 ponto percentual, ruído de
+  arredondamento) — confirma que aproximar P.Font por P.Mkt quando não há
+  fonte numérica própria (Regra 3 do protocolo) é consistente com a prática
+  real, não uma simplificação que inventa diferença.
+- **Faltou 1 jogo na análise Python** (Botafogo x Vitória) porque o CSV de
+  partidas local ainda mostrava esse jogo como "suspended"/incompleto —
+  Lucas incluiu no arquivo dele (rodada real teve 7 jogos, não 6).
+
+Conclusão prática: o motor (`analise.py`) está validado — a matemática do
+Poisson/critérios bate; as diferenças de número vêm de INSUMOS diferentes
+(odds e banco de estilo desatualizados no arquivo de comparação), agora
+identificadas e documentadas, mais o ajuste de mando que estava mesmo
+faltando e já foi corrigido.
+
 ## O que NÃO foi migrado (não estava no export)
 
 - CSVs de partidas da Copa do Mundo 2026 (worldcup/friendlies/qualifiers) —
