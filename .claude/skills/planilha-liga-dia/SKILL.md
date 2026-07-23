@@ -133,12 +133,15 @@ NOVOS = {
 attach_estilo(hist_A, estilo_db_path=db, overrides=NOVOS)
 save_estilo_db(NOVOS, estilo_db_path=db)   # salva pro banco persistente, próximas sessões reaproveitam
 ```
-⚠️ **`data/estilos_serieb.json` está VAZIO** — o banco de 20 times da Série B
-(notas salvas em 12/07) foi perdido num export anterior (ver
-`docs/MIGRACAO.md`). Vai precisar reconstruir via overrides + `save_estilo_db`
-até recompor os 20 times. `estilos_seriea.json` veio íntegro mas é um
-RASCUNHO gerado só por estatística (sem validação qualitativa do Lucas) — a
-coluna `tr` (transição) está degenerada, não usar até refazer.
+⚠️ **`data/estilos_serieb.json` e `estilos_seriea.json` são RASCUNHOS gerados
+só por estatística agregada** (posse, escanteios/jogo, gols sofridos/jogo,
+faltas/jogo) — `"confianca": "baixa"` em todas as entradas, sem pesquisa
+qualitativa (técnico, estilo tático observado) nem validação do Lucas. O
+banco original da Série B com notas qualitativas de 12/07 foi perdido num
+export anterior e recuperado só nesta versão estatística (ver
+`docs/MIGRACAO.md`). Antes de confiar no Princípio 5, revisar/completar cada
+time com overrides qualitativos e `save_estilo_db` — a coluna `tr`
+(transição) é a mais frágil desse tipo de derivação puramente estatística.
 
 ### 4. Enriquecimento por liga — SÓ Série A/B (o que a Copa não tinha)
 ```python

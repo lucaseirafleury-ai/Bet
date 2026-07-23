@@ -39,25 +39,34 @@ As 3 skills antigas (`copa-planilha-dia`, `serie-a-planilha-dia`,
   `~/.claude/skills/planilha-liga-dia` para ficar disponível em qualquer
   sessão, não só quando este repo está aberto.
 
-## ⚠️ Perda de dados identificada no export
+## ⚠️ Perda de dados identificada no export (parcialmente recuperada)
 
 O arquivo `serie-b-planilha-dia/estilos_serieb.json` dentro do .zip recebido
 **não continha JSON** — continha uma cópia do texto do `SKILL.md` da mesma
-pasta (import/export trocou o conteúdo dos dois arquivos). Ou seja: **o banco
-de estilos dos 20 times da Série B, com notas salvas em 12/07, foi perdido**
-neste export. `data/estilos_serieb.json` foi recriado aqui como `{}` (vazio)
-em vez de carregar o arquivo corrompido.
+pasta (import/export trocou o conteúdo dos dois arquivos). O mesmo aconteceu
+num segundo arquivo enviado separadamente com o mesmo nome, o que sugere que
+a troca já existia na origem (Project do chat), não só no .zip.
 
-Efeito prático: `attach_estilo(..., estilo_db_path=estilo_db_path("serieb"))`
-vai listar TODOS os adversários como faltantes na próxima planilha da Série B
-até o banco ser reconstruído (via `overrides=` + `save_estilo_db()`, ver
-SKILL.md). Se o Project original no chat ainda existir, vale conferir se o
-arquivo de lá está íntegro antes de reconstruir do zero.
+Em 23/07/2026, Lucas recuperou o conteúdo colando o texto diretamente de uma
+mensagem do Project (sem precisar baixar o arquivo pelo celular) e
+`data/estilos_serieb.json` foi atualizado com os 20 times reais.
+
+**Mas atenção:** essa versão recuperada tem `"confianca": "baixa"` em TODOS
+os 20 times, com o texto `"[Derivado de dados FootyStats 2026, sem scouting
+manual]"` em cada entrada — ou seja, é um banco gerado só por estatística
+agregada (posse, escanteios/jogo, gols sofridos/jogo, faltas/jogo), **não** o
+banco com pesquisa qualitativa (técnico, estilo tático observado) que o
+`SKILL.md` original da Série B descrevia como "notas salvas em 12/07". Tratar
+como o mesmo tipo de rascunho que já existia para a Série A: válido para
+destravar `attach_estilo` (nenhum time falta mais), mas revisar/completar com
+julgamento qualitativo antes de confiar nele para o Princípio 5 — a coluna
+`tr` (transição), em particular, tende a ser a mais fraca desse tipo de
+derivação puramente estatística (mesmo problema já visto na Série A).
 
 O banco da Série A (`estilos_seriea.json`, 20 times) veio íntegro no export —
 mas o próprio `SKILL.md` da Série A já sinalizava que é um RASCUNHO gerado só
 por estatística, sem validação qualitativa do Lucas (ver seção "PENDÊNCIAS"
-no SKILL.md unificado).
+no SKILL.md unificado) — mesmo caveat do banco da Série B agora.
 
 ## O que NÃO foi migrado (não estava no export)
 
