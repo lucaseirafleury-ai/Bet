@@ -239,6 +239,28 @@ montar P.Comb/Edge/Critério pra esses mercados, deixar claro pro usuário que
 é o modelo comparando com ele mesmo, não uma checagem contra o mercado real
 — o valor está em ver o P.Plan isolado, não em fingir que há edge.
 
+## 🎯 Regra de operação — Odd Mercado (referência) vs Odd Betano (confirmação)
+
+Decidido com Lucas em 23/07/2026, depois de comparar um relatório automático
+contra o print real do app dele: **a análise automática (P.Plan/P.Font/
+P.Mkt/P.Comb/Gatilho/Edge/Critério) SEMPRE usa "Odd Mercado" — a odd
+pesquisada/referência (Betano, bet365, agregadores, ou calibrada via Poisson
+quando o mercado não é cotado, ver acima)**. Isso é o suficiente pra gerar a
+lista de "Apostas Analisadas" (P.Comb ≥ 65%, robustez, Gatilho) — cobrir os
+20 mercados de `MERCADOS_TEMPLATE_20` com essa odd de referência é o
+trabalho de toda análise diária, não um extra.
+
+**"Odd Betano" (a odd real, verificada ao vivo no app) é um passo MANUAL e
+POSTERIOR, só quando Lucas for confirmar a entrada de verdade** — ele mesmo
+checa o app na hora de apostar; a skill não tenta adivinhar isso nem
+pré-preencher. Achado real que motivou essa regra (comparação de 23/07):
+uma entrada com P.Comb=68% (Atlético Mineiro DC) passava em qualquer piso
+automático, mas a odd real da Betano checada por Lucas deu "sem valor" —
+prova de que o filtro automático (Analisada) e a decisão final (Confirmada)
+são etapas DIFERENTES por natureza, não um bug de cálculo. Nunca dizer "essa
+entrada é a lista final" — é sempre "essa é a lista analisada; confirme a
+odd real antes de apostar" (Regra 6 do protocolo, inalterada).
+
 Preencher (mesmo formato nas 3 ligas):
 ```python
 jdd_A = dict(estilo_time=..., estilo_adv=..., fav=0.610,  # prob. normalizada
