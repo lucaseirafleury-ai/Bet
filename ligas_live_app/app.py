@@ -14,6 +14,7 @@ from datetime import datetime, timedelta, timezone
 from flask import Flask, jsonify, render_template, request
 
 import config
+from live_monitor import _notificar_push
 
 HORA_PRELIVE_UTC = 6  # 06:00 UTC ~ manhã na Suécia/Lituânia (UTC+2 no verão)
 
@@ -55,6 +56,18 @@ def api_push_subscribe():
         subs.append(sub)
         _salvar_json(config.PUSH_SUBS_FILE, subs)
     return jsonify({"ok": True})
+
+
+@app.route("/api/push-test", methods=["POST"])
+def api_push_test():
+    subs = _ler_json(config.PUSH_SUBS_FILE, [])
+    if not subs:
+        return jsonify({"ok": False, "mensagem": "Nenhuma inscrição de notificação encontrada ainda."})
+    _notificar_push({
+        "jogo": "Teste do painel",
+        "mensagem": "Notificação de teste — se você recebeu isso, está tudo funcionando!",
+    })
+    return jsonify({"ok": True, "mensagem": f"Teste enviado para {len(subs)} inscrição(ões)."})
 
 
 @app.route("/api/prelive")
