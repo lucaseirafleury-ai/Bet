@@ -70,6 +70,29 @@ body {
 .status-off { color: var(--muted); }
 .status-on { color: var(--accent-green); border-color: var(--accent-green); }
 
+.btn-push {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--accent-blue);
+  background: transparent;
+  color: var(--accent-blue);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-push:hover { background: rgba(79,140,255,0.1); }
+.btn-push[disabled] { border-color: var(--accent-green); color: var(--accent-green); cursor: default; }
+
+.push-hint {
+  font-size: 12px;
+  color: var(--accent-amber);
+  background: var(--panel-alt);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 24px;
+}
+
 .layout {
   display: grid;
   grid-template-columns: 380px 1fr;

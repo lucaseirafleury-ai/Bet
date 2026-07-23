@@ -210,3 +210,57 @@ async function atualizarTudo() {
 
 atualizarTudo();
 setInterval(atualizarTudo, 15000); // atualiza a cada 15s
+
+// ── Notificações push (Web Push) ──────────────────────────────
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
+}
+
+function mostrarHintPush(msg) {
+  const hint = $("#push-hint");
+  hint.textContent = msg;
+  hint.style.display = "block";
+}
+
+const emStandalone = window.navigator.standalone === true || window.matchMedia("(display-mode: standalone)").matches;
+
+async function ativarPush() {
+  const btn = $("#btn-ativar-push");
+
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+    mostrarHintPush("Este navegador não suporta notificações push. No iPhone, adicione o site à Tela de Início (compartilhar → \"Adicionar à Tela de Início\") e abra por lá antes de ativar.");
+    return;
+  }
+  if (!emStandalone && /iP(hone|ad|od)/.test(navigator.userAgent)) {
+    mostrarHintPush("No iPhone, primeiro adicione este site à Tela de Início (compartilhar → \"Adicionar à Tela de Início\"), abra o app por lá, e só então clique em Ativar notificações.");
+    return;
+  }
+
+  try {
+    const reg = await navigator.serviceWorker.register("/static/sw.js");
+    const permissao = await Notification.requestPermission();
+    if (permissao !== "granted") {
+      mostrarHintPush("Permissão de notificação negada. Ative nas configurações do navegador/app pra receber os sinais.");
+      return;
+    }
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(window.VAPID_PUBLIC_KEY),
+    });
+    await fetch("/api/push-subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(sub),
+    });
+    btn.textContent = "🔔 Notificações ativas";
+    btn.disabled = true;
+  } catch (e) {
+    mostrarHintPush("Não deu pra ativar as notificações: " + e.message);
+  }
+}
+
+$("#btn-ativar-push").addEventListener("click", ativarPush);

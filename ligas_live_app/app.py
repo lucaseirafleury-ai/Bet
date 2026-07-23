@@ -11,7 +11,7 @@ import webbrowser
 import threading
 from datetime import datetime, timedelta, timezone
 
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 
 import config
 
@@ -31,9 +31,30 @@ def _ler_json(caminho, default):
         return json.load(fp)
 
 
+def _salvar_json(caminho, obj):
+    os.makedirs(config.DATA_DIR, exist_ok=True)
+    with open(caminho, "w", encoding="utf-8") as fp:
+        json.dump(obj, fp, ensure_ascii=False, indent=2)
+
+
 @app.route("/")
 def home():
-    return render_template("dashboard.html", ligas=config.LIGAS_MONITORADAS, margem_valor=config.LIMIAR_MARGEM_VALOR)
+    return render_template(
+        "dashboard.html",
+        ligas=config.LIGAS_MONITORADAS,
+        margem_valor=config.LIMIAR_MARGEM_VALOR,
+        vapid_public_key=config.VAPID_PUBLIC_KEY,
+    )
+
+
+@app.route("/api/push-subscribe", methods=["POST"])
+def api_push_subscribe():
+    sub = request.get_json(force=True)
+    subs = _ler_json(config.PUSH_SUBS_FILE, [])
+    if not any(s.get("endpoint") == sub.get("endpoint") for s in subs):
+        subs.append(sub)
+        _salvar_json(config.PUSH_SUBS_FILE, subs)
+    return jsonify({"ok": True})
 
 
 @app.route("/api/prelive")

@@ -42,6 +42,13 @@ INTERVALO_POLLING_SEGUNDOS = 60  # frequência de checagem durante o jogo
 JANELA_MOMENTUM = 3   # quantas leituras recentes usa para confirmar tendência
 MIN_LEITURAS_CONSISTENTES = 2  # de quantas dessas precisa concordar na direção
 
+# ── Notificações push (Web Push / VAPID) ───────────────────────
+# Chave pública: vai para o navegador, não é sigilosa.
+VAPID_PUBLIC_KEY = "BNZ16axPU6HdeIDLV10BTfc5c5XYEkibrWP6nH3pfMDsriGlEVOHjHALTfDgh-Tfbyx84yyxK3FwLX2rx_Hj4Fk"
+# Chave privada: define via variável de ambiente VAPID_PRIVATE_KEY em deploy na nuvem.
+VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "")
+VAPID_CLAIMS_EMAIL = "mailto:lucaseirafleury@gmail.com"
+
 # ── Arquivos de dados (não editar) ────────────────────────────
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 PRELIVE_FILE = os.path.join(DATA_DIR, "prelive_reports.json")
@@ -49,3 +56,4 @@ LIVE_INSIGHTS_FILE = os.path.join(DATA_DIR, "live_insights.json")
 LIVE_SNAPSHOTS_FILE = os.path.join(DATA_DIR, "live_snapshots.json")
 LIVE_HISTORY_FILE = os.path.join(DATA_DIR, "live_history.json")
 STATUS_FILE = os.path.join(DATA_DIR, "status.json")
+PUSH_SUBS_FILE = os.path.join(DATA_DIR, "push_subscriptions.json")

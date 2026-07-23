@@ -19,6 +19,8 @@ import os
 import time
 from datetime import datetime
 
+from pywebpush import webpush, WebPushException
+
 import config
 import sportmonks_client as sm
 from xg_pressure import (
@@ -46,6 +48,46 @@ def _salvar(caminho, obj):
     os.makedirs(config.DATA_DIR, exist_ok=True)
     with open(caminho, "w", encoding="utf-8") as fp:
         json.dump(obj, fp, ensure_ascii=False, indent=2)
+
+
+# ── Notificação push (Web Push) ────────────────────────────────
+
+def _notificar_push(insight):
+    if not config.VAPID_PRIVATE_KEY:
+        return
+    inscricoes = _carregar(config.PUSH_SUBS_FILE, [])
+    if not inscricoes:
+        return
+
+    payload = json.dumps({
+        "title": insight["jogo"],
+        "body": insight["mensagem"],
+        "url": "/",
+    })
+
+    validas = []
+    for sub in inscricoes:
+        try:
+            webpush(
+                subscription_info=sub,
+                data=payload,
+                vapid_private_key=config.VAPID_PRIVATE_KEY,
+                vapid_claims={"sub": config.VAPID_CLAIMS_EMAIL},
+            )
+            validas.append(sub)
+        except WebPushException as e:
+            codigo = getattr(e.response, "status_code", None)
+            if codigo not in (404, 410):  # inscrição expirada/removida pelo navegador
+                print(f"[push] erro ao enviar (mantendo inscrição): {e}")
+                validas.append(sub)
+            else:
+                print(f"[push] inscrição expirada removida: {e}")
+        except Exception as e:
+            print(f"[push] erro ao enviar: {e}")
+            validas.append(sub)
+
+    if len(validas) != len(inscricoes):
+        _salvar(config.PUSH_SUBS_FILE, validas)
 
 
 def carregar_prelive():
@@ -321,6 +363,7 @@ def ciclo():
             insights.append(c)
             ids_ja_gerados.add(chave)
             print(f"[INSIGHT] {c['jogo']} — {c['mensagem']}")
+            _notificar_push(c)
 
     _salvar(config.LIVE_INSIGHTS_FILE, insights)
     _salvar(config.LIVE_HISTORY_FILE, historico)

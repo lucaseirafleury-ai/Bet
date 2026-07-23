@@ -7,6 +7,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/style.css">
+<link rel="manifest" href="/static/manifest.json">
+<link rel="apple-touch-icon" href="/static/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sinais Live">
+<meta name="theme-color" content="#0a0c0f">
 </head>
 <body>
 
@@ -21,9 +27,11 @@
     {% endfor %}
   </div>
   <div class="topbar-right">
+    <button id="btn-ativar-push" class="btn-push">🔔 Ativar notificações</button>
     <span id="relogio-status" class="status-pill status-off">monitor: parado</span>
   </div>
 </header>
+<div id="push-hint" class="push-hint" style="display:none"></div>
 
 <main class="layout">
 
@@ -54,7 +62,10 @@
 
 </main>
 
-<script>window.MARGEM_VALOR = {{ margem_valor }};</script>
+<script>
+  window.MARGEM_VALOR = {{ margem_valor }};
+  window.VAPID_PUBLIC_KEY = {{ vapid_public_key|tojson }};
+</script>
 <script src="/static/app.js"></script>
 </body>
 </html>
