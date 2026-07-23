@@ -51,22 +51,43 @@ Em 23/07/2026, Lucas recuperou o conteúdo colando o texto diretamente de uma
 mensagem do Project (sem precisar baixar o arquivo pelo celular) e
 `data/estilos_serieb.json` foi atualizado com os 20 times reais.
 
-**Mas atenção:** essa versão recuperada tem `"confianca": "baixa"` em TODOS
-os 20 times, com o texto `"[Derivado de dados FootyStats 2026, sem scouting
-manual]"` em cada entrada — ou seja, é um banco gerado só por estatística
-agregada (posse, escanteios/jogo, gols sofridos/jogo, faltas/jogo), **não** o
-banco com pesquisa qualitativa (técnico, estilo tático observado) que o
-`SKILL.md` original da Série B descrevia como "notas salvas em 12/07". Tratar
-como o mesmo tipo de rascunho que já existia para a Série A: válido para
-destravar `attach_estilo` (nenhum time falta mais), mas revisar/completar com
-julgamento qualitativo antes de confiar nele para o Princípio 5 — a coluna
-`tr` (transição), em particular, tende a ser a mais fraca desse tipo de
-derivação puramente estatística (mesmo problema já visto na Série A).
+Essa versão recuperada tinha `"confianca": "baixa"` em TODOS os 20 times, com
+o texto `"[Derivado de dados FootyStats 2026, sem scouting manual]"` em cada
+entrada — ou seja, era um banco gerado só por estatística agregada, **não** o
+banco com pesquisa qualitativa que o `SKILL.md` original da Série B descrevia
+como "notas salvas em 12/07".
 
-O banco da Série A (`estilos_seriea.json`, 20 times) veio íntegro no export —
-mas o próprio `SKILL.md` da Série A já sinalizava que é um RASCUNHO gerado só
-por estatística, sem validação qualitativa do Lucas (ver seção "PENDÊNCIAS"
-no SKILL.md unificado) — mesmo caveat do banco da Série B agora.
+### Pesquisa qualitativa real (23/07/2026)
+
+A pedido de Lucas ("é possível você fazer com base em fontes fortes?"), os
+dois bancos foram revisados com pesquisa real (WebSearch por time, técnico
+atual + estilo tático + fonte citada):
+
+- **`estilos_seriea.json` — concluído.** Verificado time a time: 7 times
+  tinham técnico desatualizado no banco antigo e foram reescritos (Cruzeiro:
+  Tite→Artur Jorge; Corinthians: Dorival→Diniz; Vasco: Diniz→Renato Gaúcho;
+  Remo: Osório→Léo Condé; Chapecoense: Dal Pozzo→Rafael Lacerda; Santos:
+  Cuca confirmado mas com pesquisa tática real pela primeira vez; São Paulo:
+  Crespo→Roger Machado→Dorival Júnior). Outros 4 mantiveram o técnico mas
+  ganharam fonte/citação mais forte (Grêmio, Atlético PR, Coritiba,
+  Bragantino). Os 9 restantes já estavam corretos e só foram confirmados.
+  Nenhum time ficou em confiança baixa — os 8 em "media" (Vitória, Flamengo,
+  Cruzeiro, Grêmio, Atlético PR, Remo, Santos, Chapecoense) têm identidade
+  tática indireta (análise de jornalista/discurso de apresentação) em vez de
+  citação direta e consistente do próprio técnico.
+- **`estilos_serieb.json` — em andamento.** Banco do zero (não havia nenhuma
+  pesquisa qualitativa prévia para reaproveitar). Uma primeira tentativa
+  esbarrou no limite de sessão da API antes de escrever qualquer coisa (sem
+  dano ao arquivo); uma segunda tentativa está rodando salvando em lotes
+  parciais para não perder progresso se cair de novo. Ver o próprio arquivo
+  para o estado atual — enquanto um time ainda tiver o texto "[Derivado de
+  dados FootyStats 2026, sem scouting manual]", ele não foi atualizado ainda.
+
+Mesmo pesquisado, este é um banco de **estimativas de estilo, não um dado
+objetivo** — é normal e esperado revisar/corrigir manualmente quando o
+próprio Lucas discordar de uma nota específica (ver o mecanismo de
+`overrides=` + `save_estilo_db()` no `SKILL.md`, o mesmo usado pra correções
+pontuais desde a Copa).
 
 ## O que NÃO foi migrado (não estava no export)
 

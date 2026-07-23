@@ -1,6 +1,6 @@
 {
  "Vitória": {
-  "estilo_text": "Jair Ventura — Postura defensiva/pragmática — time lutando contra rebaixamento",
+  "estilo_text": "Jair Ventura — segue no comando desde out/2025; chegou a 50 jogos pelo clube em jul/2026 (26V-8E-16D, ~57% de aproveitamento), conquistou a Copa do Nordeste 2026 e eliminou o Flamengo na Copa do Brasil. Time pragmático, joga mais fechado e explora bola parada e contra-ataques, sem grande protagonismo com a bola. Fonte: Lance, Alô Alô Bahia, Bahia Econômica (jul/2026).",
   "confianca": "media",
   "bb": 4,
   "pa": 2,
@@ -9,7 +9,7 @@
   "bp": 2
  },
  "Flamengo": {
-  "estilo_text": "Leonardo Jardim (confirmado por Lucas) — busca equilíbrio coletivo e controle emocional do jogo, mais pragmático que a fase Filipe Luís; time mantém qualidade técnica alta mas sem depender só de talento individual",
+  "estilo_text": "Leonardo Jardim — assumiu em mar/2026; busca equilíbrio coletivo e controle emocional do jogo, mais pragmático que a fase Filipe Luís, mantendo qualidade técnica alta sem depender só de talento individual. Em jul/2026 seguia rodando o elenco em amistosos para dar minutos a jogadores menos utilizados. Fonte: Radioagência Nacional (mar/2026), Terra (jul/2026).",
   "confianca": "media",
   "bb": 3,
   "pa": 4,
@@ -18,34 +18,34 @@
   "bp": 3
  },
  "Cruzeiro": {
-  "estilo_text": "Tite — Solidez defensiva, construção paciente, triangulações; forte em bola parada",
-  "confianca": "alta",
-  "bb": 3,
-  "pa": 4,
-  "tr": 2,
-  "pos": 4,
-  "bp": 4
- },
- "Grêmio": {
-  "estilo_text": "Luís Castro — Organização defensiva em evolução, posse moderada",
+  "estilo_text": "Artur Jorge (ex-Botafogo, campeão da Libertadores 2024) — assumiu em mar/2026 no lugar de Tite (dado antigo do banco anterior estava desatualizado); time passou a jogar de forma mais ofensiva e dinâmica, no molde do Botafogo dele, com pressão e verticalidade. Em jul/2026 dizia que o Cruzeiro 'faz o Brasileirão ao contrário' (melhorando ao longo do returno) e cobrava 'exigência máxima' em Libertadores, Copa do Brasil e Brasileirão simultaneamente. Fonte: O Tempo, Rádio Itatiaia, Central da Toca, NoAtaque (jul/2026).",
   "confianca": "media",
-  "bb": 3,
-  "pa": 3,
-  "tr": 2,
+  "bb": 2,
+  "pa": 4,
+  "tr": 4,
   "pos": 3,
   "bp": 3
  },
- "São Paulo": {
-  "estilo_text": "Hernán Crespo — Perfil ofensivo mas sem descrição tática 2026 confirmada",
+ "Grêmio": {
+  "estilo_text": "Luís Castro — trabalha o time em dois sistemas (linha de 5 e linha de 4 defensores) e se define como 'amante do jogo ofensivo'; disse que a intertemporada serviu para 'trabalhar algumas das ideias do ofensivo, defensivo, transições e esquemas táticos'. Time ainda em fase de adaptação ao modelo, buscando subir na tabela. Fonte: Rádio Itatiaia, Portal do Gremista (jul/2026).",
   "confianca": "media",
   "bb": 2,
   "pa": 3,
   "tr": 3,
-  "pos": 3,
+  "pos": 4,
+  "bp": 3
+ },
+ "São Paulo": {
+  "estilo_text": "Dorival Júnior — retornou ao clube em mai/2026 (após passagens de Hernán Crespo e Roger Machado em 2026); monta o time no 4-4-2 losango, com aproximação entre setores e busca de superioridade numérica, priorizando toques curtos e construção pelo meio. Disse em jun/2026: 'temos a ideia de manutenção, porque só com repetição você consegue regularidade'. Fonte: Arqtricolor, Band, ESPN (jun-jul/2026).",
+  "confianca": "alta",
+  "bb": 2,
+  "pa": 3,
+  "tr": 3,
+  "pos": 4,
   "bp": 3
  },
  "Palmeiras": {
-  "estilo_text": "Abel Ferreira — Pressão alta, bloco médio-alto, transições rápidas pós-recuperação",
+  "estilo_text": "Abel Ferreira — segue no comando, iniciando a 6ª temporada seguida (recorde de 30 anos no futebol brasileiro), recusou proposta da Premier League para ficar; time lidera o Brasileirão 2026. Pressão alta, bloco médio-alto e transições rápidas pós-recuperação seguem a marca registrada do time. Fonte: ESPN, Palmeiras.com.br (jul/2026).",
   "confianca": "alta",
   "bb": 2,
   "pa": 4,
@@ -54,7 +54,7 @@
   "bp": 3
  },
  "Atlético Mineiro": {
-  "estilo_text": "Eduardo Domínguez ('Barba') — jogo direto e vertical, recupera a bola e acelera; frase do próprio técnico: 'não queremos posse de bola por tê-la, mas para machucar o rival'. Só teve mais posse que o rival em 2 de 6 jogos no comando. Marcação forte e compacta em linhas, prioriza organização defensiva sobre posse. Fonte: coletivas do técnico + análise tática (Itatiaia, abr/2026).",
+  "estilo_text": "Eduardo Domínguez ('Barba') — confirmado seguindo no comando desde fev/2026; jogo direto e vertical, recupera a bola e acelera; frase do próprio técnico: 'não queremos posse de bola por tê-la, mas para machucar o rival'. Só teve mais posse que o rival em 2 de 6 jogos no comando. Marcação forte e compacta em linhas, prioriza organização defensiva sobre posse. Fonte: coletivas do técnico + análise tática (Itatiaia, abr/2026).",
   "confianca": "alta",
   "bb": 3,
   "pa": 1,
@@ -63,43 +63,43 @@
   "bp": 3
  },
  "Atlético PR": {
-  "estilo_text": "Odair Hellmann — Perfil pragmático e organizado, historicamente sólido defensivamente",
+  "estilo_text": "Odair Hellmann — renovou contrato até o fim de 2026; monta o time de forma adaptativa conforme características dos jogadores, buscando equilíbrio ofensivo/defensivo com flexibilidade tática (já usou um 5-4-1 para controlar o jogo contra o Goiás). Destaca a versatilidade do elenco e faz ajustes/improvisações posicionais constantes. Fonte: Athletico.com.br, Bem Paraná (2026).",
   "confianca": "media",
   "bb": 3,
-  "pa": 3,
+  "pa": 2,
   "tr": 3,
   "pos": 3,
   "bp": 3
  },
  "Corinthians": {
-  "estilo_text": "Dorival Júnior — Pragmático, adapta esquema por adversário — sem identidade fixa forte",
-  "confianca": "alta",
-  "bb": 3,
-  "pa": 3,
-  "tr": 3,
-  "pos": 3,
-  "bp": 3
- },
- "Vasco da Gama": {
-  "estilo_text": "Fernando Diniz — Extrema posse de bola, ataque constante; historicamente defesa frágil",
+  "estilo_text": "Fernando Diniz — assumiu em abr/2026 após a demissão de Dorival Júnior (dado antigo do banco anterior estava desatualizado); aplica o 'Dinizismo': construção pela posse de bola, passes curtos e participação intensa de todos os jogadores nas duas fases, com treinos em campo reduzido (10x10) para ajustar comportamentos ofensivos/defensivos. Estilo depende de repetição e entrosamento coletivo, com fragilidade defensiva típica do modelo. Fonte: Gazeta Esportiva, O Tempo, ESPN (abr-jul/2026).",
   "confianca": "alta",
   "bb": 1,
-  "pa": 5,
+  "pa": 4,
   "tr": 2,
-  "pos": 4,
+  "pos": 5,
   "bp": 2
  },
- "Coritiba": {
-  "estilo_text": "Fernando Seabra — Recém-promovido, tende a postura mais reativa/defensiva",
-  "confianca": "media",
+ "Vasco da Gama": {
+  "estilo_text": "Renato Gaúcho — assumiu em mar/2026 após a saída de Fernando Diniz (dado antigo do banco anterior estava desatualizado); mudou o esquema do 4-2-3-1 para um 4-4-2 com reforço de volantes (testou Hugo Moura, Thiago Mendes e Tchê Tchê juntos), priorizando reorganização defensiva — em suas palavras, 'primeiramente, não tomar tantos gols'. Time buscava postura mais compacta e menos vazada que na gestão Diniz. Fonte: Diário do Rio de Janeiro, Futebol na Web (mar/2026).",
+  "confianca": "alta",
   "bb": 4,
   "pa": 2,
+  "tr": 3,
+  "pos": 2,
+  "bp": 3
+ },
+ "Coritiba": {
+  "estilo_text": "Fernando Seabra — chegou em jan/2026 (recém-promovido); define seu modelo como 'encontrar vantagem': leitura de jogo, decisão e objetividade para explorar fraquezas do rival, com linha defensiva alta, intensidade e conexões diretas; busca ser um time que 'defende coletivamente, defende muito e é muito decisivo em situações de definição'. Inspirado em Klopp, promete postura agressiva mesmo com elenco mais modesto. Fonte: Ric.com.br, Bem Paraná, Band AB (2026).",
+  "confianca": "alta",
+  "bb": 2,
+  "pa": 4,
   "tr": 3,
   "pos": 2,
   "bp": 2
  },
  "Internacional": {
-  "estilo_text": "Pezzolano — Futebol ofensivo e vertical, gosta de atacar rápido",
+  "estilo_text": "Paulo Pezzolano — segue no comando (contrato até dez/2026); futebol ofensivo e vertical, gosta de atacar rápido. Trabalha ao lado de Abel Braga, recém-integrado à estrutura como diretor técnico, na definição do perfil de contratações. Fonte: ESPN, Midiamax, CNN Brasil (2025-2026).",
   "confianca": "alta",
   "bb": 2,
   "pa": 3,
@@ -108,34 +108,34 @@
   "bp": 3
  },
  "Bragantino": {
-  "estilo_text": "Vagner Mancini — Contra-ataques organizados como arma principal",
+  "estilo_text": "Vagner Mancini — renovou contrato até dez/2026; mescla 'futebol raiz' à metodologia europeia inspirada em Klopp, montando o time para o contra-ataque veloz, identidade conhecida como 'contra-ataque paulista'. Fonte: Bolavip, RedBullBragantino.com.br, Deu Zebra News (2025-2026).",
   "confianca": "alta",
   "bb": 3,
-  "pa": 2,
+  "pa": 3,
   "tr": 4,
   "pos": 2,
   "bp": 3
  },
  "Remo": {
-  "estilo_text": "Juan Carlos Osorio — prioriza posse de bola e jogo posicional, tenta empurrar o rival para trás e ocupar o campo adversário, pressão alta após perda de bola. Alta rotatividade de escalação (não repete time). ⚠️ Ressalva: é o discurso/identidade do técnico — Remo é recém-promovido e pode não ter elenco pra sustentar essa proposta ambiciosa contra times grandes. Fonte: múltiplas entrevistas do próprio técnico (Lance, O Liberal, dez/2025-jan/2026).",
-  "confianca": "alta",
-  "bb": 2,
-  "pa": 4,
-  "tr": 2,
-  "pos": 4,
-  "bp": 3
+  "estilo_text": "Léo Condé — assumiu em mar/2026 após a saída de Juan Carlos Osório, demitido com o time próximo do Z4 (dado antigo do banco anterior estava desatualizado); monta o Remo em 4-4-2, sem centroavante fixo, com pontas (Alef Manga e Jajá) infiltrando por dentro e boa produção em contra-ataques pelas pontas; segue ampliando o repertório tático conforme ganha tempo de treino nas janelas sem jogos. Fonte: Remo 100%, A Província do Pará, Correio Braziliense (2026).",
+  "confianca": "media",
+  "bb": 3,
+  "pa": 2,
+  "tr": 4,
+  "pos": 2,
+  "bp": 2
  },
  "Santos": {
-  "estilo_text": "Cuca (desde mar/2026, não Vojvoda) — dado desatualizado no banco anterior; sem estilo tático 2026 pesquisado ainda para Cuca no Santos",
-  "confianca": "baixa",
-  "bb": 3,
-  "pa": 3,
-  "tr": 3,
-  "pos": 3,
+  "estilo_text": "Cuca — retornou ao clube em mar/2026 no lugar de Vojvoda; aposta na 'fórmula antiga' de objetividade e verticalidade, buscando transições rápidas e ataques diretos às costas da defesa adversária — DNA visto em suas passagens recentes por Atlético-MG e Athletico-PR. Técnico de 'curto prazo'/impacto imediato, sem amarras posicionais rígidas, e prioriza jogos-treino coletivos a treinamentos táticos mais aprofundados. Fonte: Análise Tática do Guffo/Lance, Terra, Gazeta Esportiva (2026).",
+  "confianca": "media",
+  "bb": 2,
+  "pa": 2,
+  "tr": 4,
+  "pos": 2,
   "bp": 3
  },
  "Botafogo": {
-  "estilo_text": "Franclim Carvalho — agressivo, vertical, ofensivo; ele mesmo diz 'não gosto de controlar o jogo com a bola, de ser muito paciente'. Time líder do Brasil em remates, ataques, escanteios e passes progressivos desde sua chegada — mas vulnerável defensivamente (~2 gols sofridos/jogo). Fonte: entrevistas diretas do técnico (Conferência Bola Branca, mai/2026) e cobertura recorrente.",
+  "estilo_text": "Franclim Carvalho — segue no comando (contrato até o fim de 2027); estilo agressivo, vertical, ofensivo — ele mesmo diz 'não gosto de controlar o jogo com a bola, de ser muito paciente'. Time historicamente líder do Brasil em remates, ataques, escanteios e passes progressivos, mas vulnerável defensivamente (~2 gols sofridos/jogo). Em jul/2026 testava formações e dava espaço a jovens da base para o returno. Fonte: Conferência Bola Branca (mai/2026), Gazeta Botafogo, O Tempo (jul/2026).",
   "confianca": "alta",
   "bb": 1,
   "pa": 2,
@@ -144,8 +144,8 @@
   "bp": 4
  },
  "Fluminense": {
-  "estilo_text": "Luis Zubeldía — Tendência a posse organizada e pressão (perfil ex-São Paulo)",
-  "confianca": "media",
+  "estilo_text": "Luis Zubeldía — único técnico carioca dos grandes que não trocou em 2026 (contrato até dez/2026); o time é o 1º colocado do Brasileirão em posse de bola e finalizações no gol, com pressão imediata após perda de posse como marca registrada dos treinos. O próprio técnico rejeita a obsessão por 'dar dez passes seguidos', preferindo um jogo mais direto e vertical combinado à dominância territorial. Fonte: NetFlu, Terra, Antenados no Futebol (2026).",
+  "confianca": "alta",
   "bb": 2,
   "pa": 4,
   "tr": 3,
@@ -153,16 +153,16 @@
   "bp": 3
  },
  "Chapecoense": {
-  "estilo_text": "Gilmar Dal Pozzo — Recém-promovido, provável postura reativa como time menor",
+  "estilo_text": "Rafael Lacerda — chegou em mai/2026 (dado antigo do banco anterior, Gilmar Dal Pozzo, estava desatualizado); time recém-promovido lutando contra o rebaixamento. Lacerda prioriza uma postura defensiva mais sólida sem abrir mão de atacar quando surge oportunidade, com organização tática, intensidade na marcação e eficiência nas chances criadas; fecha treinos para preservar informações estratégicas contra rivais maiores. Fonte: Chapecoense.com, ClicRDC, Folha Desbravador (mai-jul/2026).",
   "confianca": "media",
   "bb": 4,
-  "pa": 2,
+  "pa": 3,
   "tr": 3,
   "pos": 2,
   "bp": 2
  },
  "Bahia": {
-  "estilo_text": "Rogério Ceni — Jogo posicional, movimentação e infiltração — posse construída",
+  "estilo_text": "Rogério Ceni — renovou até dez/2027, maior sequência de um técnico na história do clube (54 anos), com ~58% de aproveitamento em mais de 190 jogos; time joga posicional, com movimentação e infiltração, e o próprio Ceni compara o modelo de jogo do Bahia ao da Espanha campeã mundial. Fonte: ecbahia.com, Alô Alô Bahia, bahia.ba (jul/2026).",
   "confianca": "alta",
   "bb": 2,
   "pa": 4,
@@ -171,7 +171,7 @@
   "bp": 3
  },
  "Mirassol": {
-  "estilo_text": "Rafael Guanaes — Vertical, intenso, linhas altas, marcação por zona, chegadas rápidas",
+  "estilo_text": "Rafael Guanaes — renovou contrato até o fim de 2026 e recusou proposta do Botafogo para ficar; vertical, intenso, linhas altas, marcação por zona, chegadas rápidas — campanha de 17V-12E-6D que garantiu classificação histórica e inédita para a Libertadores 2026. Fonte: Gazeta Esportiva, ESPN, Soccerway (jul/2026).",
   "confianca": "alta",
   "bb": 2,
   "pa": 3,
