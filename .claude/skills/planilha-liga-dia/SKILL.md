@@ -1,18 +1,19 @@
 ---
 name: planilha-liga-dia
 description: >
-  Use esta skill SEMPRE que o usuário (Lucas) pedir para gerar/criar/montar a
-  planilha de apostas de um dia ou rodada de futebol no formato de 4-5 abas
-  (Times, Jogos do Dia, Mercados, Fontes, Padrões): Copa do Mundo 2026
-  (Copa_Xjul.xlsx), Brasileirão Série A 2026 (SerieA_Xjul.xlsx) ou
-  Brasileirão Série B 2026 (SerieB_Xjul.xlsx). Gatilhos: "cria a planilha de
-  hoje", "gera o Copa/SerieA/SerieB_Xjul", "monta a planilha da rodada X",
-  "planilha do Brasileirão A/B/principal", "planilha da Copa", ou qualquer
-  pedido envolvendo jogos de uma dessas 3 competições com o template de
-  Times/Jogos do Dia/Mercados/Fontes. É a skill PADRÃO e ÚNICA para esse
-  fluxo nas 3 competições — substitui as antigas copa-planilha-dia,
-  serie-a-planilha-dia e serie-b-planilha-dia (unificadas aqui, parametrizado
-  por liga, ver docs/MIGRACAO.md).
+  Use esta skill SEMPRE que o usuário (Lucas) pedir análise de apostas de um
+  dia/rodada de futebol nas 3 competições cobertas — Copa do Mundo 2026,
+  Brasileirão Série A 2026 ou Série B 2026 — seja como (a) o RELATÓRIO do dia
+  em texto/Python direto (o modo padrão: "quais entram hoje", "lista de
+  apostas do dia", "roda a análise do jogo X", "quero a shortlist de hoje")
+  ou (b) a PLANILHA Excel completa de 4-5 abas (Times, Jogos do Dia,
+  Mercados, Fontes, Padrões): Copa_Xjul.xlsx / SerieA_Xjul.xlsx /
+  SerieB_Xjul.xlsx — só quando pedido EXPLICITAMENTE ("gera a planilha",
+  "quero em Excel", "manda o arquivo .xlsx", "quero rever os parâmetros
+  visualmente"). É a skill PADRÃO e ÚNICA para esse fluxo nas 3 competições —
+  substitui as antigas copa-planilha-dia, serie-a-planilha-dia e
+  serie-b-planilha-dia (unificadas aqui, parametrizado por liga, ver
+  docs/MIGRACAO.md).
 ---
 
 # Skill: Planilha Diária de Apostas (Times / Jogos do Dia / Mercados / Fontes / Padrões)
@@ -36,21 +37,59 @@ tem CSVs agregados de liga/time/jogador nem mandante real; `league_stats`,
 `team_corner_profile`, `corner_matchup`, `player_props` e
 `aplicar_ajuste_mando` levantam erro explícito se chamados com `liga="copa"`.
 
+## Dois modos de uso — Python (padrão) vs. Excel (sob pedido)
+
+Desde 23/07/2026 existem DOIS caminhos, e o padrão mudou:
+
+- **Modo Python (`scripts/analise.py`) — PADRÃO para o dia a dia.** Reimplementa
+  em Python puro (sem abrir Excel/LibreOffice) toda a matemática que antes só
+  existia como fórmula na planilha: aderência/peso/recência, a fórmula
+  Pró/Contra V2 (parametrizável — é o "trocar o desvio-padrão de 2.5 para
+  1.25" que Lucas fazia manualmente em `Parâmetros!B11`), λ de Poisson,
+  P.Plan/P.Comb/Edge/Veredito/Critérios pros 20 mercados, e o cruzamento de
+  "Padrões em comum" entre os dois times. `gerar_shortlist()`/`relatorio_dia()`
+  já automatizam o pós-processamento manual completo que Lucas fazia:
+  filtrar P.Comb ≥ 65%, reavaliar com desvio-padrão 1.25 e descartar quem cai
+  abaixo do piso nessa reavaliação, cortar odd de mercado > 2.0, e listar os
+  padrões em comum com stake sugerido 1.0. **Use este modo por padrão** —
+  não precisa gerar planilha nenhuma para responder "quais entram hoje".
+- **Modo Excel (pipeline antigo, `build_workbook` + ... + `recalc.py`) — SÓ
+  quando Lucas pedir explicitamente** ("quero em Excel", "gera a planilha",
+  "quero rever os parâmetros visualmente"). Serve pra ele mexer visualmente
+  nos parâmetros e reformular conceitos — não é mais o caminho padrão de
+  consumo diário.
+
+⚠️ **Sobre a fidelidade do modo Python:** `analise.py` foi escrito por leitura
+cuidadosa das fórmulas do template e validado com testes de consistência
+interna (Poisson normalizado, Over/Under complementares, simetria,
+handicap coerente, robustez do corte de outlier) — ver
+`scripts/test_analise.py` referenciado em `docs/MIGRACAO.md`. **Não foi
+cross-validado abrindo a planilha de verdade no Excel** (o `recalc.py`/
+LibreOffice trava no ambiente onde isso foi escrito). Na primeira vez que for
+usar pra valer, vale gerar a versão Excel do mesmo jogo e comparar os
+números antes de confiar 100% no modo Python.
+
 ## Arquivos desta skill
 
 ```
-scripts/planilha_lib.py  → motor 100% compartilhado entre as 3 ligas:
+scripts/planilha_lib.py  → motor 100% compartilhado entre as 3 ligas (usado
+    pelos DOIS modos — Python e Excel):
     load_all_matches, get_historico, attach_estilo, save_estilo_db
-    clone_formula/fix_range_end (clonagem de fórmulas)
-    mercados_rows_for_game, build_workbook
+    clone_formula/fix_range_end (clonagem de fórmulas — só modo Excel)
+    mercados_rows_for_game, build_workbook (só modo Excel)
     aplicar_ajuste_mando, aplicar_formula_pro_contra, marcar_estimados,
-    sanitizar_v_vazio, buscar_padroes_liga, montar_aba_padroes
+    sanitizar_v_vazio (só modo Excel), buscar_padroes_liga, montar_aba_padroes
+scripts/analise.py        → MODO PYTHON (novo, padrão): aderência/peso/
+    recência, Pró/Contra V2 numérico (parametrizável por mult_dp), λ de
+    Poisson, parser de critério + P.Plan/P.Comb/Edge/Veredito/Critérios,
+    padroes_em_comum, gerar_shortlist, relatorio_dia — ver docstring do
+    módulo para o fluxo de uso completo
 scripts/ligas.py          → o que MUDA por liga:
     LIGAS = {"copa": ..., "seriea": ..., "serieb": ...}
     league_stats(liga), team_corner_profile(liga, time), corner_matchup(liga, fav, dog, ...),
     player_props(liga, time), estilo_db_path(liga), mando_shrink_k_default(liga),
     output_path_for(liga, sufixo), csv_alias(liga)
-templates/Copa_Template_Simplificado.xlsx → template-base (idêntico p/ as 3 ligas)
+templates/Copa_Template_Simplificado.xlsx → template-base (só modo Excel; idêntico p/ as 3 ligas)
 data/estilos_selecoes.json / estilos_seriea.json / estilos_serieb.json
     → banco persistente de notas de estilo por liga (cresce a cada sessão)
 data/matches/*.csv        → CSVs FootyStats de PARTIDAS (histórico jogo-a-jogo),

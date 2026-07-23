@@ -98,6 +98,47 @@ próprio Lucas discordar de uma nota específica (ver o mecanismo de
 `overrides=` + `save_estilo_db()` no `SKILL.md`, o mesmo usado pra correções
 pontuais desde a Copa).
 
+## Modo Python sem Excel (`scripts/analise.py`, 23/07/2026)
+
+Lucas descreveu o pós-processamento manual que fazia toda vez que recebia a
+planilha: filtrar Mercados por P.Comb ≥ 65%, trocar `Parâmetros!B11`
+(multiplicador do desvio-padrão) de 2.5 para 1.25 e descartar quem caísse
+abaixo de 65% no P.Plan reavaliado, cortar odd de mercado > 2.0, e cruzar a
+aba Padrões dos dois times procurando recorrências em comum (stake 1.0). Ele
+pediu pra isso ficar mais fácil, "às vezes até sem planilha" — a planilha
+Excel continua útil só para reformular parâmetros visualmente, não para o
+consumo diário.
+
+Resposta: `scripts/analise.py` reimplementa TODA a matemática do template em
+Python puro (sem abrir Excel/LibreOffice):
+- Aderência de estilo/favoritismo e peso por recência (`Times!AG/AH/AI/AK`).
+- A fórmula Pró/Contra V2 (média/desvio-padrão ponderados + corte
+  unilateral/bilateral), agora com `mult_dp` como parâmetro de função em vez
+  de uma célula que precisa ser editada e reaberta no Excel.
+- λ_A/λ_B e o parser de critério que gera P.Plan via Poisson bivariado
+  (reverse-engineered lendo a fórmula LET real do template — `Mercados!F`),
+  cobrindo BTTS, Over/Under gols, Resultado/DC, Handicap Asiático, mercados
+  de 1º tempo e combinações (CA) com multiplicador.
+- P.Comb (= P.Plan×45% + P.Font×55%), Edge, Veredito e as 4 categorias do
+  protocolo (Edge Real/Sinal Externo/Alta Certeza/Referência) — confirmado
+  que essas fórmulas do template já batem exatamente com
+  `PROTOCOLO_BETS_LUCAS.md`.
+- `gerar_shortlist()`/`relatorio_dia()` automatizam o pós-processamento
+  manual inteiro (os 3 filtros + padrões em comum) numa chamada só.
+
+Validação: só foi possível validar por CONSISTÊNCIA INTERNA
+(`scripts/test_analise.py` — Poisson normalizado, Over/Under 2.5
+complementares, Vence/Empate/Vence somando 1, DC = Vence+Empate, simetria
+quando λ_A=λ_B, handicap mais exigente que resultado seco, BTTS
+complementar, multiplicador de CA aplicado exato, e o corte de outlier
+realmente reagindo a `mult_dp`), rodado com dados reais de Ceará x Athletic
+Club (Série B) sem erros. **Não foi cross-validado abrindo a planilha de
+verdade no Excel** — o `recalc.py`/LibreOffice trava neste ambiente (mesmo
+problema de `javaldx`/Java já registrado acima, independente deste código).
+Recomendação: na primeira vez que Lucas for usar de verdade, gerar também a
+versão Excel do mesmo jogo e comparar os números antes de confiar 100% no
+modo Python.
+
 ## O que NÃO foi migrado (não estava no export)
 
 - CSVs de partidas da Copa do Mundo 2026 (worldcup/friendlies/qualifiers) —
