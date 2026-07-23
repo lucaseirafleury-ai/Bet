@@ -6,12 +6,16 @@ import json
 import os
 import subprocess
 import sys
+import time
 import webbrowser
 import threading
+from datetime import datetime, timedelta, timezone
 
 from flask import Flask, jsonify, render_template
 
 import config
+
+HORA_PRELIVE_UTC = 6  # 06:00 UTC ~ manhã na Suécia/Lituânia (UTC+2 no verão)
 
 app = Flask(__name__)
 PYTHON = sys.executable
@@ -86,9 +90,30 @@ def _iniciar_monitoramento_automatico():
         print("[auto] Monitoramento ao vivo iniciado automaticamente na subida do servidor.")
 
 
+def _ciclo_prelive_diario():
+    subprocess.run([PYTHON, os.path.join(BASE_DIR, "prelive_analysis.py")])
+    print("[auto] Análise pré-live inicial concluída.")
+    while True:
+        agora = datetime.now(timezone.utc)
+        proximo = agora.replace(hour=HORA_PRELIVE_UTC, minute=0, second=0, microsecond=0)
+        if proximo <= agora:
+            proximo += timedelta(days=1)
+        time.sleep((proximo - agora).total_seconds())
+        try:
+            subprocess.run([PYTHON, os.path.join(BASE_DIR, "prelive_analysis.py")])
+            print(f"[auto] Análise pré-live diária concluída às {datetime.now(timezone.utc).isoformat()}.")
+        except Exception as e:
+            print(f"[auto] Erro na análise pré-live diária: {e}")
+
+
+def _agendar_prelive_diario():
+    threading.Thread(target=_ciclo_prelive_diario, daemon=True).start()
+
+
 if __name__ == "__main__":
     porta = int(os.environ.get("PORT", 5000))
     if not os.environ.get("RENDER"):
         threading.Timer(1.2, _abrir_navegador).start()
     _iniciar_monitoramento_automatico()
+    _agendar_prelive_diario()
     app.run(debug=False, host="0.0.0.0", port=porta)
