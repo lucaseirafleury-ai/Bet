@@ -80,8 +80,15 @@ def _abrir_navegador():
     webbrowser.open("http://127.0.0.1:5000")
 
 
+def _iniciar_monitoramento_automatico():
+    if processo_live["proc"] is None or processo_live["proc"].poll() is not None:
+        processo_live["proc"] = subprocess.Popen([PYTHON, os.path.join(BASE_DIR, "live_monitor.py")])
+        print("[auto] Monitoramento ao vivo iniciado automaticamente na subida do servidor.")
+
+
 if __name__ == "__main__":
     porta = int(os.environ.get("PORT", 5000))
     if not os.environ.get("RENDER"):
         threading.Timer(1.2, _abrir_navegador).start()
+    _iniciar_monitoramento_automatico()
     app.run(debug=False, host="0.0.0.0", port=porta)
