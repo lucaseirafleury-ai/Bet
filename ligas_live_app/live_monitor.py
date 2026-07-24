@@ -35,6 +35,13 @@ from live_poisson import (
 )
 
 
+# Estados da Sportmonks que significam "bola rolando de verdade" (ver /states).
+# A Sportmonks às vezes lista jogos que ainda não começaram (NS) ou já
+# terminaram (FT) no feed de /livescores/inplay — sem esse filtro, esses jogos
+# aparecem no painel como "ao vivo" travados no minuto 1, com tudo zerado.
+ESTADOS_REALMENTE_AO_VIVO = {2, 3, 4, 6, 9, 21, 22, 23, 25}
+
+
 # ── Persistência simples em JSON ──────────────────────────────
 
 def _carregar(caminho, default):
@@ -213,7 +220,11 @@ def ciclo():
     ids_ja_gerados = {(i["fixture_id"], i["tipo"], i["time"]) for i in insights}
 
     fixtures = sm.live_fixtures()
-    fixtures_monitoradas = [f for f in fixtures if f.get("league_id") in config.LIGAS_MONITORADAS]
+    fixtures_monitoradas = [
+        f for f in fixtures
+        if f.get("league_id") in config.LIGAS_MONITORADAS
+        and f.get("state_id") in ESTADOS_REALMENTE_AO_VIVO
+    ]
 
     for f in fixtures_monitoradas:
         fixture_id = f["id"]
