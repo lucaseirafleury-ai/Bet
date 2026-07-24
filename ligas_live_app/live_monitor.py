@@ -206,7 +206,11 @@ def ciclo():
     historico = _carregar(config.LIVE_HISTORY_FILE, {})
     snapshots = {}
 
-    ids_ja_gerados = {(i["fixture_id"], i["minuto"], i["tipo"], i["time"]) for i in insights}
+    # Chave sem o minuto: cada combinação (jogo, tipo de sinal, time) dispara no
+    # máximo uma vez por partida. Sem isso, um desvio que persiste (ex: time que
+    # abre 2 gols de vantagem sobre o esperado) reenvia o mesmo sinal a cada
+    # ciclo de 60s pelo resto do jogo — é o que causava "centenas de sinais".
+    ids_ja_gerados = {(i["fixture_id"], i["tipo"], i["time"]) for i in insights}
 
     fixtures = sm.live_fixtures()
     fixtures_monitoradas = [f for f in fixtures if f.get("league_id") in config.LIGAS_MONITORADAS]
@@ -232,6 +236,11 @@ def ciclo():
 
         xg_home = calcular_xg_proxy(stats_home)
         xg_away = calcular_xg_proxy(stats_away)
+        # Algumas ligas/partidas não têm o feed de chutes/ataques perigosos da
+        # Sportmonks preenchido (fica tudo zerado a partida toda). Sem essa
+        # guarda, xG_proxy=0 vira falso sinal de "eficiência anormal" assim que
+        # sai um gol, e o ajuste de pressão/xG usa uma base de dados inexistente.
+        dados_ofensivos_disponiveis = minuto < 30 or xg_home > 0 or xg_away > 0
         pressao_home = calcular_pressao(stats_home, minuto)
         pressao_away = calcular_pressao(stats_away, minuto)
         escanteios_home = calcular_escanteios(stats_home)
@@ -344,20 +353,26 @@ def ciclo():
             checar_ritmo_mercado(relatorio, minuto, away["name"], escanteios_away, perfil_f["escanteios_media"], "escanteios", config.LIMIAR_DELTA_ESCANTEIROS),
             checar_ritmo_mercado(relatorio, minuto, home["name"], cartoes_home, perfil_c["cartoes_media"], "cartoes", config.LIMIAR_DELTA_CARTOES),
             checar_ritmo_mercado(relatorio, minuto, away["name"], cartoes_away, perfil_f["cartoes_media"], "cartoes", config.LIMIAR_DELTA_CARTOES),
-            # pressão / xG com momentum
-            checar_pressao_xg_com_momentum(relatorio, minuto, home["name"], "xg", hist_jogo, xg_home, perfil_c["xg_proxy_media"], config.LIMIAR_DELTA_XG),
-            checar_pressao_xg_com_momentum(relatorio, minuto, away["name"], "xg", hist_jogo, xg_away, perfil_f["xg_proxy_media"], config.LIMIAR_DELTA_XG),
-            checar_pressao_xg_com_momentum(relatorio, minuto, home["name"], "pressao", hist_jogo, pressao_home, perfil_c["dangerous_attacks_media"], config.LIMIAR_DELTA_PRESSAO),
-            checar_pressao_xg_com_momentum(relatorio, minuto, away["name"], "pressao", hist_jogo, pressao_away, perfil_f["dangerous_attacks_media"], config.LIMIAR_DELTA_PRESSAO),
-            # divergência xG x gols reais
-            checar_divergencia_xg_gols(relatorio, minuto, home["name"], xg_home, gols_home),
-            checar_divergencia_xg_gols(relatorio, minuto, away["name"], xg_away, gols_away),
         ]
+
+        if dados_ofensivos_disponiveis:
+            # pressão / xG com momentum — só faz sentido comparar com o esperado
+            # quando o feed de chutes/ataques perigosos da Sportmonks existe pra
+            # essa partida (algumas ligas menores não têm essa granularidade).
+            candidatos += [
+                checar_pressao_xg_com_momentum(relatorio, minuto, home["name"], "xg", hist_jogo, xg_home, perfil_c["xg_proxy_media"], config.LIMIAR_DELTA_XG),
+                checar_pressao_xg_com_momentum(relatorio, minuto, away["name"], "xg", hist_jogo, xg_away, perfil_f["xg_proxy_media"], config.LIMIAR_DELTA_XG),
+                checar_pressao_xg_com_momentum(relatorio, minuto, home["name"], "pressao", hist_jogo, pressao_home, perfil_c["dangerous_attacks_media"], config.LIMIAR_DELTA_PRESSAO),
+                checar_pressao_xg_com_momentum(relatorio, minuto, away["name"], "pressao", hist_jogo, pressao_away, perfil_f["dangerous_attacks_media"], config.LIMIAR_DELTA_PRESSAO),
+                # divergência xG x gols reais
+                checar_divergencia_xg_gols(relatorio, minuto, home["name"], xg_home, gols_home),
+                checar_divergencia_xg_gols(relatorio, minuto, away["name"], xg_away, gols_away),
+            ]
 
         for c in candidatos:
             if c is None:
                 continue
-            chave = (c["fixture_id"], c["minuto"], c["tipo"], c["time"])
+            chave = (c["fixture_id"], c["tipo"], c["time"])
             if chave in ids_ja_gerados:
                 continue
             insights.append(c)
