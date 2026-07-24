@@ -48,6 +48,13 @@ def home():
     )
 
 
+@app.route("/api/limpar-sinais", methods=["POST"])
+def api_limpar_sinais():
+    antes = len(_ler_json(config.LIVE_INSIGHTS_FILE, []))
+    _salvar_json(config.LIVE_INSIGHTS_FILE, [])
+    return jsonify({"ok": True, "mensagem": f"{antes} sinais removidos."})
+
+
 @app.route("/api/push-subscribe", methods=["POST"])
 def api_push_subscribe():
     sub = request.get_json(force=True)
