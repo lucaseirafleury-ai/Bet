@@ -3,22 +3,27 @@ Cálculo de xG_proxy e Índice de Pressão a partir de estatísticas de partida.
 Usado tanto na Fase 1 (médias históricas) quanto na Fase 2 (jogo ao vivo).
 """
 
-# Nomes dos campos como retornados pela Sportmonks em statistics[].type.name
-CAMPO_SHOTS_ON = "Shots On Goal"          # ajustar aqui se a Sportmonks usar grafia diferente
-CAMPO_SHOTS_OFF = "Shots Off Goal"
+# Nomes dos campos como retornados pela Sportmonks em statistics[].type.name.
+# Conferido direto em /core/types (per_page=50, 1250 tipos) em 2026-07-24 —
+# vários nomes abaixo estavam errados (chute em cima do nome mais "óbvio" em vez
+# do nome real da API), o que fazia extrair_stat() nunca encontrar o campo e
+# sempre cair no default 0.0 — daí xG_proxy, escanteios etc. ficarem travados
+# em zero mesmo com o jogo tendo estatística de verdade disponível.
+CAMPO_SHOTS_ON = "Shots On Target"
+CAMPO_SHOTS_OFF = "Shots Off Target"
 CAMPO_SHOTS_IN = "Shots Insidebox"
 CAMPO_SHOTS_OUT = "Shots Outsidebox"
 CAMPO_BLOCKED = "Blocked Shots"
 CAMPO_DANGEROUS = "Dangerous Attacks"
 CAMPO_POSSE = "Ball Possession %"
-CAMPO_SHOTS_TOTAL = "Total Shots"
-CAMPO_CORNERS = "Corner Kicks"
-CAMPO_YELLOW = "Yellowcards"       # ajustar aqui se a Sportmonks usar grafia diferente
+CAMPO_SHOTS_TOTAL = "Shots Total"
+CAMPO_CORNERS = "Corners"
+CAMPO_YELLOW = "Yellowcards"
 CAMPO_RED = "Redcards"
 CAMPO_FOULS = "Fouls"
 CAMPO_OFFSIDES = "Offsides"
-CAMPO_PASSES_TOTAL = "Total passes"
-CAMPO_PASSES_CERTOS = "Passes accurate"
+CAMPO_PASSES_TOTAL = "Passes"
+CAMPO_PASSES_CERTOS = "Successful Passes"
 CAMPO_SAVES = "Saves"
 CAMPO_ATTACKS = "Attacks"
 
