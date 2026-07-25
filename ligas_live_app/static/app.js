@@ -36,27 +36,16 @@ function classeDivergencia(v) {
   return "divergencia-neutro";
 }
 
-function classeComparacao(oddDigitada, oddMinima) {
-  if (isNaN(oddDigitada) || oddDigitada <= 1) return "";
-  return oddDigitada >= oddMinima ? "comparacao-favoravel" : "comparacao-desfavoravel";
+function classeSituacao(comp) {
+  if (!comp || comp.situacao === "equilibrado") return "situacao-equilibrado";
+  const base = comp.situacao === "acima" ? "situacao-acima" : "situacao-abaixo";
+  return comp.forte ? `${base} situacao-forte` : base;
 }
 
-function compararOdd(fixtureId, mercado, oddMinima) {
-  const input = document.getElementById(`odd-${fixtureId}-${mercado}`);
-  const badge = document.getElementById(`badge-${fixtureId}-${mercado}`);
-  const odd = parseFloat(input.value.replace(",", "."));
-  if (!odd || odd <= 1) {
-    badge.textContent = "";
-    badge.className = "comparacao-badge";
-    return;
-  }
-  if (odd >= oddMinima) {
-    badge.textContent = "✓ vale a entrada";
-    badge.className = "comparacao-badge comparacao-favoravel";
-  } else {
-    badge.textContent = "✗ abaixo do mínimo";
-    badge.className = "comparacao-badge comparacao-desfavoravel";
-  }
+function rotuloSituacao(comp) {
+  if (!comp || comp.situacao === "equilibrado") return "≈ equilibrado";
+  const seta = comp.situacao === "acima" ? "▲" : "▼";
+  return `${seta} ${comp.situacao} do esperado`;
 }
 
 function rotuloOverUnder(fonte) {
@@ -69,7 +58,7 @@ function rotuloOverUnder(fonte) {
   return { texto: "", classe: "" };
 }
 
-function linhaValor(fixtureId, mercado, label, prob) {
+function linhaValor(label, prob, comp) {
   const margem = window.MARGEM_VALOR ?? 0.05;
   const oddMinima = prob > 0 ? ((1 + margem) / prob).toFixed(2) : "—";
   const probPct = (prob * 100).toFixed(1);
@@ -80,9 +69,7 @@ function linhaValor(fixtureId, mercado, label, prob) {
         <span class="valor-prob">nosso modelo: ${probPct}%</span>
       </div>
       <div class="odd-minima">${oddMinima}</div>
-      <input type="text" id="odd-${fixtureId}-${mercado}" class="odd-input" placeholder="odd real"
-             oninput="compararOdd(${fixtureId}, '${mercado}', ${oddMinima})">
-      <span id="badge-${fixtureId}-${mercado}" class="comparacao-badge"></span>
+      <span class="situacao-badge ${classeSituacao(comp)}">${rotuloSituacao(comp)}</span>
     </div>
   `;
 }
@@ -98,6 +85,7 @@ function renderLive(snapshots) {
 
   lista.innerHTML = jogos.map((j) => {
     const p = j.probabilidades || {};
+    const comp = p.comparacao || {};
     const sc = j.stats_completas_home || {};
     const sa = j.stats_completas_away || {};
 
@@ -144,13 +132,13 @@ function renderLive(snapshots) {
 
       <div class="valor-box">
         <div class="valor-titulo">Odd mínima para valer a entrada (margem ${((window.MARGEM_VALOR ?? 0.05) * 100).toFixed(0)}%)</div>
-        ${linhaValor(j.fixture_id, "casa", `Vitória ${j.home}`, p.prob_casa)}
-        ${linhaValor(j.fixture_id, "empate", "Empate", p.prob_empate)}
-        ${linhaValor(j.fixture_id, "fora", `Vitória ${j.away}`, p.prob_fora)}
-        ${linhaValor(j.fixture_id, "over25", `Over 2.5 gols<span class="${rotuloOverUnder(p.over_under_fonte).classe}">${rotuloOverUnder(p.over_under_fonte).texto}</span>`, p.prob_over25)}
-        ${linhaValor(j.fixture_id, "under25", `Under 2.5 gols<span class="${rotuloOverUnder(p.over_under_fonte).classe}">${rotuloOverUnder(p.over_under_fonte).texto}</span>`, p.prob_under25)}
-        ${linhaValor(j.fixture_id, "bttssim", "Ambas marcam - Sim", p.prob_btts_sim)}
-        ${linhaValor(j.fixture_id, "bttsnao", "Ambas marcam - Não", p.prob_btts_nao)}
+        ${linhaValor(`Vitória ${j.home}`, p.prob_casa, comp.prob_casa)}
+        ${linhaValor("Empate", p.prob_empate, comp.prob_empate)}
+        ${linhaValor(`Vitória ${j.away}`, p.prob_fora, comp.prob_fora)}
+        ${linhaValor(`Over 2.5 gols<span class="${rotuloOverUnder(p.over_under_fonte).classe}">${rotuloOverUnder(p.over_under_fonte).texto}</span>`, p.prob_over25, comp.prob_over25)}
+        ${linhaValor(`Under 2.5 gols<span class="${rotuloOverUnder(p.over_under_fonte).classe}">${rotuloOverUnder(p.over_under_fonte).texto}</span>`, p.prob_under25, comp.prob_under25)}
+        ${linhaValor("Ambas marcam - Sim", p.prob_btts_sim, comp.prob_btts_sim)}
+        ${linhaValor("Ambas marcam - Não", p.prob_btts_nao, comp.prob_btts_nao)}
       </div>
 
       <div class="valor-box">
@@ -158,8 +146,8 @@ function renderLive(snapshots) {
           Escanteios — linha ${p.linha_escanteios ?? "9.5"}
           <span class="aviso-confianca">confiança menor, não calibrado ainda</span>
         </div>
-        ${linhaValor(j.fixture_id, "over_esc", `Over ${p.linha_escanteios ?? "9.5"}`, p.prob_over_escanteios)}
-        ${linhaValor(j.fixture_id, "under_esc", `Under ${p.linha_escanteios ?? "9.5"}`, p.prob_under_escanteios)}
+        ${linhaValor(`Over ${p.linha_escanteios ?? "9.5"}`, p.prob_over_escanteios, comp.prob_over_escanteios)}
+        ${linhaValor(`Under ${p.linha_escanteios ?? "9.5"}`, p.prob_under_escanteios, comp.prob_under_escanteios)}
       </div>
     </div>
   `;

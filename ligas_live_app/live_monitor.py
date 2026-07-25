@@ -3,14 +3,12 @@ FASE 2 — Monitoramento ao vivo (versão estendida).
 
 A cada ciclo, para cada jogo ao vivo monitorado:
   1. Lê estatísticas acumuladas (xG_proxy, pressão, escanteios, cartões, eficiência)
-  2. Guarda um snapshot no histórico da partida (para calcular momentum)
-  3. Compara com o esperado (perfil pré-live) em 4 frentes:
-       - ritmo de gols
-       - ritmo de escanteios
-       - ritmo de cartões
-       - pressão / xG_proxy (com confirmação de tendência via momentum)
-  4. Compara xG_proxy acumulado x gols reais, por time (divergência)
-  5. Publica:
+  2. Compara a CONTAGEM real com a esperada (perfil pré-live) prorrateada pelo
+     minuto, em 3 frentes: gols, escanteios, cartões. Um sinal só dispara
+     quando o desvio é grande em percentual E em número absoluto (ver
+     LIMIAR_DELTA_*/LIMIAR_ABS_* em config.py) — critério deliberadamente
+     rigoroso: é normal um jogo terminar sem gerar nenhum sinal.
+  3. Publica:
        - data/live_snapshots.json  → estado atual rico de cada jogo (painel permanente)
        - data/live_insights.json   → só os eventos que cruzaram o limiar (feed de alertas)
 """
@@ -102,36 +100,6 @@ def carregar_prelive():
     return {r["fixture_id"]: r for r in data.get("relatorios", [])}
 
 
-# ── Momentum: confirma se a tendência é consistente ───────────
-
-def direcao_consistente(valores):
-    """
-    valores: lista de floats, do mais antigo pro mais recente (últimas N leituras).
-    Retorna 'subindo', 'descendo' ou None (sem tendência clara).
-    """
-    if len(valores) < 2:
-        return None
-    diffs = [valores[i] - valores[i - 1] for i in range(1, len(valores))]
-    positivos = sum(1 for d in diffs if d > 0)
-    negativos = sum(1 for d in diffs if d < 0)
-    if positivos >= config.MIN_LEITURAS_CONSISTENTES and negativos == 0:
-        return "subindo"
-    if negativos >= config.MIN_LEITURAS_CONSISTENTES and positivos == 0:
-        return "descendo"
-    return None
-
-
-def atualizar_historico(historico, fixture_id, minuto, ponto):
-    """Acrescenta um ponto ao histórico da partida, evitando duplicar o mesmo minuto."""
-    hist_jogo = historico.setdefault(str(fixture_id), [])
-    if hist_jogo and hist_jogo[-1]["minuto"] == minuto:
-        hist_jogo[-1] = ponto  # atualiza o último ponto em vez de duplicar
-    else:
-        hist_jogo.append(ponto)
-    historico[str(fixture_id)] = hist_jogo[-config.JANELA_MOMENTUM:]
-    return historico[str(fixture_id)]
-
-
 # ── Geração de insights (só os que cruzam limiar) ─────────────
 
 def _insight_base(relatorio, minuto, tipo, time_nome, delta_pct, mensagem):
@@ -148,61 +116,68 @@ def _insight_base(relatorio, minuto, tipo, time_nome, delta_pct, mensagem):
     }
 
 
-def checar_ritmo_mercado(relatorio, minuto, time_nome, valor_real_acumulado, valor_esperado_90min, tipo, limiar):
+def checar_ritmo_mercado(relatorio, minuto, time_nome, valor_real_acumulado, valor_esperado_90min, tipo, limiar_pct, limiar_abs):
+    """
+    Só dispara quando os DOIS critérios batem: desvio percentual grande E
+    diferença mínima em número absoluto. Evita sinal bobo tipo "233% acima"
+    quando o esperado até aquele minuto é só uma fração de gol.
+    """
     if valor_esperado_90min <= 0 or minuto < config.MINUTO_MINIMO_ALERTA:
         return None
     esperado_prorrateado = valor_esperado_90min * (minuto / 90)
     if esperado_prorrateado <= 0:
         return None
-    delta = (valor_real_acumulado - esperado_prorrateado) / esperado_prorrateado
-    if abs(delta) < limiar:
+    diferenca_abs = valor_real_acumulado - esperado_prorrateado
+    if abs(diferenca_abs) < limiar_abs:
+        return None
+    delta = diferenca_abs / esperado_prorrateado
+    if abs(delta) < limiar_pct:
         return None
     direcao = "acima" if delta > 0 else "abaixo"
     nomes = {"gols": "ritmo de gols", "escanteios": "ritmo de escanteios", "cartoes": "ritmo de cartões"}
-    msg = (f"min {minuto} — {time_nome}: {nomes[tipo]} {round(abs(delta) * 100, 1)}% {direcao} "
-           f"do esperado para esse momento.")
+    msg = (f"min {minuto} — {time_nome}: {nomes[tipo]} {direcao} do esperado "
+           f"({valor_real_acumulado:g} real vs {esperado_prorrateado:.1f} esperado até aqui, "
+           f"{round(abs(delta) * 100, 1)}% de desvio).")
     return _insight_base(relatorio, minuto, tipo, time_nome, round(delta * 100, 1), msg)
 
 
-def checar_pressao_xg_com_momentum(relatorio, minuto, time_nome, tipo, historico_time, valor_atual, valor_esperado_90min, limiar):
-    if minuto < config.MINUTO_MINIMO_ALERTA or valor_esperado_90min <= 0:
-        return None
-    esperado_prorrateado = valor_esperado_90min * (minuto / 90)
-    if esperado_prorrateado <= 0:
-        return None
-    delta = (valor_atual - esperado_prorrateado) / esperado_prorrateado
-    if abs(delta) < limiar:
-        return None
+# ── Comparação de mercado: pré-live (estático) x ao vivo ──────
+# Mesma pergunta dos sinais ("o jogo está à frente ou atrás do esperado?"),
+# aplicada a cada mercado individual (vitória/empate/over-under/BTTS/
+# escanteios) pra mostrar um selo ao lado da odd no card, em vez de exigir
+# que o usuário digite a odd real pra comparar.
 
-    lado = "home" if time_nome == relatorio["home"] else "away"
-    valores = [p.get(f"{tipo}_{lado}") for p in historico_time]
-    valores = [v for v in valores if v is not None]
-    direcao_tendencia = direcao_consistente(valores)
-    if delta > 0 and direcao_tendencia != "subindo":
-        return None
-    if delta < 0 and direcao_tendencia != "descendo":
-        return None
-
-    direcao = "acima" if delta > 0 else "abaixo"
-    nomes = {"pressao": "Pressão", "xg": "xG_proxy"}
-    msg = (f"min {minuto} — {time_nome}: {nomes[tipo]} {round(abs(delta) * 100, 1)}% {direcao} do esperado, "
-           f"tendência confirmada nas últimas {config.JANELA_MOMENTUM} leituras.")
-    return _insight_base(relatorio, minuto, tipo, time_nome, round(delta * 100, 1), msg)
+MERCADOS_COMPARAVEIS = [
+    "prob_casa", "prob_empate", "prob_fora",
+    "prob_over25", "prob_under25",
+    "prob_btts_sim", "prob_btts_nao",
+    "prob_over_escanteios", "prob_under_escanteios",
+]
 
 
-def checar_divergencia_xg_gols(relatorio, minuto, time_nome, xg_acumulado, gols_atuais):
-    if minuto < config.MINUTO_MINIMO_ALERTA:
-        return None
-    divergencia = xg_acumulado - gols_atuais
-    if abs(divergencia) < config.LIMIAR_DIVERGENCIA_XG_GOLS:
-        return None
-    if divergencia > 0:
-        msg = (f"min {minuto} — {time_nome}: xG_proxy acumulado ({xg_acumulado}) está "
-               f"{round(divergencia, 2)} acima dos gols reais ({gols_atuais}). Time criando mais do que converte.")
-    else:
-        msg = (f"min {minuto} — {time_nome}: gols reais ({gols_atuais}) acima do xG_proxy acumulado "
-               f"({xg_acumulado}). Eficiência anormal, risco de regressão.")
-    return _insight_base(relatorio, minuto, "divergencia_xg_gols", time_nome, round(divergencia, 2), msg)
+def _probs_prelive_estaticas(relatorio):
+    """Probabilidade de cada mercado ANTES do jogo começar (minuto 0, 0x0, sem ajuste ao vivo)."""
+    base = probabilidades_ao_vivo(relatorio["lambda_home"], relatorio["lambda_away"], 0, 0, 0, 1.0, 1.0)
+    base.update(probabilidade_escanteios(
+        relatorio["perfil_casa"]["escanteios_media"], relatorio["perfil_fora"]["escanteios_media"],
+        0, 0, 0, config.LINHA_ESCANTEIROS,
+    ))
+    return base
+
+
+def comparar_mercados(relatorio, probs_ao_vivo):
+    prelive_estatico = _probs_prelive_estaticas(relatorio)
+    comparacao = {}
+    for mercado in MERCADOS_COMPARAVEIS:
+        diff_pp = round((probs_ao_vivo[mercado] - prelive_estatico[mercado]) * 100, 1)
+        if abs(diff_pp) >= config.LIMIAR_PP_MERCADO_FORTE:
+            situacao, forte = ("acima" if diff_pp > 0 else "abaixo"), True
+        elif abs(diff_pp) >= config.LIMIAR_PP_MERCADO:
+            situacao, forte = ("acima" if diff_pp > 0 else "abaixo"), False
+        else:
+            situacao, forte = "equilibrado", False
+        comparacao[mercado] = {"situacao": situacao, "forte": forte, "diff_pp": diff_pp}
+    return comparacao
 
 
 # ── Ciclo principal ────────────────────────────────────────────
@@ -210,7 +185,6 @@ def checar_divergencia_xg_gols(relatorio, minuto, time_nome, xg_acumulado, gols_
 def ciclo():
     prelive = carregar_prelive()
     insights = _carregar(config.LIVE_INSIGHTS_FILE, [])
-    historico = _carregar(config.LIVE_HISTORY_FILE, {})
     snapshots = {}
 
     # Chave sem o minuto: cada combinação (jogo, tipo de sinal, time) dispara no
@@ -273,7 +247,10 @@ def ciclo():
         perfil_c, perfil_f = relatorio["perfil_casa"], relatorio["perfil_fora"]
 
         # ── ajuste dinâmico do lambda: pré-live + desvio de xG/pressão observado ──
-        if minuto >= config.MINUTO_MINIMO_ALERTA:
+        # Só aplica esse ajuste quando há dado ofensivo de verdade — sem essa
+        # guarda, xG_proxy=0 (jogo sem feed de chutes) distorce a probabilidade
+        # ao vivo exibida no card, não só os sinais.
+        if minuto >= config.MINUTO_MINIMO_ALERTA and dados_ofensivos_disponiveis:
             delta_xg_home = delta_fracional(xg_home, perfil_c["xg_proxy_media"], minuto)
             delta_xg_away = delta_fracional(xg_away, perfil_f["xg_proxy_media"], minuto)
             delta_pressao_home = delta_fracional(pressao_home, perfil_c["dangerous_attacks_media"], minuto)
@@ -321,12 +298,8 @@ def ciclo():
         else:
             probs["over_under_fonte"] = "heuristico_nao_calibrado"
 
-        # ── histórico p/ momentum ──
-        ponto = {
-            "minuto": minuto, "xg_home": xg_home, "xg_away": xg_away,
-            "pressao_home": pressao_home, "pressao_away": pressao_away,
-        }
-        hist_jogo = atualizar_historico(historico, fixture_id, minuto, ponto)
+        # ── comparação pré-live x ao vivo, por mercado (pra badge no card) ──
+        probs["comparacao"] = comparar_mercados(relatorio, probs)
 
         # ── snapshot rico p/ o painel (sempre publicado, sem limiar) ──
         snapshots[str(fixture_id)] = {
@@ -357,28 +330,15 @@ def ciclo():
         lambda_home, lambda_away = relatorio["lambda_home"], relatorio["lambda_away"]
 
         candidatos = [
-            # ritmo de mercado
-            checar_ritmo_mercado(relatorio, minuto, home["name"], gols_home, lambda_home, "gols", config.LIMIAR_DELTA_GOLS),
-            checar_ritmo_mercado(relatorio, minuto, away["name"], gols_away, lambda_away, "gols", config.LIMIAR_DELTA_GOLS),
-            checar_ritmo_mercado(relatorio, minuto, home["name"], escanteios_home, perfil_c["escanteios_media"], "escanteios", config.LIMIAR_DELTA_ESCANTEIROS),
-            checar_ritmo_mercado(relatorio, minuto, away["name"], escanteios_away, perfil_f["escanteios_media"], "escanteios", config.LIMIAR_DELTA_ESCANTEIROS),
-            checar_ritmo_mercado(relatorio, minuto, home["name"], cartoes_home, perfil_c["cartoes_media"], "cartoes", config.LIMIAR_DELTA_CARTOES),
-            checar_ritmo_mercado(relatorio, minuto, away["name"], cartoes_away, perfil_f["cartoes_media"], "cartoes", config.LIMIAR_DELTA_CARTOES),
+            # ritmo de mercado — só isso vira sinal: contagem real vs esperada,
+            # em gols/escanteios/cartões, com critério duplo (% e absoluto).
+            checar_ritmo_mercado(relatorio, minuto, home["name"], gols_home, lambda_home, "gols", config.LIMIAR_DELTA_GOLS, config.LIMIAR_ABS_GOLS),
+            checar_ritmo_mercado(relatorio, minuto, away["name"], gols_away, lambda_away, "gols", config.LIMIAR_DELTA_GOLS, config.LIMIAR_ABS_GOLS),
+            checar_ritmo_mercado(relatorio, minuto, home["name"], escanteios_home, perfil_c["escanteios_media"], "escanteios", config.LIMIAR_DELTA_ESCANTEIROS, config.LIMIAR_ABS_ESCANTEIROS),
+            checar_ritmo_mercado(relatorio, minuto, away["name"], escanteios_away, perfil_f["escanteios_media"], "escanteios", config.LIMIAR_DELTA_ESCANTEIROS, config.LIMIAR_ABS_ESCANTEIROS),
+            checar_ritmo_mercado(relatorio, minuto, home["name"], cartoes_home, perfil_c["cartoes_media"], "cartoes", config.LIMIAR_DELTA_CARTOES, config.LIMIAR_ABS_CARTOES),
+            checar_ritmo_mercado(relatorio, minuto, away["name"], cartoes_away, perfil_f["cartoes_media"], "cartoes", config.LIMIAR_DELTA_CARTOES, config.LIMIAR_ABS_CARTOES),
         ]
-
-        if dados_ofensivos_disponiveis:
-            # pressão / xG com momentum — só faz sentido comparar com o esperado
-            # quando o feed de chutes/ataques perigosos da Sportmonks existe pra
-            # essa partida (algumas ligas menores não têm essa granularidade).
-            candidatos += [
-                checar_pressao_xg_com_momentum(relatorio, minuto, home["name"], "xg", hist_jogo, xg_home, perfil_c["xg_proxy_media"], config.LIMIAR_DELTA_XG),
-                checar_pressao_xg_com_momentum(relatorio, minuto, away["name"], "xg", hist_jogo, xg_away, perfil_f["xg_proxy_media"], config.LIMIAR_DELTA_XG),
-                checar_pressao_xg_com_momentum(relatorio, minuto, home["name"], "pressao", hist_jogo, pressao_home, perfil_c["dangerous_attacks_media"], config.LIMIAR_DELTA_PRESSAO),
-                checar_pressao_xg_com_momentum(relatorio, minuto, away["name"], "pressao", hist_jogo, pressao_away, perfil_f["dangerous_attacks_media"], config.LIMIAR_DELTA_PRESSAO),
-                # divergência xG x gols reais
-                checar_divergencia_xg_gols(relatorio, minuto, home["name"], xg_home, gols_home),
-                checar_divergencia_xg_gols(relatorio, minuto, away["name"], xg_away, gols_away),
-            ]
 
         for c in candidatos:
             if c is None:
@@ -392,7 +352,6 @@ def ciclo():
             _notificar_push(c)
 
     _salvar(config.LIVE_INSIGHTS_FILE, insights)
-    _salvar(config.LIVE_HISTORY_FILE, historico)
     _salvar(config.LIVE_SNAPSHOTS_FILE, snapshots)
     _atualizar_status(len(fixtures_monitoradas))
 

@@ -27,20 +27,31 @@ JOGOS_HISTORICO_PERFIL = 8  # quantos jogos recentes usar p/ montar o perfil de 
 MAX_GOLS_GRADE = 6  # grade de 0 a 6 gols por time para achar o placar mais provável
 
 # ── Limiares de alerta no monitoramento ao vivo ───────────────
-MINUTO_MINIMO_ALERTA = 15       # só gera insight a partir desse minuto
-LIMIAR_DELTA_PRESSAO = 0.30     # 30% de desvio do esperado já dispara insight
-LIMIAR_DELTA_XG = 0.25          # 25% de desvio do esperado já dispara insight
-LIMIAR_DELTA_GOLS = 0.35        # ritmo de gols vs esperado
-LIMIAR_DELTA_ESCANTEIROS = 0.30
-LIMIAR_DELTA_CARTOES = 0.35
-LIMIAR_DIVERGENCIA_XG_GOLS = 0.8  # xG_proxy acumulado menos gols reais, em "gols"
+# Sinal só dispara quando os DOIS critérios batem: desvio percentual grande
+# E diferença mínima em número absoluto de gols/escanteios/cartões. Só o
+# percentual sozinho dispara sinal bobo quando o esperado até aquele minuto
+# é um número pequeno (ex: esperado 0.3 gol, saiu 1 gol = "233% acima" por
+# uma diferença de 1 gol só). Com os dois critérios juntos, só sinaliza
+# quando o jogo está mesmo bem à frente ou atrás do esperado.
+MINUTO_MINIMO_ALERTA = 15         # só gera insight a partir desse minuto
+LIMIAR_DELTA_GOLS = 0.50          # 50% de desvio percentual
+LIMIAR_ABS_GOLS = 1.0             # E pelo menos 1 gol de diferença
+LIMIAR_DELTA_ESCANTEIROS = 0.40   # 40% de desvio percentual
+LIMIAR_ABS_ESCANTEIROS = 2.0      # E pelo menos 2 escanteios de diferença
+LIMIAR_DELTA_CARTOES = 0.50       # 50% de desvio percentual
+LIMIAR_ABS_CARTOES = 1.0          # E pelo menos 1 cartão de diferença
 LIMIAR_MARGEM_VALOR = 0.05        # margem mínima de vantagem exigida no cálculo de odd mínima (5%)
 LINHA_ESCANTEIROS = 9.5           # linha usada no mercado de Over/Under total de escanteios
-INTERVALO_POLLING_SEGUNDOS = 60  # frequência de checagem durante o jogo
+INTERVALO_POLLING_SEGUNDOS = 60   # frequência de checagem durante o jogo
 
-# ── Momentum (tendência) ──────────────────────────────────────
-JANELA_MOMENTUM = 3   # quantas leituras recentes usa para confirmar tendência
-MIN_LEITURAS_CONSISTENTES = 2  # de quantas dessas precisa concordar na direção
+# ── Indicador de mercado no card (pré-live x ao vivo) ──────────
+# Compara a probabilidade calculada ANTES do jogo com a probabilidade AO VIVO
+# de cada mercado (vitória/empate/over-under/BTTS/escanteios), em pontos
+# percentuais. Abaixo de LIMIAR_PP_MERCADO = "equilibrado". Acima disso =
+# "acima"/"abaixo" do esperado. Acima de LIMIAR_PP_MERCADO_FORTE = mesmo
+# padrão de destaque usado nos Sinais ao vivo.
+LIMIAR_PP_MERCADO = 8
+LIMIAR_PP_MERCADO_FORTE = 15
 
 # ── Notificações push (Web Push / VAPID) ───────────────────────
 # Chave pública: vai para o navegador, não é sigilosa.
@@ -54,6 +65,5 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 PRELIVE_FILE = os.path.join(DATA_DIR, "prelive_reports.json")
 LIVE_INSIGHTS_FILE = os.path.join(DATA_DIR, "live_insights.json")
 LIVE_SNAPSHOTS_FILE = os.path.join(DATA_DIR, "live_snapshots.json")
-LIVE_HISTORY_FILE = os.path.join(DATA_DIR, "live_history.json")
 STATUS_FILE = os.path.join(DATA_DIR, "status.json")
 PUSH_SUBS_FILE = os.path.join(DATA_DIR, "push_subscriptions.json")

@@ -235,7 +235,7 @@ body {
 .tag-calibrado { color: var(--accent-green); font-size: 11px; font-weight: 600; }
 .tag-sem-edge { color: var(--accent-amber); font-size: 11px; font-weight: 600; }
 .valor-row {
-  display: grid; grid-template-columns: 1fr 56px 72px 110px; gap: 8px; align-items: center;
+  display: grid; grid-template-columns: 1fr 56px 130px; gap: 8px; align-items: center;
   margin-bottom: 7px;
 }
 .valor-info { display: flex; flex-direction: column; }
@@ -245,14 +245,12 @@ body {
   font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--accent-amber);
   text-align: center; border: 1px solid var(--border); border-radius: 4px; padding: 3px 0;
 }
-.odd-input {
-  background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
-  color: var(--text); font-family: var(--mono); font-size: 12px; padding: 4px 6px;
-  width: 100%; text-align: center;
+.situacao-badge {
+  font-family: var(--mono); font-size: 10.5px; font-weight: 600; text-align: center;
+  border: 1px solid var(--border); border-radius: 4px; padding: 4px 6px;
+  color: var(--muted); white-space: nowrap;
 }
-.odd-input:focus { outline: none; border-color: var(--accent-blue); }
-.comparacao-badge {
-  font-family: var(--mono); font-size: 11px; font-weight: 600; text-align: center;
-}
-.comparacao-favoravel { color: var(--accent-green); }
-.comparacao-desfavoravel { color: var(--accent-red); }
+.situacao-equilibrado { color: var(--muted); }
+.situacao-acima { color: var(--accent-green); border-color: var(--accent-green); }
+.situacao-abaixo { color: var(--accent-red); border-color: var(--accent-red); }
+.situacao-forte { font-weight: 700; background: rgba(255,255,255,0.04); }
