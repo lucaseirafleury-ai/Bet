@@ -2,6 +2,7 @@
 Cálculo de xG_proxy e Índice de Pressão a partir de estatísticas de partida.
 Usado tanto na Fase 1 (médias históricas) quanto na Fase 2 (jogo ao vivo).
 """
+import time
 
 # Nomes dos campos como retornados pela Sportmonks em statistics[].type.name.
 # Conferido direto em /core/types (per_page=50, 1250 tipos) em 2026-07-24 —
@@ -136,11 +137,30 @@ def calcular_momentum(stats_home, stats_away):
 
 
 def extrair_minuto(fixture):
-    """Pega o minuto do período que estiver 'ticking' (rolando) agora."""
+    """
+    Pega o minuto do período que estiver 'ticking' (rolando) agora.
+
+    O campo `minutes` da Sportmonks às vezes atrasa em relação ao relógio de
+    parede (visto num jogo real onde o placar já contava um gol que só
+    aconteceu 2 minutos depois do `minutes` informado — o placar e o relógio
+    vêm de partes diferentes do pipeline deles e nem sempre chegam no mesmo
+    instante). Por isso usamos o maior valor entre o que a Sportmonks informa
+    e uma estimativa pelo tempo real decorrido desde o início do período
+    (`started`), como piso de segurança — nunca deixa o minuto exibido ficar
+    "atrás" de um placar que já mudou.
+    """
     periods = fixture.get("periods", [])
-    for p in periods:
-        if p.get("ticking") is True:
-            return p.get("minutes", 1) or 1
-    if periods:
-        return periods[-1].get("minutes", 1) or 1
-    return 1
+    periodo_ativo = next((p for p in periods if p.get("ticking") is True), None)
+    if periodo_ativo is None:
+        if periods:
+            return periods[-1].get("minutes", 1) or 1
+        return 1
+
+    minuto_informado = periodo_ativo.get("minutes", 1) or 1
+    started = periodo_ativo.get("started")
+    if not started:
+        return minuto_informado
+
+    counts_from = periodo_ativo.get("counts_from", 0) or 0
+    minuto_relogio = counts_from + int((time.time() - started) / 60) + 1
+    return max(minuto_informado, minuto_relogio)
