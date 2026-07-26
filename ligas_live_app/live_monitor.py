@@ -141,6 +141,30 @@ def checar_ritmo_mercado(relatorio, minuto, time_nome, valor_real_acumulado, val
     return _insight_base(relatorio, minuto, tipo, time_nome, round(delta * 100, 1), msg)
 
 
+def checar_ritmo_gols(relatorio, minuto, time_nome, gols_reais, lambda_time, xg_atual, xg_media_prelive, dados_xg_disponiveis):
+    """
+    Sinal de ritmo de gols, mas só dispara quando o xG_proxy concorda com a
+    direção do desvio — evita alertar "abaixo do esperado" quando o time nem
+    está criando chance nenhuma (aí não é falta de sorte, é falta de processo
+    ofensivo mesmo, o que o próprio xG_proxy já mostra no card), ou "acima"
+    sem nenhum chute de verdade sustentando o resultado.
+    """
+    candidato = checar_ritmo_mercado(relatorio, minuto, time_nome, gols_reais, lambda_time, "gols", config.LIMIAR_DELTA_GOLS, config.LIMIAR_ABS_GOLS)
+    if candidato is None:
+        return None
+
+    if dados_xg_disponiveis and xg_media_prelive > 0:
+        xg_esperado = xg_media_prelive * (minuto / 90)
+        diff_xg = xg_atual - xg_esperado
+        direcao_gols = "acima" if candidato["delta_pct"] > 0 else "abaixo"
+        concorda = diff_xg >= 0 if direcao_gols == "acima" else diff_xg <= 0
+        if not concorda:
+            return None
+        candidato["mensagem"] += f" xG_proxy também {direcao_gols} do esperado ({xg_atual:g} vs {xg_esperado:.2f}), confirma o sinal."
+
+    return candidato
+
+
 # ── Comparação de mercado: pré-live (estático) x ao vivo ──────
 # Mesma pergunta dos sinais ("o jogo está à frente ou atrás do esperado?"),
 # aplicada a cada mercado individual (vitória/empate/over-under/BTTS/
@@ -332,8 +356,9 @@ def ciclo():
         candidatos = [
             # ritmo de mercado — só isso vira sinal: contagem real vs esperada,
             # em gols/escanteios/cartões, com critério duplo (% e absoluto).
-            checar_ritmo_mercado(relatorio, minuto, home["name"], gols_home, lambda_home, "gols", config.LIMIAR_DELTA_GOLS, config.LIMIAR_ABS_GOLS),
-            checar_ritmo_mercado(relatorio, minuto, away["name"], gols_away, lambda_away, "gols", config.LIMIAR_DELTA_GOLS, config.LIMIAR_ABS_GOLS),
+            # Gols exige, além disso, que o xG_proxy concorde com a direção.
+            checar_ritmo_gols(relatorio, minuto, home["name"], gols_home, lambda_home, xg_home, perfil_c["xg_proxy_media"], dados_ofensivos_disponiveis),
+            checar_ritmo_gols(relatorio, minuto, away["name"], gols_away, lambda_away, xg_away, perfil_f["xg_proxy_media"], dados_ofensivos_disponiveis),
             checar_ritmo_mercado(relatorio, minuto, home["name"], escanteios_home, perfil_c["escanteios_media"], "escanteios", config.LIMIAR_DELTA_ESCANTEIROS, config.LIMIAR_ABS_ESCANTEIROS),
             checar_ritmo_mercado(relatorio, minuto, away["name"], escanteios_away, perfil_f["escanteios_media"], "escanteios", config.LIMIAR_DELTA_ESCANTEIROS, config.LIMIAR_ABS_ESCANTEIROS),
             checar_ritmo_mercado(relatorio, minuto, home["name"], cartoes_home, perfil_c["cartoes_media"], "cartoes", config.LIMIAR_DELTA_CARTOES, config.LIMIAR_ABS_CARTOES),
