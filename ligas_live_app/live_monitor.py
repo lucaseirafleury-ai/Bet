@@ -7,9 +7,12 @@ A cada ciclo, para cada jogo ao vivo monitorado:
   2. Compara a CONTAGEM de gols real com a esperada (perfil pré-live)
      prorrateada pelo minuto — único tipo de sinal do painel. Só dispara
      quando o desvio é grande em percentual E em número absoluto (ver
-     LIMIAR_DELTA_GOLS/LIMIAR_ABS_GOLS em config.py) E o xG_proxy concorda
-     com a direção — critério deliberadamente rigoroso: é normal um jogo
-     terminar sem gerar nenhum sinal.
+     LIMIAR_DELTA_GOLS/LIMIAR_ABS_GOLS em config.py) E o xG_proxy DIVERGE do
+     placar na direção certa (time devendo gols mas criando mais chance do
+     que o esperado, ou marcando mais gols do que o processo sustenta) —
+     é essa divergência que indica uma entrada de valor, não a concordância
+     entre placar e processo. Critério deliberadamente rigoroso: é normal um
+     jogo terminar sem gerar nenhum sinal.
   3. Publica:
        - data/live_snapshots.json  → estado atual rico de cada jogo (painel permanente)
        - data/live_insights.json   → só os eventos que cruzaram o limiar (feed de alertas)
@@ -153,17 +156,30 @@ def _mercados_favorecidos(relatorio, comparacao):
 
 def checar_ritmo_gols(relatorio, minuto, time_nome, gols_reais, lambda_time, xg_atual, xg_media_prelive, dados_xg_disponiveis, comparacao=None):
     """
-    Único tipo de sinal do painel: gols reais x esperado (perfil pré-live
-    prorrateado pelo relógio). Só dispara quando os DOIS critérios batem
-    (desvio percentual grande E diferença mínima em número absoluto de gols —
-    evita sinal bobo tipo "233% acima" quando o esperado até aquele minuto é
-    só uma fração de gol) E o xG_proxy concorda com a direção do desvio —
-    evita alertar "abaixo do esperado" quando o time nem está criando chance
-    nenhuma (aí não é falta de sorte, é falta de processo ofensivo mesmo), ou
-    "acima" sem nenhum chute de verdade sustentando o resultado.
+    Único tipo de sinal do painel — e busca especificamente uma DIVERGÊNCIA
+    entre placar e processo (xG_proxy), não uma concordância entre eles.
+
+    Quando placar e xG_proxy concordam (time devendo gols e também sem criar
+    nada, ou fazendo gols de verdade com processo bom por trás), não há edge
+    de mercado — é só "o time está jogando mal/bem mesmo", o que qualquer um
+    vê no placar. O sinal de valor é o contrário:
+
+      - Devendo gols no placar, MAS xG_proxy acima do próprio esperado: o
+        time está criando mais chance do que o de costume, só não converteu
+        ainda — processo bom, resultado atrasado. Gol pode estar a caminho
+        antes do mercado precificar.
+      - Gols demais no placar, MAS xG_proxy abaixo do próprio esperado: os
+        gols não têm processo por trás (sorte/lance isolado) — candidato a
+        regressão, risco da produção cair no resto do jogo.
+
+    Exige xG_proxy disponível: sem ele não dá pra saber se é uma divergência
+    de valor ou só a continuação óbvia do que já era esperado.
     """
     if lambda_time <= 0 or minuto < config.MINUTO_MINIMO_ALERTA:
         return None
+    if not dados_xg_disponiveis or xg_media_prelive <= 0:
+        return None
+
     esperado_prorrateado = lambda_time * (minuto / 90)
     if esperado_prorrateado <= 0:
         return None
@@ -173,23 +189,32 @@ def checar_ritmo_gols(relatorio, minuto, time_nome, gols_reais, lambda_time, xg_
     delta = diferenca_abs / esperado_prorrateado
     if abs(delta) < config.LIMIAR_DELTA_GOLS:
         return None
-    direcao = "acima" if delta > 0 else "abaixo"
+    direcao_gols = "abaixo" if delta < 0 else "acima"
 
-    if dados_xg_disponiveis and xg_media_prelive > 0:
-        xg_esperado = xg_media_prelive * (minuto / 90)
-        diff_xg = xg_atual - xg_esperado
-        concorda = diff_xg >= 0 if direcao == "acima" else diff_xg <= 0
-        if not concorda:
-            return None
-        confirmacao = (f" xG_proxy também {direcao} do esperado "
-                       f"(real: {xg_atual:g}, esperado até aqui: {xg_esperado:.2f}), confirma o sinal.")
+    xg_esperado = xg_media_prelive * (minuto / 90)
+    diff_xg = xg_atual - xg_esperado
+
+    if direcao_gols == "abaixo":
+        if diff_xg <= 0:
+            return None  # também sem criar chance -> sem edge, só jogo ruim
+        rotulo = "prestes a marcar"
+        motivo = (f"devendo {abs(diferenca_abs):.1f} gol(s) em relação ao esperado "
+                  f"({gols_reais:g} real vs {esperado_prorrateado:.1f} esperado até aqui), mas o xG_proxy está "
+                  f"acima do próprio esperado (real: {xg_atual:g}, esperado até aqui: {xg_esperado:.2f}) — "
+                  f"criando mais chance do que o de costume, gol pode estar a caminho.")
+        delta_pct_exibido = abs(round(delta * 100, 1))  # positivo -> selo verde, sinal de oportunidade
     else:
-        confirmacao = ""
+        if diff_xg >= 0:
+            return None  # processo sustenta os gols -> sem edge, merecido
+        rotulo = "sorte, risco de regressão"
+        motivo = (f"{diferenca_abs:.1f} gol(s) acima do esperado "
+                  f"({gols_reais:g} real vs {esperado_prorrateado:.1f} esperado até aqui), mas o xG_proxy está "
+                  f"abaixo do próprio esperado (real: {xg_atual:g}, esperado até aqui: {xg_esperado:.2f}) — "
+                  f"gols não sustentados pelo processo, risco de regressão.")
+        delta_pct_exibido = -abs(round(delta * 100, 1))  # negativo -> selo vermelho, sinal de alerta
 
-    msg = (f"min {minuto} — {time_nome}: ritmo de gols {direcao} do esperado "
-           f"({gols_reais:g} real vs {esperado_prorrateado:.1f} esperado até aqui, "
-           f"{round(abs(delta) * 100, 1)}% de desvio).{confirmacao}{_mercados_favorecidos(relatorio, comparacao)}")
-    return _insight_base(relatorio, minuto, "gols", time_nome, round(delta * 100, 1), msg)
+    msg = f"min {minuto} — {time_nome}: {rotulo} — {motivo}{_mercados_favorecidos(relatorio, comparacao)}"
+    return _insight_base(relatorio, minuto, "gols", time_nome, delta_pct_exibido, msg)
 
 
 # ── Comparação de mercado: pré-live (estático) x ao vivo ──────
