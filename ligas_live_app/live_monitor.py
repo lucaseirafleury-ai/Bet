@@ -148,7 +148,8 @@ def checar_ritmo_gols(relatorio, minuto, time_nome, gols_reais, lambda_time, xg_
         concorda = diff_xg >= 0 if direcao == "acima" else diff_xg <= 0
         if not concorda:
             return None
-        confirmacao = f" xG_proxy também {direcao} do esperado ({xg_atual:g} vs {xg_esperado:.2f}), confirma o sinal."
+        confirmacao = (f" xG_proxy também {direcao} do esperado "
+                       f"(real: {xg_atual:g}, esperado até aqui: {xg_esperado:.2f}), confirma o sinal.")
     else:
         confirmacao = ""
 
