@@ -154,30 +154,34 @@ def _mercados_favorecidos(relatorio, comparacao):
     return " Mercados que já refletem esse desvio: " + ", ".join(favorecidos) + "."
 
 
-def checar_ritmo_gols(relatorio, minuto, time_nome, gols_reais, lambda_time, xg_atual, xg_media_prelive, dados_xg_disponiveis, comparacao=None):
+def checar_ritmo_gols(relatorio, minuto, time_nome, gols_reais, lambda_time, xg_atual, xg_media_prelive,
+                       dados_xg_disponiveis, gols_restantes_calibrado, gols_totais_jogo, comparacao=None):
     """
-    Único tipo de sinal do painel — e busca especificamente uma DIVERGÊNCIA
-    entre placar e processo (xG_proxy), não uma concordância entre eles.
+    Único tipo de sinal do painel. O critério que decide SE existe desvio é
+    pré-definido e fixo (perfil pré-live prorrateado pelo relógio, com limiar
+    duplo — percentual E absoluto). xG_proxy e o modelo calibrado por liga
+    entram só DEPOIS, como filtros eliminatórios — nenhum dos dois cria sinal
+    sozinho, só têm poder de veto sobre um candidato que já passou no
+    critério principal:
 
-    Quando placar e xG_proxy concordam (time devendo gols e também sem criar
-    nada, ou fazendo gols de verdade com processo bom por trás), não há edge
-    de mercado — é só "o time está jogando mal/bem mesmo", o que qualquer um
-    vê no placar. O sinal de valor é o contrário:
+      1. xG_proxy do time: precisa DIVERGIR do placar na direção de valor —
+         devendo gols no placar, mas criando mais chance do que o de costume
+         (gol pode estar a caminho); ou gols demais no placar, mas sem
+         processo por trás (risco de regressão). Se os dois concordam (time
+         realmente jogando mal ou bem nos dois sentidos), elimina — isso é
+         só o óbvio, sem edge de mercado.
+      2. Modelo calibrado por liga (ritmo de chutes/ataques + minuto, o
+         mesmo usado no mercado Over/Under): projeta quantos gols o JOGO
+         (os dois times somados) deve terminar tendo, dado o ritmo atual de
+         jogo. Se essa projeção contradiz a direção do sinal, elimina — o
+         ritmo real de chutes do jogo não sustenta a tese.
 
-      - Devendo gols no placar, MAS xG_proxy acima do próprio esperado: o
-        time está criando mais chance do que o de costume, só não converteu
-        ainda — processo bom, resultado atrasado. Gol pode estar a caminho
-        antes do mercado precificar.
-      - Gols demais no placar, MAS xG_proxy abaixo do próprio esperado: os
-        gols não têm processo por trás (sorte/lance isolado) — candidato a
-        regressão, risco da produção cair no resto do jogo.
-
-    Exige xG_proxy disponível: sem ele não dá pra saber se é uma divergência
-    de valor ou só a continuação óbvia do que já era esperado.
+    Exige xG_proxy e modelo calibrado disponíveis: sem eles não dá pra saber
+    se é uma divergência de valor ou só a continuação óbvia do esperado.
     """
     if lambda_time <= 0 or minuto < config.MINUTO_MINIMO_ALERTA:
         return None
-    if not dados_xg_disponiveis or xg_media_prelive <= 0:
+    if not dados_xg_disponiveis or xg_media_prelive <= 0 or gols_restantes_calibrado is None:
         return None
 
     esperado_prorrateado = lambda_time * (minuto / 90)
@@ -191,26 +195,39 @@ def checar_ritmo_gols(relatorio, minuto, time_nome, gols_reais, lambda_time, xg_
         return None
     direcao_gols = "abaixo" if delta < 0 else "acima"
 
+    # Filtro eliminatório 1: xG_proxy do time precisa divergir do placar.
     xg_esperado = xg_media_prelive * (minuto / 90)
     diff_xg = xg_atual - xg_esperado
+    if direcao_gols == "abaixo" and diff_xg <= 0:
+        return None  # também sem criar chance -> sem edge, só jogo ruim
+    if direcao_gols == "acima" and diff_xg >= 0:
+        return None  # processo sustenta os gols -> sem edge, merecido
+
+    # Filtro eliminatório 2: ritmo de chutes do JOGO (modelo calibrado por
+    # liga) não pode contradizer a direção do sinal.
+    esperado_prelive_total = relatorio["lambda_home"] + relatorio["lambda_away"]
+    projetado_final = gols_totais_jogo + gols_restantes_calibrado
+    diff_calibrado = projetado_final - esperado_prelive_total
+    if direcao_gols == "abaixo" and diff_calibrado < 0:
+        return None  # ritmo do jogo também aponta pra menos gols -> sem edge
+    if direcao_gols == "acima" and diff_calibrado > 0:
+        return None  # ritmo do jogo também sustenta mais gols -> sem edge
 
     if direcao_gols == "abaixo":
-        if diff_xg <= 0:
-            return None  # também sem criar chance -> sem edge, só jogo ruim
         rotulo = "prestes a marcar"
         motivo = (f"devendo {abs(diferenca_abs):.1f} gol(s) em relação ao esperado "
                   f"({gols_reais:g} real vs {esperado_prorrateado:.1f} esperado até aqui), mas o xG_proxy está "
-                  f"acima do próprio esperado (real: {xg_atual:g}, esperado até aqui: {xg_esperado:.2f}) — "
-                  f"criando mais chance do que o de costume, gol pode estar a caminho.")
+                  f"acima do próprio esperado (real: {xg_atual:g}, esperado até aqui: {xg_esperado:.2f}) e o ritmo "
+                  f"de chutes do jogo projeta {projetado_final:.1f} gols no total (esperado pré-jogo: "
+                  f"{esperado_prelive_total:.1f}) — criando mais chance do que o de costume, gol pode estar a caminho.")
         delta_pct_exibido = abs(round(delta * 100, 1))  # positivo -> selo verde, sinal de oportunidade
     else:
-        if diff_xg >= 0:
-            return None  # processo sustenta os gols -> sem edge, merecido
         rotulo = "sorte, risco de regressão"
         motivo = (f"{diferenca_abs:.1f} gol(s) acima do esperado "
                   f"({gols_reais:g} real vs {esperado_prorrateado:.1f} esperado até aqui), mas o xG_proxy está "
-                  f"abaixo do próprio esperado (real: {xg_atual:g}, esperado até aqui: {xg_esperado:.2f}) — "
-                  f"gols não sustentados pelo processo, risco de regressão.")
+                  f"abaixo do próprio esperado (real: {xg_atual:g}, esperado até aqui: {xg_esperado:.2f}) e o ritmo "
+                  f"de chutes do jogo projeta só {projetado_final:.1f} gols no total (esperado pré-jogo: "
+                  f"{esperado_prelive_total:.1f}) — gols não sustentados pelo processo, risco de regressão.")
         delta_pct_exibido = -abs(round(delta * 100, 1))  # negativo -> selo vermelho, sinal de alerta
 
     msg = f"min {minuto} — {time_nome}: {rotulo} — {motivo}{_mercados_favorecidos(relatorio, comparacao)}"
@@ -405,12 +422,16 @@ def ciclo():
         # esperados por 90min, vindos do perfil pré-live
         lambda_home, lambda_away = relatorio["lambda_home"], relatorio["lambda_away"]
 
+        gols_restantes_calibrado = probs.get("xg_restante_total_calibrado")
+        gols_totais_jogo = gols_home + gols_away
+
         candidatos = [
-            # Único sinal do painel: ritmo de gols (real x esperado), com
-            # confirmação do xG_proxy quando disponível e os mercados que já
-            # refletem esse desvio, pra responder "onde entrar".
-            checar_ritmo_gols(relatorio, minuto, home["name"], gols_home, lambda_home, xg_home, perfil_c["xg_proxy_media"], dados_ofensivos_disponiveis, probs["comparacao"]),
-            checar_ritmo_gols(relatorio, minuto, away["name"], gols_away, lambda_away, xg_away, perfil_f["xg_proxy_media"], dados_ofensivos_disponiveis, probs["comparacao"]),
+            # Único sinal do painel: ritmo de gols (real x esperado). xG_proxy
+            # do time e o modelo calibrado por liga (ritmo de chutes, mesmo
+            # usado no Over/Under) entram só como filtros eliminatórios, e a
+            # mensagem já lista os mercados que refletem o desvio.
+            checar_ritmo_gols(relatorio, minuto, home["name"], gols_home, lambda_home, xg_home, perfil_c["xg_proxy_media"], dados_ofensivos_disponiveis, gols_restantes_calibrado, gols_totais_jogo, probs["comparacao"]),
+            checar_ritmo_gols(relatorio, minuto, away["name"], gols_away, lambda_away, xg_away, perfil_f["xg_proxy_media"], dados_ofensivos_disponiveis, gols_restantes_calibrado, gols_totais_jogo, probs["comparacao"]),
         ]
 
         for c in candidatos:
