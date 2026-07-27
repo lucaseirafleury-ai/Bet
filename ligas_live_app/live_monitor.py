@@ -118,7 +118,40 @@ def _insight_base(relatorio, minuto, tipo, time_nome, delta_pct, mensagem):
     }
 
 
-def checar_ritmo_gols(relatorio, minuto, time_nome, gols_reais, lambda_time, xg_atual, xg_media_prelive, dados_xg_disponiveis):
+# Rótulos dos mercados de gols (os mesmos exibidos no card, em "odd mínima").
+# Escanteios ficam de fora — não têm relação causal com um desvio de gols/xG.
+ROTULOS_MERCADO_GOLS = {
+    "prob_casa": "Vitória {home}",
+    "prob_empate": "Empate",
+    "prob_fora": "Vitória {away}",
+    "prob_over25": "Over 2.5 gols",
+    "prob_under25": "Under 2.5 gols",
+    "prob_btts_sim": "Ambas marcam - Sim",
+    "prob_btts_nao": "Ambas marcam - Não",
+}
+
+
+def _mercados_favorecidos(relatorio, comparacao):
+    """
+    Traduz o sinal em "onde entrar": lista os mercados de gols que já estão
+    fortemente favorecidos (mesmo critério/limiar usado no selo do card),
+    pra não deixar o usuário com o diagnóstico sem a aposta correspondente.
+    """
+    if not comparacao:
+        return ""
+    favorecidos = []
+    for mercado, rotulo in ROTULOS_MERCADO_GOLS.items():
+        c = comparacao.get(mercado)
+        if not c or not c.get("forte"):
+            continue
+        seta = "▲" if c["situacao"] == "acima" else "▼"
+        favorecidos.append(f"{rotulo.format(home=relatorio['home'], away=relatorio['away'])} {seta}")
+    if not favorecidos:
+        return ""
+    return " Mercados que já refletem esse desvio: " + ", ".join(favorecidos) + "."
+
+
+def checar_ritmo_gols(relatorio, minuto, time_nome, gols_reais, lambda_time, xg_atual, xg_media_prelive, dados_xg_disponiveis, comparacao=None):
     """
     Único tipo de sinal do painel: gols reais x esperado (perfil pré-live
     prorrateado pelo relógio). Só dispara quando os DOIS critérios batem
@@ -155,7 +188,7 @@ def checar_ritmo_gols(relatorio, minuto, time_nome, gols_reais, lambda_time, xg_
 
     msg = (f"min {minuto} — {time_nome}: ritmo de gols {direcao} do esperado "
            f"({gols_reais:g} real vs {esperado_prorrateado:.1f} esperado até aqui, "
-           f"{round(abs(delta) * 100, 1)}% de desvio).{confirmacao}")
+           f"{round(abs(delta) * 100, 1)}% de desvio).{confirmacao}{_mercados_favorecidos(relatorio, comparacao)}")
     return _insight_base(relatorio, minuto, "gols", time_nome, round(delta * 100, 1), msg)
 
 
@@ -349,9 +382,10 @@ def ciclo():
 
         candidatos = [
             # Único sinal do painel: ritmo de gols (real x esperado), com
-            # confirmação do xG_proxy quando disponível.
-            checar_ritmo_gols(relatorio, minuto, home["name"], gols_home, lambda_home, xg_home, perfil_c["xg_proxy_media"], dados_ofensivos_disponiveis),
-            checar_ritmo_gols(relatorio, minuto, away["name"], gols_away, lambda_away, xg_away, perfil_f["xg_proxy_media"], dados_ofensivos_disponiveis),
+            # confirmação do xG_proxy quando disponível e os mercados que já
+            # refletem esse desvio, pra responder "onde entrar".
+            checar_ritmo_gols(relatorio, minuto, home["name"], gols_home, lambda_home, xg_home, perfil_c["xg_proxy_media"], dados_ofensivos_disponiveis, probs["comparacao"]),
+            checar_ritmo_gols(relatorio, minuto, away["name"], gols_away, lambda_away, xg_away, perfil_f["xg_proxy_media"], dados_ofensivos_disponiveis, probs["comparacao"]),
         ]
 
         for c in candidatos:
