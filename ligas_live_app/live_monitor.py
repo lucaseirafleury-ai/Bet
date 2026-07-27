@@ -2,12 +2,14 @@
 FASE 2 — Monitoramento ao vivo (versão estendida).
 
 A cada ciclo, para cada jogo ao vivo monitorado:
-  1. Lê estatísticas acumuladas (xG_proxy, pressão, escanteios, cartões, eficiência)
-  2. Compara a CONTAGEM real com a esperada (perfil pré-live) prorrateada pelo
-     minuto, em 3 frentes: gols, escanteios, cartões. Um sinal só dispara
+  1. Lê estatísticas acumuladas (xG_proxy, pressão, escanteios, cartões, eficiência
+     — usadas no card do painel, não geram sinal sozinhas)
+  2. Compara a CONTAGEM de gols real com a esperada (perfil pré-live)
+     prorrateada pelo minuto — único tipo de sinal do painel. Só dispara
      quando o desvio é grande em percentual E em número absoluto (ver
-     LIMIAR_DELTA_*/LIMIAR_ABS_* em config.py) — critério deliberadamente
-     rigoroso: é normal um jogo terminar sem gerar nenhum sinal.
+     LIMIAR_DELTA_GOLS/LIMIAR_ABS_GOLS em config.py) E o xG_proxy concorda
+     com a direção — critério deliberadamente rigoroso: é normal um jogo
+     terminar sem gerar nenhum sinal.
   3. Publica:
        - data/live_snapshots.json  → estado atual rico de cada jogo (painel permanente)
        - data/live_insights.json   → só os eventos que cruzaram o limiar (feed de alertas)
@@ -15,7 +17,7 @@ A cada ciclo, para cada jogo ao vivo monitorado:
 import json
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 
 from pywebpush import webpush, WebPushException
 
@@ -104,7 +106,7 @@ def carregar_prelive():
 
 def _insight_base(relatorio, minuto, tipo, time_nome, delta_pct, mensagem):
     return {
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "fixture_id": relatorio["fixture_id"],
         "jogo": f"{relatorio['home']} x {relatorio['away']}",
         "liga": relatorio["liga"],
@@ -116,53 +118,44 @@ def _insight_base(relatorio, minuto, tipo, time_nome, delta_pct, mensagem):
     }
 
 
-def checar_ritmo_mercado(relatorio, minuto, time_nome, valor_real_acumulado, valor_esperado_90min, tipo, limiar_pct, limiar_abs):
-    """
-    Só dispara quando os DOIS critérios batem: desvio percentual grande E
-    diferença mínima em número absoluto. Evita sinal bobo tipo "233% acima"
-    quando o esperado até aquele minuto é só uma fração de gol.
-    """
-    if valor_esperado_90min <= 0 or minuto < config.MINUTO_MINIMO_ALERTA:
-        return None
-    esperado_prorrateado = valor_esperado_90min * (minuto / 90)
-    if esperado_prorrateado <= 0:
-        return None
-    diferenca_abs = valor_real_acumulado - esperado_prorrateado
-    if abs(diferenca_abs) < limiar_abs:
-        return None
-    delta = diferenca_abs / esperado_prorrateado
-    if abs(delta) < limiar_pct:
-        return None
-    direcao = "acima" if delta > 0 else "abaixo"
-    nomes = {"gols": "ritmo de gols", "escanteios": "ritmo de escanteios", "cartoes": "ritmo de cartões"}
-    msg = (f"min {minuto} — {time_nome}: {nomes[tipo]} {direcao} do esperado "
-           f"({valor_real_acumulado:g} real vs {esperado_prorrateado:.1f} esperado até aqui, "
-           f"{round(abs(delta) * 100, 1)}% de desvio).")
-    return _insight_base(relatorio, minuto, tipo, time_nome, round(delta * 100, 1), msg)
-
-
 def checar_ritmo_gols(relatorio, minuto, time_nome, gols_reais, lambda_time, xg_atual, xg_media_prelive, dados_xg_disponiveis):
     """
-    Sinal de ritmo de gols, mas só dispara quando o xG_proxy concorda com a
-    direção do desvio — evita alertar "abaixo do esperado" quando o time nem
-    está criando chance nenhuma (aí não é falta de sorte, é falta de processo
-    ofensivo mesmo, o que o próprio xG_proxy já mostra no card), ou "acima"
-    sem nenhum chute de verdade sustentando o resultado.
+    Único tipo de sinal do painel: gols reais x esperado (perfil pré-live
+    prorrateado pelo relógio). Só dispara quando os DOIS critérios batem
+    (desvio percentual grande E diferença mínima em número absoluto de gols —
+    evita sinal bobo tipo "233% acima" quando o esperado até aquele minuto é
+    só uma fração de gol) E o xG_proxy concorda com a direção do desvio —
+    evita alertar "abaixo do esperado" quando o time nem está criando chance
+    nenhuma (aí não é falta de sorte, é falta de processo ofensivo mesmo), ou
+    "acima" sem nenhum chute de verdade sustentando o resultado.
     """
-    candidato = checar_ritmo_mercado(relatorio, minuto, time_nome, gols_reais, lambda_time, "gols", config.LIMIAR_DELTA_GOLS, config.LIMIAR_ABS_GOLS)
-    if candidato is None:
+    if lambda_time <= 0 or minuto < config.MINUTO_MINIMO_ALERTA:
         return None
+    esperado_prorrateado = lambda_time * (minuto / 90)
+    if esperado_prorrateado <= 0:
+        return None
+    diferenca_abs = gols_reais - esperado_prorrateado
+    if abs(diferenca_abs) < config.LIMIAR_ABS_GOLS:
+        return None
+    delta = diferenca_abs / esperado_prorrateado
+    if abs(delta) < config.LIMIAR_DELTA_GOLS:
+        return None
+    direcao = "acima" if delta > 0 else "abaixo"
 
     if dados_xg_disponiveis and xg_media_prelive > 0:
         xg_esperado = xg_media_prelive * (minuto / 90)
         diff_xg = xg_atual - xg_esperado
-        direcao_gols = "acima" if candidato["delta_pct"] > 0 else "abaixo"
-        concorda = diff_xg >= 0 if direcao_gols == "acima" else diff_xg <= 0
+        concorda = diff_xg >= 0 if direcao == "acima" else diff_xg <= 0
         if not concorda:
             return None
-        candidato["mensagem"] += f" xG_proxy também {direcao_gols} do esperado ({xg_atual:g} vs {xg_esperado:.2f}), confirma o sinal."
+        confirmacao = f" xG_proxy também {direcao} do esperado ({xg_atual:g} vs {xg_esperado:.2f}), confirma o sinal."
+    else:
+        confirmacao = ""
 
-    return candidato
+    msg = (f"min {minuto} — {time_nome}: ritmo de gols {direcao} do esperado "
+           f"({gols_reais:g} real vs {esperado_prorrateado:.1f} esperado até aqui, "
+           f"{round(abs(delta) * 100, 1)}% de desvio).{confirmacao}")
+    return _insight_base(relatorio, minuto, "gols", time_nome, round(delta * 100, 1), msg)
 
 
 # ── Comparação de mercado: pré-live (estático) x ao vivo ──────
@@ -354,15 +347,10 @@ def ciclo():
         lambda_home, lambda_away = relatorio["lambda_home"], relatorio["lambda_away"]
 
         candidatos = [
-            # ritmo de mercado — só isso vira sinal: contagem real vs esperada,
-            # em gols/escanteios/cartões, com critério duplo (% e absoluto).
-            # Gols exige, além disso, que o xG_proxy concorde com a direção.
+            # Único sinal do painel: ritmo de gols (real x esperado), com
+            # confirmação do xG_proxy quando disponível.
             checar_ritmo_gols(relatorio, minuto, home["name"], gols_home, lambda_home, xg_home, perfil_c["xg_proxy_media"], dados_ofensivos_disponiveis),
             checar_ritmo_gols(relatorio, minuto, away["name"], gols_away, lambda_away, xg_away, perfil_f["xg_proxy_media"], dados_ofensivos_disponiveis),
-            checar_ritmo_mercado(relatorio, minuto, home["name"], escanteios_home, perfil_c["escanteios_media"], "escanteios", config.LIMIAR_DELTA_ESCANTEIROS, config.LIMIAR_ABS_ESCANTEIROS),
-            checar_ritmo_mercado(relatorio, minuto, away["name"], escanteios_away, perfil_f["escanteios_media"], "escanteios", config.LIMIAR_DELTA_ESCANTEIROS, config.LIMIAR_ABS_ESCANTEIROS),
-            checar_ritmo_mercado(relatorio, minuto, home["name"], cartoes_home, perfil_c["cartoes_media"], "cartoes", config.LIMIAR_DELTA_CARTOES, config.LIMIAR_ABS_CARTOES),
-            checar_ritmo_mercado(relatorio, minuto, away["name"], cartoes_away, perfil_f["cartoes_media"], "cartoes", config.LIMIAR_DELTA_CARTOES, config.LIMIAR_ABS_CARTOES),
         ]
 
         for c in candidatos:
@@ -383,7 +371,7 @@ def ciclo():
 
 def _atualizar_status(qtd_jogos_live):
     _salvar(config.STATUS_FILE, {
-        "ultima_checagem": datetime.now().isoformat(),
+        "ultima_checagem": datetime.now(timezone.utc).isoformat(),
         "jogos_ao_vivo_monitorados": qtd_jogos_live,
     })
 

@@ -154,6 +154,15 @@ function renderLive(snapshots) {
   }).join("");
 }
 
+function horarioBrasilia(isoString) {
+  if (!isoString) return "";
+  return new Date(isoString).toLocaleTimeString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 function renderInsights(lista) {
   const feed = $("#insights-feed");
   if (!lista || lista.length === 0) {
@@ -165,7 +174,7 @@ function renderInsights(lista) {
     const seta = i.delta_pct >= 0 ? "▲" : "▼";
     return `
       <div class="insight-item ${dirClass}">
-        <div class="jogo">${i.jogo} <span style="color:var(--muted);font-weight:400">— ${i.liga}</span></div>
+        <div class="jogo">${i.jogo} <span style="color:var(--muted);font-weight:400">— ${i.liga}</span><span class="horario-emissao">${horarioBrasilia(i.timestamp)} (Brasília)</span></div>
         <div class="msg"><span class="delta-tag">${seta} ${Math.abs(i.delta_pct)}%</span>${i.mensagem}</div>
       </div>
     `;

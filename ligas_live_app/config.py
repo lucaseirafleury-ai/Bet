@@ -27,19 +27,14 @@ JOGOS_HISTORICO_PERFIL = 8  # quantos jogos recentes usar p/ montar o perfil de 
 MAX_GOLS_GRADE = 6  # grade de 0 a 6 gols por time para achar o placar mais provável
 
 # ── Limiares de alerta no monitoramento ao vivo ───────────────
-# Sinal só dispara quando os DOIS critérios batem: desvio percentual grande
-# E diferença mínima em número absoluto de gols/escanteios/cartões. Só o
-# percentual sozinho dispara sinal bobo quando o esperado até aquele minuto
-# é um número pequeno (ex: esperado 0.3 gol, saiu 1 gol = "233% acima" por
-# uma diferença de 1 gol só). Com os dois critérios juntos, só sinaliza
-# quando o jogo está mesmo bem à frente ou atrás do esperado.
+# Único sinal do painel: ritmo de gols (real x esperado). Só dispara quando
+# os DOIS critérios batem: desvio percentual grande E diferença mínima em
+# número absoluto de gols. Só o percentual sozinho dispara sinal bobo quando
+# o esperado até aquele minuto é um número pequeno (ex: esperado 0.3 gol,
+# saiu 1 gol = "233% acima" por uma diferença de 1 gol só).
 MINUTO_MINIMO_ALERTA = 15         # só gera insight a partir desse minuto
 LIMIAR_DELTA_GOLS = 0.50          # 50% de desvio percentual
 LIMIAR_ABS_GOLS = 1.0             # E pelo menos 1 gol de diferença
-LIMIAR_DELTA_ESCANTEIROS = 0.40   # 40% de desvio percentual
-LIMIAR_ABS_ESCANTEIROS = 2.0      # E pelo menos 2 escanteios de diferença
-LIMIAR_DELTA_CARTOES = 0.50       # 50% de desvio percentual
-LIMIAR_ABS_CARTOES = 1.0          # E pelo menos 1 cartão de diferença
 LIMIAR_MARGEM_VALOR = 0.05        # margem mínima de vantagem exigida no cálculo de odd mínima (5%)
 LINHA_ESCANTEIROS = 9.5           # linha usada no mercado de Over/Under total de escanteios
 INTERVALO_POLLING_SEGUNDOS = 60   # frequência de checagem durante o jogo
