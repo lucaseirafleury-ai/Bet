@@ -183,6 +183,25 @@ body {
 }
 .live-card .times-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 2px; }
 
+.live-card-toggle {
+  display: flex; align-items: center;
+  gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border);
+  cursor: pointer;
+}
+.chevron-link {
+  font-family: var(--mono); font-size: 11px; color: var(--accent-blue); white-space: nowrap;
+  margin-left: auto;
+}
+.live-card-detalhes { margin-top: 4px; }
+
+.badge-sinal-card {
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  padding: 2px 8px; border-radius: 3px; border: 1px solid var(--border);
+}
+.badge-sinal-pos { color: var(--accent-green); border-color: var(--accent-green); background: rgba(53,214,138,0.1); }
+.badge-sinal-neg { color: var(--accent-red); border-color: var(--accent-red); background: rgba(255,92,92,0.1); }
+.badge-sinal-neutro { color: var(--accent-amber); border-color: var(--accent-amber); background: rgba(240,169,59,0.1); }
+
 .stat-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12px; margin-top: 8px; }
 .stat-table th { text-align: center; color: var(--muted); font-weight: 400; font-size: 10px; text-transform: uppercase; padding-bottom: 4px; }
 .stat-table td { text-align: center; padding: 3px 4px; }

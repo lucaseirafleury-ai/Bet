@@ -82,7 +82,35 @@ function linhaValor(label, prob, comp) {
   `;
 }
 
-function renderLive(snapshots) {
+const cardsExpandidos = new Set();
+
+function toggleCard(fixtureId) {
+  const estavaExpandido = cardsExpandidos.has(fixtureId);
+  if (estavaExpandido) {
+    cardsExpandidos.delete(fixtureId);
+  } else {
+    cardsExpandidos.add(fixtureId);
+  }
+  const detalhes = document.getElementById(`detalhes-${fixtureId}`);
+  const chevron = document.getElementById(`chevron-${fixtureId}`);
+  if (detalhes) detalhes.style.display = estavaExpandido ? "none" : "block";
+  if (chevron) chevron.textContent = estavaExpandido ? "▼ expandir" : "▲ recolher";
+}
+
+function badgeSinalCard(fixtureId, insights) {
+  const doJogo = (insights || []).filter((i) => i.fixture_id === fixtureId);
+  if (doJogo.length === 0) return "";
+  const temPositivo = doJogo.some((i) => i.delta_pct >= 0);
+  const temNegativo = doJogo.some((i) => i.delta_pct < 0);
+  let classe = "badge-sinal-neutro";
+  let seta = "⚡";
+  if (temPositivo && !temNegativo) { classe = "badge-sinal-pos"; seta = "▲"; }
+  else if (temNegativo && !temPositivo) { classe = "badge-sinal-neg"; seta = "▼"; }
+  const plural = doJogo.length > 1 ? "is" : "";
+  return `<span class="badge-sinal-card ${classe}">${seta} ${doJogo.length} sinal${plural}</span>`;
+}
+
+function renderLive(snapshots, insights) {
   const lista = $("#live-lista");
   const jogos = Object.values(snapshots || {});
 
@@ -96,6 +124,7 @@ function renderLive(snapshots) {
     const comp = p.comparacao || {};
     const sc = j.stats_completas_home || {};
     const sa = j.stats_completas_away || {};
+    const expandido = cardsExpandidos.has(j.fixture_id);
 
     return `
     <div class="live-card">
@@ -114,48 +143,55 @@ function renderLive(snapshots) {
         </div>
       </div>
 
-      <div class="ajuste-lambda-wrap">
-        <span class="ajuste-item">lambda casa: <b class="${j.ajuste_lambda_home >= 1 ? 'ajuste-alta' : 'ajuste-baixa'}">×${j.ajuste_lambda_home}</b></span>
-        <span class="ajuste-item">lambda fora: <b class="${j.ajuste_lambda_away >= 1 ? 'ajuste-alta' : 'ajuste-baixa'}">×${j.ajuste_lambda_away}</b></span>
+      <div class="live-card-toggle" onclick="toggleCard(${j.fixture_id})">
+        ${badgeSinalCard(j.fixture_id, insights)}
+        <span id="chevron-${j.fixture_id}" class="chevron-link">${expandido ? "▲ recolher" : "▼ expandir"}</span>
       </div>
 
-      <table class="stat-table">
-        <tr><th class="label-col"></th><th>${j.home.slice(0,10)}</th><th>${j.away.slice(0,10)}</th></tr>
-        <tr><td class="label-col">xG_proxy acumulado</td><td>${j.xg_proxy_home}</td><td>${j.xg_proxy_away}</td></tr>
-        <tr>
-          <td class="label-col">xG − Gols</td>
-          <td class="${classeDivergencia(j.divergencia_xg_gols_home)}">${j.divergencia_xg_gols_home > 0 ? "+" : ""}${j.divergencia_xg_gols_home}</td>
-          <td class="${classeDivergencia(j.divergencia_xg_gols_away)}">${j.divergencia_xg_gols_away > 0 ? "+" : ""}${j.divergencia_xg_gols_away}</td>
-        </tr>
-        <tr><td class="label-col">Posse</td><td>${sc.posse ?? "—"}%</td><td>${sa.posse ?? "—"}%</td></tr>
-        <tr><td class="label-col">Finalizações (no alvo)</td><td>${sc.finalizacoes ?? "—"} (${sc.chutes_no_alvo ?? "—"})</td><td>${sa.finalizacoes ?? "—"} (${sa.chutes_no_alvo ?? "—"})</td></tr>
-        <tr><td class="label-col">Escanteios</td><td>${j.escanteios_home}</td><td>${j.escanteios_away}</td></tr>
-        <tr><td class="label-col">Faltas</td><td>${sc.faltas ?? "—"}</td><td>${sa.faltas ?? "—"}</td></tr>
-        <tr><td class="label-col">Impedimentos</td><td>${sc.impedimentos ?? "—"}</td><td>${sa.impedimentos ?? "—"}</td></tr>
-        <tr><td class="label-col">Cartões</td><td>${j.cartoes_home}</td><td>${j.cartoes_away}</td></tr>
-        <tr><td class="label-col">Passes (%)</td><td>${sc.passes_totais ?? "—"} (${sc.passes_certos ?? "—"}%)</td><td>${sa.passes_totais ?? "—"} (${sa.passes_certos ?? "—"}%)</td></tr>
-        <tr><td class="label-col">Defesas</td><td>${sc.defesas ?? "—"}</td><td>${sa.defesas ?? "—"}</td></tr>
-        <tr><td class="label-col">Eficiência de finalização</td><td>${j.eficiencia_home != null ? j.eficiencia_home + "%" : "—"}</td><td>${j.eficiencia_away != null ? j.eficiencia_away + "%" : "—"}</td></tr>
-      </table>
-
-      <div class="valor-box">
-        <div class="valor-titulo">Odd mínima para valer a entrada (margem ${((window.MARGEM_VALOR ?? 0.05) * 100).toFixed(0)}%)</div>
-        ${linhaValor(`Vitória ${j.home}`, p.prob_casa, comp.prob_casa)}
-        ${linhaValor("Empate", p.prob_empate, comp.prob_empate)}
-        ${linhaValor(`Vitória ${j.away}`, p.prob_fora, comp.prob_fora)}
-        ${linhaValor(`Over 2.5 gols<span class="${rotuloOverUnder(p.over_under_fonte).classe}">${rotuloOverUnder(p.over_under_fonte).texto}</span>`, p.prob_over25, comp.prob_over25)}
-        ${linhaValor(`Under 2.5 gols<span class="${rotuloOverUnder(p.over_under_fonte).classe}">${rotuloOverUnder(p.over_under_fonte).texto}</span>`, p.prob_under25, comp.prob_under25)}
-        ${linhaValor("Ambas marcam - Sim", p.prob_btts_sim, comp.prob_btts_sim)}
-        ${linhaValor("Ambas marcam - Não", p.prob_btts_nao, comp.prob_btts_nao)}
-      </div>
-
-      <div class="valor-box">
-        <div class="valor-titulo">
-          Escanteios — linha ${p.linha_escanteios ?? "9.5"}
-          <span class="aviso-confianca">confiança menor, não calibrado ainda</span>
+      <div id="detalhes-${j.fixture_id}" class="live-card-detalhes" style="display:${expandido ? "block" : "none"}">
+        <div class="ajuste-lambda-wrap">
+          <span class="ajuste-item">lambda casa: <b class="${j.ajuste_lambda_home >= 1 ? 'ajuste-alta' : 'ajuste-baixa'}">×${j.ajuste_lambda_home}</b></span>
+          <span class="ajuste-item">lambda fora: <b class="${j.ajuste_lambda_away >= 1 ? 'ajuste-alta' : 'ajuste-baixa'}">×${j.ajuste_lambda_away}</b></span>
         </div>
-        ${linhaValor(`Over ${p.linha_escanteios ?? "9.5"}`, p.prob_over_escanteios, comp.prob_over_escanteios)}
-        ${linhaValor(`Under ${p.linha_escanteios ?? "9.5"}`, p.prob_under_escanteios, comp.prob_under_escanteios)}
+
+        <table class="stat-table">
+          <tr><th class="label-col"></th><th>${j.home.slice(0,10)}</th><th>${j.away.slice(0,10)}</th></tr>
+          <tr><td class="label-col">xG_proxy acumulado</td><td>${j.xg_proxy_home}</td><td>${j.xg_proxy_away}</td></tr>
+          <tr>
+            <td class="label-col">xG − Gols</td>
+            <td class="${classeDivergencia(j.divergencia_xg_gols_home)}">${j.divergencia_xg_gols_home > 0 ? "+" : ""}${j.divergencia_xg_gols_home}</td>
+            <td class="${classeDivergencia(j.divergencia_xg_gols_away)}">${j.divergencia_xg_gols_away > 0 ? "+" : ""}${j.divergencia_xg_gols_away}</td>
+          </tr>
+          <tr><td class="label-col">Posse</td><td>${sc.posse ?? "—"}%</td><td>${sa.posse ?? "—"}%</td></tr>
+          <tr><td class="label-col">Finalizações (no alvo)</td><td>${sc.finalizacoes ?? "—"} (${sc.chutes_no_alvo ?? "—"})</td><td>${sa.finalizacoes ?? "—"} (${sa.chutes_no_alvo ?? "—"})</td></tr>
+          <tr><td class="label-col">Escanteios</td><td>${j.escanteios_home}</td><td>${j.escanteios_away}</td></tr>
+          <tr><td class="label-col">Faltas</td><td>${sc.faltas ?? "—"}</td><td>${sa.faltas ?? "—"}</td></tr>
+          <tr><td class="label-col">Impedimentos</td><td>${sc.impedimentos ?? "—"}</td><td>${sa.impedimentos ?? "—"}</td></tr>
+          <tr><td class="label-col">Cartões</td><td>${j.cartoes_home}</td><td>${j.cartoes_away}</td></tr>
+          <tr><td class="label-col">Passes (%)</td><td>${sc.passes_totais ?? "—"} (${sc.passes_certos ?? "—"}%)</td><td>${sa.passes_totais ?? "—"} (${sa.passes_certos ?? "—"}%)</td></tr>
+          <tr><td class="label-col">Defesas</td><td>${sc.defesas ?? "—"}</td><td>${sa.defesas ?? "—"}</td></tr>
+          <tr><td class="label-col">Eficiência de finalização</td><td>${j.eficiencia_home != null ? j.eficiencia_home + "%" : "—"}</td><td>${j.eficiencia_away != null ? j.eficiencia_away + "%" : "—"}</td></tr>
+        </table>
+
+        <div class="valor-box">
+          <div class="valor-titulo">Odd mínima para valer a entrada (margem ${((window.MARGEM_VALOR ?? 0.05) * 100).toFixed(0)}%)</div>
+          ${linhaValor(`Vitória ${j.home}`, p.prob_casa, comp.prob_casa)}
+          ${linhaValor("Empate", p.prob_empate, comp.prob_empate)}
+          ${linhaValor(`Vitória ${j.away}`, p.prob_fora, comp.prob_fora)}
+          ${linhaValor(`Over 2.5 gols<span class="${rotuloOverUnder(p.over_under_fonte).classe}">${rotuloOverUnder(p.over_under_fonte).texto}</span>`, p.prob_over25, comp.prob_over25)}
+          ${linhaValor(`Under 2.5 gols<span class="${rotuloOverUnder(p.over_under_fonte).classe}">${rotuloOverUnder(p.over_under_fonte).texto}</span>`, p.prob_under25, comp.prob_under25)}
+          ${linhaValor("Ambas marcam - Sim", p.prob_btts_sim, comp.prob_btts_sim)}
+          ${linhaValor("Ambas marcam - Não", p.prob_btts_nao, comp.prob_btts_nao)}
+        </div>
+
+        <div class="valor-box">
+          <div class="valor-titulo">
+            Escanteios — linha ${p.linha_escanteios ?? "9.5"}
+            <span class="aviso-confianca">confiança menor, não calibrado ainda</span>
+          </div>
+          ${linhaValor(`Over ${p.linha_escanteios ?? "9.5"}`, p.prob_over_escanteios, comp.prob_over_escanteios)}
+          ${linhaValor(`Under ${p.linha_escanteios ?? "9.5"}`, p.prob_under_escanteios, comp.prob_under_escanteios)}
+        </div>
       </div>
     </div>
   `;
@@ -210,7 +246,7 @@ async function atualizarTudo() {
   renderPrelive(prelive);
   renderInsights(insights);
   renderStatus(status);
-  renderLive(liveSnapshots);
+  renderLive(liveSnapshots, insights);
 }
 
 atualizarTudo();
