@@ -87,6 +87,11 @@ def api_insights():
     return jsonify(_ler_json(config.LIVE_INSIGHTS_FILE, []))
 
 
+@app.route("/api/jogos-anteriores")
+def api_jogos_anteriores():
+    return jsonify(_ler_json(config.JOGOS_ANTERIORES_FILE, []))
+
+
 @app.route("/api/live-snapshots")
 def api_live_snapshots():
     return jsonify(_ler_json(config.LIVE_SNAPSHOTS_FILE, {}))

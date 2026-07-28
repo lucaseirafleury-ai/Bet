@@ -241,6 +241,9 @@ body {
   font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px;
   margin-bottom: 8px; font-family: var(--mono);
 }
+.gols-lista {
+  font-family: var(--mono); font-size: 12px; color: var(--text); margin-bottom: 10px;
+}
 .aviso-confianca {
   color: var(--accent-amber); text-transform: none; letter-spacing: normal;
   font-size: 10.5px; margin-left: 8px;

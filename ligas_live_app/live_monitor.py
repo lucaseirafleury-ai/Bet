@@ -20,7 +20,7 @@ A cada ciclo, para cada jogo ao vivo monitorado:
 import json
 import os
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from pywebpush import webpush, WebPushException
 
@@ -58,6 +58,112 @@ def _salvar(caminho, obj):
     os.makedirs(config.DATA_DIR, exist_ok=True)
     with open(caminho, "w", encoding="utf-8") as fp:
         json.dump(obj, fp, ensure_ascii=False, indent=2)
+
+
+# ── Jogos anteriores (arquivo de partidas encerradas) ──────────
+
+def extrair_eventos_gols(fixture):
+    """Lista de gols do jogo (minuto + time), a partir de fixture['events']."""
+    participantes = {p["id"]: p["name"] for p in fixture.get("participants", [])}
+    eventos = []
+    for e in fixture.get("events", []):
+        tipo = (e.get("type") or {}).get("name") or ""
+        if "goal" not in tipo.lower():
+            continue
+        minuto = e.get("minute") or 0
+        extra = e.get("extra_minute")
+        rotulo_contra = " (contra)" if "own" in tipo.lower() else ""
+        eventos.append({
+            "minuto": minuto,
+            "minuto_texto": f"{minuto}+{extra}" if extra else f"{minuto}",
+            "time": participantes.get(e.get("participant_id"), "?") + rotulo_contra,
+        })
+    eventos.sort(key=lambda ev: ev["minuto"])
+    return eventos
+
+
+def _podar_jogos_antigos(jogos_anteriores):
+    limite = datetime.now(timezone.utc) - timedelta(days=config.RETENCAO_JOGOS_ANTERIORES_DIAS)
+    jogos_anteriores[:] = [
+        j for j in jogos_anteriores
+        if datetime.fromisoformat(j["arquivado_em"]) >= limite
+    ]
+
+
+def _arquivar_jogo_finalizado(fixture_id, snapshot_final, insights):
+    """
+    Chamado quando um fixture some do feed de "ao vivo" — busca o placar
+    final e os eventos de gol direto na Sportmonks (uma chamada extra, só
+    aqui, pra pegar o minuto de cada gol) e arquiva junto com o último
+    snapshot conhecido e todos os sinais que dispararam nesse jogo.
+    """
+    if snapshot_final is None:
+        return
+
+    eventos_gols = []
+    gols_home_final = snapshot_final.get("gols_home")
+    gols_away_final = snapshot_final.get("gols_away")
+    try:
+        fixture = sm.fixture_by_id(fixture_id, include="events.type;participants;scores")
+    except Exception as e:
+        fixture = None
+        print(f"[arquivo] não deu pra buscar detalhes finais do fixture {fixture_id}: {e}")
+
+    if fixture:
+        eventos_gols = extrair_eventos_gols(fixture)
+        participants = fixture.get("participants", [])
+        home_p = next((p for p in participants if p["meta"]["location"] == "home"), None)
+        away_p = next((p for p in participants if p["meta"]["location"] == "away"), None)
+        scores = fixture.get("scores", [])
+        if home_p:
+            gols_home_final = next(
+                (s["score"]["goals"] for s in scores
+                 if s.get("description") == "CURRENT" and s.get("participant_id") == home_p["id"]),
+                gols_home_final,
+            )
+        if away_p:
+            gols_away_final = next(
+                (s["score"]["goals"] for s in scores
+                 if s.get("description") == "CURRENT" and s.get("participant_id") == away_p["id"]),
+                gols_away_final,
+            )
+
+    sinais_do_jogo = [i for i in insights if i.get("fixture_id") == fixture_id]
+
+    registro = {
+        "fixture_id": fixture_id,
+        "liga": snapshot_final.get("liga"),
+        "home": snapshot_final.get("home"),
+        "away": snapshot_final.get("away"),
+        "gols_home": gols_home_final,
+        "gols_away": gols_away_final,
+        "eventos_gols": eventos_gols,
+        "xg_proxy_home": snapshot_final.get("xg_proxy_home"),
+        "xg_proxy_away": snapshot_final.get("xg_proxy_away"),
+        "divergencia_xg_gols_home": snapshot_final.get("divergencia_xg_gols_home"),
+        "divergencia_xg_gols_away": snapshot_final.get("divergencia_xg_gols_away"),
+        "escanteios_home": snapshot_final.get("escanteios_home"),
+        "escanteios_away": snapshot_final.get("escanteios_away"),
+        "cartoes_home": snapshot_final.get("cartoes_home"),
+        "cartoes_away": snapshot_final.get("cartoes_away"),
+        "eficiencia_home": snapshot_final.get("eficiencia_home"),
+        "eficiencia_away": snapshot_final.get("eficiencia_away"),
+        "momentum_home": snapshot_final.get("momentum_home"),
+        "momentum_away": snapshot_final.get("momentum_away"),
+        "stats_completas_home": snapshot_final.get("stats_completas_home"),
+        "stats_completas_away": snapshot_final.get("stats_completas_away"),
+        "placar_modal_prelive": snapshot_final.get("placar_modal_prelive"),
+        "sinais": sinais_do_jogo,
+        "arquivado_em": datetime.now(timezone.utc).isoformat(),
+    }
+
+    jogos_anteriores = _carregar(config.JOGOS_ANTERIORES_FILE, [])
+    jogos_anteriores = [j for j in jogos_anteriores if j["fixture_id"] != fixture_id]
+    jogos_anteriores.append(registro)
+    _podar_jogos_antigos(jogos_anteriores)
+    jogos_anteriores.sort(key=lambda j: j["arquivado_em"], reverse=True)
+    _salvar(config.JOGOS_ANTERIORES_FILE, jogos_anteriores)
+    print(f"[arquivo] {registro['home']} x {registro['away']} arquivado em jogos anteriores.")
 
 
 # ── Notificação push (Web Push) ────────────────────────────────
@@ -278,6 +384,7 @@ def comparar_mercados(relatorio, probs_ao_vivo):
 def ciclo():
     prelive = carregar_prelive()
     insights = _carregar(config.LIVE_INSIGHTS_FILE, [])
+    snapshots_ciclo_anterior = _carregar(config.LIVE_SNAPSHOTS_FILE, {})
     snapshots = {}
 
     # Chave sem o minuto: cada combinação (jogo, tipo de sinal, time) dispara no
@@ -292,6 +399,18 @@ def ciclo():
         if f.get("league_id") in config.LIGAS_MONITORADAS
         and f.get("state_id") in ESTADOS_REALMENTE_AO_VIVO
     ]
+
+    # Jogos que estavam "ao vivo" no ciclo passado e sumiram do feed agora —
+    # a Sportmonks não avisa quando um jogo termina, só para de listar ele em
+    # /livescores/inplay, então é assim que detectamos o fim de uma partida.
+    ids_atuais = {f["id"] for f in fixtures_monitoradas}
+    for fixture_id_str, snap in snapshots_ciclo_anterior.items():
+        fixture_id_antigo = int(fixture_id_str)
+        if fixture_id_antigo not in ids_atuais:
+            try:
+                _arquivar_jogo_finalizado(fixture_id_antigo, snap, insights)
+            except Exception as e:
+                print(f"[arquivo] erro ao arquivar fixture {fixture_id_antigo}: {e}")
 
     for f in fixtures_monitoradas:
         fixture_id = f["id"]

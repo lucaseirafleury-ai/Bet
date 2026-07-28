@@ -207,6 +207,82 @@ function horarioBrasilia(isoString) {
   });
 }
 
+function renderJogosAnteriores(lista) {
+  const container = $("#jogos-anteriores-lista");
+  if (!lista || lista.length === 0) {
+    container.innerHTML = `<p class="empty-state">Nenhum jogo encerrado ainda.</p>`;
+    return;
+  }
+
+  container.innerHTML = lista.map((j) => {
+    const sc = j.stats_completas_home || {};
+    const sa = j.stats_completas_away || {};
+    const chave = `ant-${j.fixture_id}`;
+    const expandido = cardsExpandidos.has(chave);
+    const sinais = j.sinais || [];
+    const gols = (j.eventos_gols || []).length
+      ? j.eventos_gols.map((g) => `${g.minuto_texto}' ${g.time}`).join(", ")
+      : "sem gols";
+    const sinaisHtml = sinais.length
+      ? sinais.map((i) => `
+          <div class="insight-item ${i.delta_pct >= 0 ? "delta-up" : "delta-down"}">
+            <div class="msg"><span class="delta-tag">${i.delta_pct >= 0 ? "▲" : "▼"} ${Math.abs(i.delta_pct)}%</span>${i.mensagem}</div>
+          </div>`).join("")
+      : `<p class="empty-state">Nenhum sinal gerado nesse jogo.</p>`;
+
+    return `
+    <div class="live-card">
+      <div class="live-header">
+        <span class="liga-tag">${j.liga}</span>
+        <span class="minuto-tag">encerrado — ${horarioBrasilia(j.arquivado_em)}</span>
+      </div>
+      <div class="placar-atual">${j.gols_home} - ${j.gols_away}</div>
+      <div class="times-row"><span>${j.home} <span style="color:var(--muted)">x</span> ${j.away}</span><span style="color:var(--muted)">esperado pré-live: ${j.placar_modal_prelive ?? "?"}</span></div>
+
+      <div class="momentum-wrap">
+        <div class="momentum-label"><span>${j.momentum_home}%</span><span>MOMENTUM</span><span>${j.momentum_away}%</span></div>
+        <div class="momentum-bar">
+          <div class="momentum-fill-home" style="width:${j.momentum_home}%"></div>
+          <div class="momentum-fill-away" style="width:${j.momentum_away}%"></div>
+        </div>
+      </div>
+
+      <div class="live-card-toggle" onclick="toggleCard('${chave}')">
+        ${badgeSinalCard(j.fixture_id, sinais)}
+        <span id="chevron-${chave}" class="chevron-link">${expandido ? "▲ recolher" : "▼ expandir"}</span>
+      </div>
+
+      <div id="detalhes-${chave}" class="live-card-detalhes" style="display:${expandido ? "block" : "none"}">
+        <div class="valor-titulo" style="margin-top:4px">Gols</div>
+        <div class="gols-lista">${gols}</div>
+
+        <table class="stat-table">
+          <tr><th class="label-col"></th><th>${j.home.slice(0,10)}</th><th>${j.away.slice(0,10)}</th></tr>
+          <tr><td class="label-col">xG_proxy acumulado</td><td>${j.xg_proxy_home}</td><td>${j.xg_proxy_away}</td></tr>
+          <tr>
+            <td class="label-col">xG − Gols</td>
+            <td class="${classeDivergencia(j.divergencia_xg_gols_home)}">${j.divergencia_xg_gols_home > 0 ? "+" : ""}${j.divergencia_xg_gols_home}</td>
+            <td class="${classeDivergencia(j.divergencia_xg_gols_away)}">${j.divergencia_xg_gols_away > 0 ? "+" : ""}${j.divergencia_xg_gols_away}</td>
+          </tr>
+          <tr><td class="label-col">Posse</td><td>${sc.posse ?? "—"}%</td><td>${sa.posse ?? "—"}%</td></tr>
+          <tr><td class="label-col">Finalizações (no alvo)</td><td>${sc.finalizacoes ?? "—"} (${sc.chutes_no_alvo ?? "—"})</td><td>${sa.finalizacoes ?? "—"} (${sa.chutes_no_alvo ?? "—"})</td></tr>
+          <tr><td class="label-col">Escanteios</td><td>${j.escanteios_home}</td><td>${j.escanteios_away}</td></tr>
+          <tr><td class="label-col">Faltas</td><td>${sc.faltas ?? "—"}</td><td>${sa.faltas ?? "—"}</td></tr>
+          <tr><td class="label-col">Impedimentos</td><td>${sc.impedimentos ?? "—"}</td><td>${sa.impedimentos ?? "—"}</td></tr>
+          <tr><td class="label-col">Cartões</td><td>${j.cartoes_home}</td><td>${j.cartoes_away}</td></tr>
+          <tr><td class="label-col">Passes (%)</td><td>${sc.passes_totais ?? "—"} (${sc.passes_certos ?? "—"}%)</td><td>${sa.passes_totais ?? "—"} (${sa.passes_certos ?? "—"}%)</td></tr>
+          <tr><td class="label-col">Defesas</td><td>${sc.defesas ?? "—"}</td><td>${sa.defesas ?? "—"}</td></tr>
+          <tr><td class="label-col">Eficiência de finalização</td><td>${j.eficiencia_home != null ? j.eficiencia_home + "%" : "—"}</td><td>${j.eficiencia_away != null ? j.eficiencia_away + "%" : "—"}</td></tr>
+        </table>
+
+        <div class="valor-titulo" style="margin-top:12px">Sinais que dispararam nesse jogo</div>
+        ${sinaisHtml}
+      </div>
+    </div>
+  `;
+  }).join("");
+}
+
 function renderInsights(lista) {
   const feed = $("#insights-feed");
   if (!lista || lista.length === 0) {
@@ -237,16 +313,18 @@ function renderStatus(status) {
 }
 
 async function atualizarTudo() {
-  const [prelive, insights, status, liveSnapshots] = await Promise.all([
+  const [prelive, insights, status, liveSnapshots, jogosAnteriores] = await Promise.all([
     getJSON("/api/prelive"),
     getJSON("/api/insights"),
     getJSON("/api/status"),
     getJSON("/api/live-snapshots"),
+    getJSON("/api/jogos-anteriores"),
   ]);
   renderPrelive(prelive);
   renderInsights(insights);
   renderStatus(status);
   renderLive(liveSnapshots, insights);
+  renderJogosAnteriores(jogosAnteriores);
 }
 
 atualizarTudo();

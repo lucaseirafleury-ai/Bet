@@ -38,6 +38,7 @@ LIMIAR_ABS_GOLS = 1.0             # E pelo menos 1 gol de diferença
 LIMIAR_MARGEM_VALOR = 0.05        # margem mínima de vantagem exigida no cálculo de odd mínima (5%)
 LINHA_ESCANTEIROS = 9.5           # linha usada no mercado de Over/Under total de escanteios
 INTERVALO_POLLING_SEGUNDOS = 60   # frequência de checagem durante o jogo
+RETENCAO_JOGOS_ANTERIORES_DIAS = 7  # quantos dias manter um jogo encerrado arquivado
 
 # ── Indicador de mercado no card (pré-live x ao vivo) ──────────
 # Compara a probabilidade calculada ANTES do jogo com a probabilidade AO VIVO
@@ -60,5 +61,6 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 PRELIVE_FILE = os.path.join(DATA_DIR, "prelive_reports.json")
 LIVE_INSIGHTS_FILE = os.path.join(DATA_DIR, "live_insights.json")
 LIVE_SNAPSHOTS_FILE = os.path.join(DATA_DIR, "live_snapshots.json")
+JOGOS_ANTERIORES_FILE = os.path.join(DATA_DIR, "jogos_anteriores.json")
 STATUS_FILE = os.path.join(DATA_DIR, "status.json")
 PUSH_SUBS_FILE = os.path.join(DATA_DIR, "push_subscriptions.json")
