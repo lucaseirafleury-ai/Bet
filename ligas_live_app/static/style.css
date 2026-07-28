@@ -134,16 +134,9 @@ body {
   font-family: var(--mono); font-size: 11px; color: var(--accent-blue);
   text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
 }
-.match-card .times { font-size: 15px; font-weight: 600; margin-bottom: 10px; }
-.match-card .grid-info {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px;
-  font-size: 12px;
-}
-.match-card .grid-info .label { color: var(--muted); }
-.match-card .grid-info .value { font-family: var(--mono); color: var(--text); }
-.match-card .placar-modal {
-  font-family: var(--mono); font-size: 22px; font-weight: 700;
-  color: var(--accent-amber); margin: 8px 0 4px 0;
+.match-card .times { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.match-card .horario-jogo {
+  font-family: var(--mono); font-size: 12px; color: var(--muted);
 }
 
 .feed { display: flex; flex-direction: column-reverse; gap: 8px; max-height: 78vh; overflow-y: auto; }

@@ -5,6 +5,20 @@ async function getJSON(url) {
   return r.json();
 }
 
+function dataHoraBrasilia(dataHoraUtc) {
+  if (!dataHoraUtc) return "?";
+  const iso = dataHoraUtc.replace(" ", "T") + "Z";
+  const d = new Date(iso);
+  if (isNaN(d)) return "?";
+  return d.toLocaleString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 function renderPrelive(data) {
   const lista = $("#prelive-lista");
   const relatorios = data.relatorios || [];
@@ -19,13 +33,7 @@ function renderPrelive(data) {
     <div class="match-card">
       <div class="liga-tag">${r.liga}</div>
       <div class="times">${r.home} <span style="color:var(--muted)">x</span> ${r.away}</div>
-      <div class="placar-modal">${r.placar_modal} <span style="font-size:12px;color:var(--muted);font-weight:400">(${r.placar_modal_prob_pct}%)</span></div>
-      <div class="grid-info">
-        <div class="label">Favorito posse</div><div class="value">${r.favorito_posse}</div>
-        <div class="label">Favorito pressão</div><div class="value">${r.favorito_pressao}</div>
-        <div class="label">Favorito xG</div><div class="value">${r.favorito_xg}</div>
-        <div class="label">Início (UTC)</div><div class="value">${r.data_hora_utc || "?"}</div>
-      </div>
+      <div class="horario-jogo">${dataHoraBrasilia(r.data_hora_utc)} (Brasília)</div>
     </div>
   `).join("");
 }
