@@ -207,6 +207,17 @@ function horarioBrasilia(isoString) {
   });
 }
 
+function dataHoraBrasiliaCompleta(isoString) {
+  if (!isoString) return "";
+  return new Date(isoString).toLocaleString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 function renderJogosAnteriores(lista) {
   const container = $("#jogos-anteriores-lista");
   if (!lista || lista.length === 0) {
@@ -234,7 +245,7 @@ function renderJogosAnteriores(lista) {
     <div class="live-card">
       <div class="live-header">
         <span class="liga-tag">${j.liga}</span>
-        <span class="minuto-tag">encerrado — ${horarioBrasilia(j.arquivado_em)}</span>
+        <span class="minuto-tag">encerrado — ${dataHoraBrasiliaCompleta(j.arquivado_em)}</span>
       </div>
       <div class="placar-atual">${j.gols_home} - ${j.gols_away}</div>
       <div class="times-row"><span>${j.home} <span style="color:var(--muted)">x</span> ${j.away}</span><span style="color:var(--muted)">esperado pré-live: ${j.placar_modal_prelive ?? "?"}</span></div>
