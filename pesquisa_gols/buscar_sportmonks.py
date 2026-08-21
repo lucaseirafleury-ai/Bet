@@ -202,10 +202,13 @@ def buscar(date_from, date_to, league_id=ALLSVENSKAN_LEAGUE_ID, tipos_disponivei
     ~1.300 tipos é a mesma pra qualquer liga, não precisa refazer a cada chamada.
 
     caminho_checkpoint: se informado, salva o progresso a cada
-    INTERVALO_CHECKPOINT_FIXTURES fixtures nesse arquivo JSON e retoma dali se
-    o arquivo já existir — uma queda do processo (já aconteceu: o proxy deste
-    ambiente trocou de porta no meio de uma busca longa) não obriga a
-    recomeçar do zero.
+    INTERVALO_CHECKPOINT_FIXTURES fixtures nesse arquivo JSON. Serve dois
+    papéis com o mesmo arquivo: (1) checkpoint — uma queda do processo no meio
+    (já aconteceu: o proxy deste ambiente trocou de porta no meio de uma busca
+    longa) retoma dali em vez de recomeçar do zero; (2) cache permanente — o
+    arquivo nunca é apagado, então a PRÓXIMA chamada com o mesmo caminho só
+    busca fixtures que ainda não estão nele (ex.: jogos novos de uma temporada
+    em andamento), sem refazer chamadas de API pra quem já foi buscado antes.
     """
     if tipos_disponiveis is None:
         print("Buscando tipos de estatística...")
@@ -220,30 +223,36 @@ def buscar(date_from, date_to, league_id=ALLSVENSKAN_LEAGUE_ID, tipos_disponivei
     fixtures = sm.fixtures_da_liga(league_id, date_from, date_to)
     print(f"  {len(fixtures)} fixtures encontradas")
 
-    checkpoint = _carregar_checkpoint(caminho_checkpoint) if caminho_checkpoint else None
-    if checkpoint:
+    cache = _carregar_checkpoint(caminho_checkpoint) if caminho_checkpoint else None
+    if cache:
         jogos, gols_finais, snapshots, processados = (
-            checkpoint["jogos"], checkpoint["gols_finais"], checkpoint["snapshots"], checkpoint["processados"]
+            cache["jogos"], cache["gols_finais"], cache["snapshots"], cache["processados"]
         )
-        print(f"  retomando checkpoint: {len(processados)} fixtures já processadas antes")
+        print(f"  {len(processados)} fixtures já em cache (de execuções anteriores), reaproveitando")
     else:
         jogos, gols_finais, snapshots, processados = {}, {}, [], set()
 
+    novas = 0
     for i, f in enumerate(fixtures, 1):
         if f["id"] in processados:
             continue
+        novas += 1
         print(f"[{nome_liga} {i}/{len(fixtures)}] fixture {f['id']}...")
         try:
             processar_fixture(f, candidatas_resolvidas, goal_type_id, jogos, gols_finais, snapshots)
         except Exception as e:
             print(f"  [ERRO] {e}")
         processados.add(f["id"])
-        if caminho_checkpoint and len(processados) % INTERVALO_CHECKPOINT_FIXTURES == 0:
+        if caminho_checkpoint and novas % INTERVALO_CHECKPOINT_FIXTURES == 0:
             _salvar_checkpoint(caminho_checkpoint, jogos, gols_finais, snapshots, processados)
         time.sleep(INTERVALO_ENTRE_FIXTURES_SEGUNDOS)
 
-    if caminho_checkpoint and os.path.exists(caminho_checkpoint):
-        os.remove(caminho_checkpoint)  # terminou com sucesso, não precisa mais retomar dele
+    if caminho_checkpoint and novas > 0:
+        # nunca apaga: o mesmo arquivo funciona como checkpoint (retoma se cair no meio)
+        # e como cache permanente (próxima chamada só busca fixtures que ainda não estão aqui —
+        # ex.: jogos novos de uma temporada em andamento).
+        _salvar_checkpoint(caminho_checkpoint, jogos, gols_finais, snapshots, processados)
+    print(f"  {novas} fixtures novas buscadas nesta execução, {len(processados) - novas} vieram do cache")
 
     return {
         "jogos": jogos,

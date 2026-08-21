@@ -107,6 +107,10 @@ def rodar():
     print(f"  {len(validados_1stat)} condições de 1 estatística validadas dentro da Allsvenskan")
     print(f"  {len(validados_2stats)} combinações de 2 estatísticas validadas dentro da Allsvenskan")
 
+    salvar_csv(os.path.join(config.DIR_RESULTADOS, "allsvenskan_condicoes_1stat.csv"), validados_1stat)
+    salvar_csv(os.path.join(config.DIR_RESULTADOS, "allsvenskan_condicoes_2stats.csv"), validados_2stats)
+    salvar_csv(os.path.join(config.DIR_RESULTADOS, "allsvenskan_exploratorio_1stat.csv"), exploratorios)
+
     outras_ligas = {lid: nome for lid, nome in bs.LIGAS_MONITORADAS.items() if lid != 573}
     print(f"\n=== Confirmação: {', '.join(outras_ligas.values())} ({DATE_FROM} a {DATE_TO}) ===")
     datasets_outras = []
