@@ -6,9 +6,15 @@ de validar quais condições realmente se sustentam fora da amostra é que elas
 devem virar um mercado calibrado dentro do app (ver README.md, seção "Fase 2").
 """
 
-# Arquivo de entrada: precisa ter as abas Jogos, Snapshots, Stats_Finais e Matriz
-# no mesmo formato da planilha original (ver README.md).
-ARQUIVO_ENTRADA = "dados/Allsvenskan_2025_snapshots_r01.xlsx"
+# Arquivo(s) de entrada: cada um precisa ter as abas Jogos, Snapshots e
+# Stats_Finais no mesmo formato da planilha original (ver README.md). A aba
+# Matriz é opcional — se faltar, usa o padrão embutido em matriz_padrao.py.
+# Pode listar mais de um arquivo (ex.: temporadas diferentes da mesma liga)
+# para juntar tudo num único dataset antes da busca.
+ARQUIVOS_ENTRADA = [
+    "dados/Allsvenskan_2025_snapshots_r01.xlsx",
+    "dados/Allsvenskan_2026_snapshots.xlsx",
+]
 
 DIR_RESULTADOS = "resultados"
 

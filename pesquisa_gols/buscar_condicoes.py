@@ -28,8 +28,24 @@ def dividir_treino_teste(jogos, gols_finais):
     Split cronológico por rodada: rodadas iniciais = treino, finais = teste.
     Nunca embaralhar. Restrito a jogos com gols finais conhecidos (alguns
     fixtures podem não ter Stats_Finais preenchido).
+
+    As rodadas são ordenadas pela data do primeiro jogo, não pelo ID bruto de
+    rodada — importante ao juntar mais de uma temporada/liga (config.py),
+    onde o ID de rodada de uma competição não tem relação com o de outra.
+
+    Só considera jogos com gols_finais conhecido (já disputados) para decidir
+    o corte — uma temporada em andamento tem rodadas futuras já cadastradas
+    em Jogos, e essas não podem "empurrar" o corte para frente, senão o teste
+    vira quase só rodada sem jogo nenhum disputado ainda.
     """
-    rodadas = sorted({info["rodada"] for info in jogos.values() if info["rodada"] is not None})
+    primeira_data = {}
+    for fid, info in jogos.items():
+        if info["rodada"] is None or not info["data_hora"] or fid not in gols_finais:
+            continue
+        atual = primeira_data.get(info["rodada"])
+        if atual is None or info["data_hora"] < atual:
+            primeira_data[info["rodada"]] = info["data_hora"]
+    rodadas = sorted(primeira_data, key=lambda r: primeira_data[r])
     corte = max(1, int(len(rodadas) * config.FRACAO_TREINO))
     rodadas_treino = set(rodadas[:corte])
     treino = {
@@ -286,8 +302,8 @@ def salvar_csv(caminho, linhas):
 def rodar():
     print("Carregando dados...")
     dados = carregar_dados.carregar_tudo()
-    print(f"  {len(dados['jogos'])} jogos, {len(dados['snapshots'])} snapshots, "
-          f"{len(dados['candidatas'])} estatísticas candidatas")
+    print(f"  {len(dados['jogos'])} jogos cadastrados ({len(dados['gols_finais'])} já disputados), "
+          f"{len(dados['snapshots'])} snapshots, {len(dados['candidatas'])} estatísticas candidatas")
 
     treino_ids, teste_ids = dividir_treino_teste(dados["jogos"], dados["gols_finais"])
     print(f"  split cronológico: {len(treino_ids)} jogos treino, {len(teste_ids)} jogos teste")
@@ -300,9 +316,9 @@ def rodar():
           f"(barra mais baixa, {config.IMPACTO_MINIMO_PAREAMENTO_PP}pp, matéria-prima para os pares)")
     if not validados_1stat:
         print("  Nenhuma condição individual sobreviveu ao critério rigoroso nesta amostra — isso é uma")
-        print("  resposta válida (não um bug): com ~240 jogos e milhares de combinações testadas, é esperado")
-        print("  que a maioria dos padrões 'fortes' vistos na planilha original sejam ruído de amostra pequena.")
-        print("  Veja resultados/exploratorio_1stat.csv (não validado, só para referência exploratória).")
+        print(f"  resposta válida (não um bug): com {len(dados['gols_finais'])} jogos disputados e milhares")
+        print("  de combinações testadas, é esperado que boa parte dos padrões 'fortes' vistos numa amostra")
+        print("  menor sejam ruído. Veja resultados/exploratorio_1stat.csv (não validado, só para referência).")
 
     print("Buscando pares de 2 estatísticas dentro do pool de pareamento...")
     validados_2stats = buscar_2stats(dados, pool_pareamento, treino_ids, teste_ids)

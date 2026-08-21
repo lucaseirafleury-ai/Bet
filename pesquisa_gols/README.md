@@ -111,6 +111,38 @@ Enquanto isso, `resultados/exploratorio_1stat.csv` lista as 50 condições com
 menor p-valor **sem** a correção/validação fora da amostra — só para
 referência exploratória, claramente não confiável para decisão.
 
+## Atualização: juntando a temporada 2026
+
+Ao receber `Allsvenskan_2026_snapshots.xlsx` (temporada em andamento — 135 de
+240 jogos disputados até agora), três ajustes:
+
+1. **A aba `Matriz` agora é opcional.** O arquivo de 2026 não trouxe essa
+   aba (faz sentido — é conhecimento fixo sobre os indicadores, não dado da
+   temporada). O padrão passou a viver em `matriz_padrao.py` e é usado
+   sempre que o arquivo de entrada não tem sua própria `Matriz`.
+2. **`config.ARQUIVOS_ENTRADA` agora é uma lista** — dá pra juntar várias
+   temporadas/ligas num único dataset (`carregar_dados.carregar_tudo` aceita
+   um caminho só ou vários). `dividir_treino_teste` passou a ordenar as
+   rodadas pela data do primeiro jogo, não pelo ID bruto de rodada, porque
+   IDs de rodada de competições diferentes não têm relação entre si.
+3. **Bug de verdade encontrado ao juntar:** o split treino/teste original
+   olhava para todas as rodadas cadastradas em `Jogos`, incluindo rodadas
+   futuras de uma temporada em andamento (a 2026 tem jogos agendados para
+   depois da data de hoje, ainda sem resultado). Isso empurrava o corte
+   70/30 para dentro de rodadas majoritariamente não disputadas, e o
+   conjunto de teste desabava para ~40 jogos em vez de ~110. Corrigido:
+   o corte agora só considera rodadas com pelo menos um jogo já com gols
+   finais conhecidos.
+
+**Com 2025+2026 juntos (375 jogos disputados, 256 treino / 119 teste),
+as duas combinações que você apontou ficaram mais fracas, não mais fortes:**
+o p-valor no treino melhorou um pouco (0,10 e 0,06), mas a direção do efeito
+**se inverteu** no teste para as duas — o grupo que "deveria" ter mais jogos
+de poucos gols passou a ter proporcionalmente menos. Isso é consistente com
+a hipótese original: o que parecia forte na planilha era, ao menos em parte,
+ruído específico da amostra 2025. Ainda zero condições (individuais ou em
+par) sobrevivem ao critério rigoroso com os dois anos juntos.
+
 ## Como rodar
 
 ```bash
@@ -126,9 +158,10 @@ Saída em `resultados/`:
 - `exploratorio_1stat.csv` — top 50 por p-valor bruto, sem correção nem
   validação (não confiar para decisão, só para inspecionar candidatos).
 
-Para trocar de arquivo de entrada (outra liga/temporada), edite
-`config.ARQUIVO_ENTRADA` — o arquivo precisa ter as mesmas abas/colunas de
-`Jogos`, `Snapshots`, `Stats_Finais` e `Matriz` do formato original.
+Para trocar ou somar arquivos de entrada (outra liga/temporada), edite a
+lista `config.ARQUIVOS_ENTRADA` — cada arquivo precisa ter as abas `Jogos`,
+`Snapshots` e `Stats_Finais` no formato original (a `Matriz` é opcional, ver
+seção acima).
 
 ## Ajustar o comportamento
 
@@ -156,8 +189,9 @@ expor um novo mercado calibrado no painel, seguindo a convenção descrita em
 ## Estrutura
 
 ```
-config.py             → parâmetros ajustáveis
-carregar_dados.py      → lê Jogos/Snapshots/Stats_Finais/Matriz do .xlsx
+config.py             → parâmetros ajustáveis (inclui a lista de arquivos de entrada)
+matriz_padrao.py       → correlação indicador→Gols padrão, usada quando o arquivo não tem aba Matriz
+carregar_dados.py      → lê Jogos/Snapshots/Stats_Finais (+ Matriz opcional) de um ou vários .xlsx
 probabilidades.py      → P Final / P Base / Impacto sob demanda
 estatistica.py         → teste de duas proporções + correção Benjamini-Hochberg
 buscar_condicoes.py    → orquestra a busca (1 e 2 estatísticas) com treino/teste

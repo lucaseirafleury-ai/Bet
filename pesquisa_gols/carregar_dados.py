@@ -9,6 +9,7 @@ import re
 import openpyxl
 
 import config
+from matriz_padrao import CORRELACAO_GOLS_PADRAO
 
 
 def _linhas(aba):
@@ -78,7 +79,16 @@ def _normalizar_indicador(texto):
 
 
 def carregar_matriz(wb):
-    """nome_base_do_indicador (sem _casa/_fora) -> correlação com Gols ('Direto', 'Indireto forte', ...)."""
+    """
+    nome_base_do_indicador (sem _casa/_fora) -> correlação com Gols ('Direto', 'Indireto forte', ...).
+
+    A aba Matriz é opcional: se o arquivo de entrada não tiver uma (caso normal
+    para uma exportação de temporada nova — Matriz é conhecimento fixo sobre os
+    indicadores, não dado da temporada), usa o padrão embutido em matriz_padrao.py.
+    """
+    if "Matriz" not in wb.sheetnames:
+        return dict(CORRELACAO_GOLS_PADRAO)
+
     aba = wb["Matriz"]
     todas_linhas = list(aba.iter_rows(values_only=True))
     # a aba tem título/subtítulo antes do cabeçalho de verdade — acha a linha
@@ -101,11 +111,8 @@ def carregar_matriz(wb):
     return correlacoes
 
 
-def estatisticas_candidatas(wb, matriz):
-    """
-    Nomes-base de estatísticas da aba Snapshots (sem sufixo _casa/_fora) que têm
-    correlação registrada com Gols na Matriz e não são o próprio placar.
-    """
+def bases_disponiveis(wb):
+    """Nomes-base de colunas da aba Snapshots (sem sufixo _casa/_fora)."""
     cabecalho = next(wb["Snapshots"].iter_rows(values_only=True))
     bases = set()
     for nome_coluna in cabecalho:
@@ -114,11 +121,19 @@ def estatisticas_candidatas(wb, matriz):
         for sufixo in ("_casa", "_fora"):
             if nome_coluna.endswith(sufixo):
                 bases.add(nome_coluna[: -len(sufixo)])
-    candidatas = sorted(
+    return bases
+
+
+def estatisticas_candidatas(bases, matriz):
+    """
+    Nomes-base de estatísticas (interseção entre os arquivos, quando há mais de
+    um) que têm correlação registrada com Gols na Matriz e não são o próprio
+    placar.
+    """
+    return sorted(
         b for b in bases
         if b in matriz and b not in config.INDICADORES_EXCLUIDOS
     )
-    return candidatas
 
 
 def carregar_snapshots(wb, candidatas):
@@ -151,15 +166,43 @@ def carregar_snapshots(wb, candidatas):
     return snapshots
 
 
-def carregar_tudo(caminho=None):
-    """Carrega tudo que buscar_condicoes.py precisa, a partir do arquivo em config.ARQUIVO_ENTRADA."""
-    caminho = caminho or config.ARQUIVO_ENTRADA
-    wb = openpyxl.load_workbook(caminho, read_only=True, data_only=True)
-    jogos = carregar_jogos(wb)
-    gols_finais = carregar_gols_finais(wb)
-    matriz = carregar_matriz(wb)
-    candidatas = estatisticas_candidatas(wb, matriz)
-    snapshots = carregar_snapshots(wb, candidatas)
+def carregar_tudo(caminhos=None):
+    """
+    Carrega tudo que buscar_condicoes.py precisa, a partir de um arquivo ou uma
+    lista de arquivos (config.ARQUIVOS_ENTRADA) — permite juntar várias
+    temporadas/ligas num único dataset, desde que fixture_id não se repita
+    entre elas (times/temporadas diferentes normalmente garantem isso).
+    """
+    if caminhos is None:
+        caminhos = config.ARQUIVOS_ENTRADA
+    elif isinstance(caminhos, str):
+        caminhos = [caminhos]
+
+    workbooks = [openpyxl.load_workbook(c, read_only=True, data_only=True) for c in caminhos]
+
+    matriz = {}
+    for wb in workbooks:
+        matriz.update(carregar_matriz(wb))
+
+    bases_comuns = None
+    for wb in workbooks:
+        bases = bases_disponiveis(wb)
+        bases_comuns = bases if bases_comuns is None else (bases_comuns & bases)
+    candidatas = estatisticas_candidatas(bases_comuns, matriz)
+
+    jogos, gols_finais, snapshots = {}, {}, []
+    for caminho, wb in zip(caminhos, workbooks):
+        jogos_arquivo = carregar_jogos(wb)
+        repetidos = set(jogos_arquivo) & set(jogos)
+        if repetidos:
+            raise ValueError(
+                f"{caminho}: {len(repetidos)} fixture_id já presentes em outro arquivo carregado "
+                f"(ex.: {sorted(repetidos)[:3]}) — não dá para juntar sem sobrescrever jogos."
+            )
+        jogos.update(jogos_arquivo)
+        gols_finais.update(carregar_gols_finais(wb))
+        snapshots.extend(carregar_snapshots(wb, candidatas))
+
     return {
         "jogos": jogos,
         "gols_finais": gols_finais,
