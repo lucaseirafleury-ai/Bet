@@ -43,9 +43,60 @@ mesmo rigor aqui:
    fazia.
 4. **Revalidação fora da amostra**: a condição precisa repetir a mesma
    direção e reter uma fração mínima do impacto no conjunto de teste.
-5. **Pares de 2 estatísticas só entre quem já validou individualmente** — em
-   vez de testar todos os pares possíveis (o que gerava as 544 mil linhas),
-   restringe a busca às combinações que já provaram ter algum efeito sozinhas.
+5. **Pares de 2 estatísticas testados a partir de um pool amplo** — a busca
+   de pares não exige que cada estatística já tenha validado sozinha (uma
+   versão anterior deste pipeline fazia isso, e por causa disso deixava
+   passar combinações reais só porque nenhuma das duas metades tinha efeito
+   isolado — ver "Achados ao comparar com a planilha original" abaixo). Em
+   vez disso, qualquer estatística com impacto individual acima de uma barra
+   baixa (`config.IMPACTO_MINIMO_PAREAMENTO_PP`, bem menor que a barra de
+   "achado individual") entra no pool de pareamento, e a validação (BH +
+   fora da amostra) é aplicada ao efeito CONJUNTO, não a cada metade. Isso
+   ainda reduz o espaço de busca de 544 mil para ~1.500 pares na base da
+   Allsvenskan — só não exige que o efeito já apareça isoladamente.
+
+## Achados ao comparar com a planilha original
+
+Comparando resultado a resultado com duas combinações que você identificou na
+planilha original como "Sinal forte":
+
+1. **Bug de off-by-one nas colunas "-N" da planilha original.** Em toda linha
+   testada, `P(-1) + P(+2) = 100%`, `P(-2) + P(+3) = 100%`, `P(-3) + P(+4) =
+   100%` — ou seja, a coluna documentada como "-1: menos de 1 gol" foi na
+   prática calculada como "menos de 2 gols" (complemento de "+2", não de
+   "+1"). As colunas "+N" estão corretas; só as "-N" estão deslocadas em uma
+   posição. Vale revisar/corrigir isso na planilha original antes de
+   confiar nas leituras "-N" dela.
+2. **Bug real no meu carregador de dados, já corrigido.** 14 jogos que
+   terminaram 0-0 tinham `goals_casa`/`goals_fora` vazios em `Stats_Finais`
+   (falha da fonte), mesmo com o placar certo disponível no snapshot `FT`.
+   Meu código descartava esses jogos; agora usa o snapshot `FT` como
+   fallback. Isso levou a amostra do bucket (minuto 15, 0 gols) de 168 para
+   182 jogos — batendo exatamente com a amostra da planilha original.
+3. **A poda por "cada metade já validada" (ver seção acima) escondia
+   combinações reais.** Nenhuma das quatro estatísticas das suas duas
+   combinações passa sozinha na minha barra de "achado individual" (impacto
+   < 5 p.p., não significativa isoladamente) — por isso a busca de pares
+   nunca chegava a testá-las juntas. Corrigido: agora o pool de pareamento
+   usa uma barra bem mais baixa (item 5 acima).
+4. **Mesmo assim, as duas combinações específicas que você mandou não
+   validam com o critério rigoroso — e dá para mostrar exatamente por quê.**
+   Usando o mercado equivalente correto (a "-1" da planilha = minha "-2",
+   por causa do bug do item 1) e o split cronológico treino/teste:
+
+   | Combinação | Treino (168 jogos) | Teste (72 jogos) |
+   |---|---|---|
+   | `goal_attempts<=0` & `big_chances_created<=0` | p=0,14 (n=62 vs 64) | p=0,08 (n=31 vs 25) |
+   | `dangerous_attacks<=20` & `key_passes>=2` | p=0,06 (n=64 vs 62) | p=0,11 (n=24 vs 32) |
+
+   Nenhum dos dois p-valores fica abaixo de 0,05 nem no treino nem no teste
+   — e isso é *antes* até de aplicar a correção de Benjamini-Hochberg, que
+   exigiria um p-valor ainda menor dado o volume de pares testados. A
+   direção do efeito é consistente entre treino e teste (sinal de que pode
+   ser real), mas a amostra de ~240 jogos, dividida em dois períodos, não é
+   grande o suficiente para confirmar com rigor — a probabilidade "forte"
+   vista na planilha original vinha de calcular e "confirmar" no mesmo
+   conjunto de 240 jogos, sem separação treino/teste.
 
 **Resultado no dado atual (Allsvenskan 2025, o anexo que você me passou):
 zero condições sobrevivem ao critério rigoroso.** Isso não é um bug — é o

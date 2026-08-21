@@ -34,6 +34,14 @@ ALFA = 0.05
 # pequenos demais para importar na prática.
 IMPACTO_MINIMO_PP = 5.0
 
+# Barra mais baixa, só para uma condição individual entrar no POOL de
+# candidatas a formar par com outra estatística. É mais baixa de propósito:
+# duas estatísticas fracas sozinhas podem ter um efeito conjunto real (efeito
+# de interação) que nenhuma das duas mostra isoladamente — exigir que cada
+# metade já validasse sozinha (como uma primeira versão deste pipeline fazia)
+# descartava esse tipo de combinação antes mesmo de testá-la.
+IMPACTO_MINIMO_PAREAMENTO_PP = 2.0
+
 # Quantos limites (thresholds) testar por estatística, com base nos quantis
 # observados da própria estatística no treino (em vez de testar todo valor
 # inteiro possível, o que infla o número de comparações à toa).

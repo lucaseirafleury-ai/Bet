@@ -36,7 +36,13 @@ def carregar_jogos(wb):
 
 
 def carregar_gols_finais(wb):
-    """fixture_id -> total de gols na partida (goals_casa + goals_fora)."""
+    """
+    fixture_id -> total de gols na partida (goals_casa + goals_fora).
+
+    Alguns jogos têm goals_casa/goals_fora vazios em Stats_Finais (falha da
+    fonte) mesmo já finalizados — nesses casos usa o placar do snapshot 'FT'
+    em Snapshots como fallback, que está sempre preenchido.
+    """
     gols_finais = {}
     for row in _linhas(wb["Stats_Finais"]):
         casa = row.get("goals_casa")
@@ -44,6 +50,19 @@ def carregar_gols_finais(wb):
         if casa is None or fora is None:
             continue
         gols_finais[int(row["fixture_id"])] = int(casa) + int(fora)
+
+    for row in _linhas(wb["Snapshots"]):
+        if row.get("marco_min") != "FT":
+            continue
+        fixture_id = int(row["fixture_id"])
+        if fixture_id in gols_finais:
+            continue
+        placar_casa = row.get("placar_casa")
+        placar_fora = row.get("placar_fora")
+        if placar_casa is None or placar_fora is None:
+            continue
+        gols_finais[fixture_id] = int(placar_casa) + int(placar_fora)
+
     return gols_finais
 
 
