@@ -299,9 +299,16 @@ def salvar_csv(caminho, linhas):
         writer.writerows(linhas)
 
 
-def rodar():
-    print("Carregando dados...")
-    dados = carregar_dados.carregar_tudo()
+def rodar(dados=None):
+    """
+    dados=None (padrão): lê de config.ARQUIVOS_ENTRADA, como sempre.
+    dados=<dict>: usa um dataset já pronto no mesmo formato de
+    carregar_dados.carregar_tudo() — ex.: vindo de buscar_sportmonks.py,
+    direto da API, sem passar por um .xlsx.
+    """
+    if dados is None:
+        print("Carregando dados...")
+        dados = carregar_dados.carregar_tudo()
     print(f"  {len(dados['jogos'])} jogos cadastrados ({len(dados['gols_finais'])} já disputados), "
           f"{len(dados['snapshots'])} snapshots, {len(dados['candidatas'])} estatísticas candidatas")
 

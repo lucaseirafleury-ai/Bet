@@ -143,6 +143,42 @@ a hipótese original: o que parecia forte na planilha era, ao menos em parte,
 ruído específico da amostra 2025. Ainda zero condições (individuais ou em
 par) sobrevivem ao critério rigoroso com os dois anos juntos.
 
+## Buscar direto da API (sem exportar/subir .xlsx)
+
+Alternativa ao fluxo manual acima: `buscar_sportmonks.py` busca os mesmos
+dados direto da API da Sportmonks, usando o include `trends` (o mesmo que
+`ligas_live_app/backtest.py` já usa para reconstruir estatísticas minuto a
+minuto de jogos passados) — não depende de exportar planilha nenhuma.
+
+```bash
+cd pesquisa_gols
+pip install -r requirements.txt
+export SPORTMONKS_TOKEN=...   # nunca cole o token dentro de um arquivo do repo
+python buscar_sportmonks.py
+```
+
+Isso busca a Allsvenskan inteira (liga 573, mesmo id de
+`ligas_live_app/config.py`) e já roda `buscar_condicoes.rodar()` em cima do
+resultado, sem passar por `dados/*.xlsx`. Para usar num script próprio:
+
+```python
+import buscar_sportmonks, buscar_condicoes
+dados = buscar_sportmonks.buscar(date_from="2025-01-01", date_to="2026-12-31")
+buscar_condicoes.rodar(dados=dados)
+```
+
+Detalhes que valem saber:
+- **Nomes de estatística não confirmados contra a API real ficam de fora,
+  com aviso** (`sportmonks.py`/`buscar_sportmonks.py`), em vez de assumir um
+  nome errado e cair em 0.0 silenciosamente — esse bug específico já
+  aconteceu neste repo antes (ver o comentário no topo de
+  `ligas_live_app/xg_pressure.py`), e prefiro perder uma estatística com
+  aviso do que envenenar o dataset sem perceber.
+- **Cobertura de `trends` não é garantida em toda fixture** — quando falta,
+  o jogo é pulado com aviso (`[sem trends]`), igual `backtest.py` já faz.
+- **O token nunca é escrito em nenhum arquivo deste repo** — só existe como
+  variável de ambiente durante a execução.
+
 ## Como rodar
 
 ```bash
@@ -192,9 +228,12 @@ expor um novo mercado calibrado no painel, seguindo a convenção descrita em
 config.py             → parâmetros ajustáveis (inclui a lista de arquivos de entrada)
 matriz_padrao.py       → correlação indicador→Gols padrão, usada quando o arquivo não tem aba Matriz
 carregar_dados.py      → lê Jogos/Snapshots/Stats_Finais (+ Matriz opcional) de um ou vários .xlsx
+sportmonks.py           → cliente mínimo da API Sportmonks (token via env var)
+buscar_sportmonks.py    → monta o mesmo dataset direto da API, sem precisar de .xlsx
 probabilidades.py      → P Final / P Base / Impacto sob demanda
 estatistica.py         → teste de duas proporções + correção Benjamini-Hochberg
-buscar_condicoes.py    → orquestra a busca (1 e 2 estatísticas) com treino/teste
-dados/                 → arquivo(s) de entrada
+buscar_condicoes.py    → orquestra a busca (1 e 2 estatísticas) com treino/teste — aceita
+                          dados de carregar_dados.py OU de buscar_sportmonks.py
+dados/                 → arquivo(s) de entrada (fluxo manual via .xlsx)
 resultados/            → CSVs gerados (não versionados, exceto .gitkeep)
 ```
