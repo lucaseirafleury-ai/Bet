@@ -23,6 +23,7 @@ import os
 import config
 import buscar_condicoes
 import buscar_sportmonks as bs
+import estatistica
 import sportmonks as sm
 from probabilidades import avaliar_condicao_1stat, snapshots_do_bucket, probabilidades_do_grupo
 
@@ -38,6 +39,10 @@ def confirmar_1stat(cond, dados_conf):
     impacto = r["impacto"][cond["mercado"]]
     if impacto is None:
         return None
+    p_valor = estatistica.teste_duas_proporcoes(
+        r["p_final"][cond["mercado"]], r["amostra_condicao"],
+        r["p_complemento"][cond["mercado"]], r["amostra_complemento"],
+    )
     return {
         "minuto": cond["minuto"], "gols_momento": cond["gols_momento"],
         "stat": cond["stat"], "operador": cond["operador"], "limite": cond["limite"], "mercado": cond["mercado"],
@@ -48,6 +53,7 @@ def confirmar_1stat(cond, dados_conf):
         "p_base_outras_ligas": r["p_base"][cond["mercado"]],
         "impacto_outras_ligas_pp": impacto * 100,
         "mesma_direcao": (impacto > 0) == (cond["impacto_treino_pp"] > 0),
+        "p_valor_outras_ligas": p_valor,
     }
 
 
@@ -60,10 +66,13 @@ def confirmar_2stats(cond, dados_conf):
         return v1 and v2
 
     grupo = [s for s in bucket if bate(s)]
+    complemento = [s for s in bucket if not bate(s)]
     p_g, n_g = probabilidades_do_grupo(grupo, dados_conf["gols_finais"])
-    if n_g < config.AMOSTRA_MINIMA:
+    p_c, n_c = probabilidades_do_grupo(complemento, dados_conf["gols_finais"])
+    if n_g < config.AMOSTRA_MINIMA or n_c < config.AMOSTRA_MINIMA:
         return None
     p_base, n_base = probabilidades_do_grupo(bucket, dados_conf["gols_finais"])
+    p_valor = estatistica.teste_duas_proporcoes(p_g[cond["mercado"]], n_g, p_c[cond["mercado"]], n_c)
     return {
         "minuto": cond["minuto"], "gols_momento": cond["gols_momento"], "mercado": cond["mercado"],
         "stat1": cond["stat1"], "operador1": cond["operador1"], "limite1": cond["limite1"],
@@ -72,7 +81,24 @@ def confirmar_2stats(cond, dados_conf):
         "amostra_outras_ligas": n_g,
         "p_conjunta_outras_ligas": p_g[cond["mercado"]],
         "p_base_outras_ligas": p_base[cond["mercado"]],
+        "p_valor_outras_ligas": p_valor,
     }
+
+
+def aplicar_bh_confirmacao(confirmadas):
+    """
+    Aplica Benjamini-Hochberg sobre o p-valor calculado NAS OUTRAS LIGAS —
+    mesma disciplina que buscar_1stat/buscar_2stats já aplicam dentro da
+    Allsvenskan. São poucas condições nesta etapa (só as que já sobreviveram
+    à Allsvenskan), então a correção é leve — mas sem ela, "mesma direção e
+    magnitude parecida" não é o mesmo que "estatisticamente confirmado".
+    """
+    significativas = estatistica.corrigir_benjamini_hochberg(
+        [(i, c["p_valor_outras_ligas"]) for i, c in enumerate(confirmadas)], config.ALFA
+    )
+    for i, c in enumerate(confirmadas):
+        c["confirmado_bh"] = i in significativas
+    return confirmadas
 
 
 def salvar_csv(caminho, linhas):
@@ -127,11 +153,17 @@ def rodar():
 
     print("\nConfirmando condições de 1 estatística nas outras ligas...")
     confirmadas_1stat = [c for c in (confirmar_1stat(cond, dados_confirmacao) for cond in validados_1stat) if c]
+    confirmadas_1stat = aplicar_bh_confirmacao(confirmadas_1stat)
     print(f"  {sum(1 for c in confirmadas_1stat if c['mesma_direcao'])} de {len(confirmadas_1stat)} "
           f"com amostra suficiente mantiveram a mesma direção")
+    print(f"  {sum(1 for c in confirmadas_1stat if c['confirmado_bh'])} sobrevivem ao teste estatístico "
+          f"formal (Benjamini-Hochberg) do lado da confirmação")
 
     print("Confirmando combinações de 2 estatísticas nas outras ligas...")
     confirmadas_2stats = [c for c in (confirmar_2stats(cond, dados_confirmacao) for cond in validados_2stats) if c]
+    confirmadas_2stats = aplicar_bh_confirmacao(confirmadas_2stats)
+    print(f"  {sum(1 for c in confirmadas_2stats if c['confirmado_bh'])} de {len(confirmadas_2stats)} "
+          f"sobrevivem ao teste estatístico formal (Benjamini-Hochberg) do lado da confirmação")
 
     caminho_1 = os.path.join(config.DIR_RESULTADOS, "confirmacao_1stat.csv")
     caminho_2 = os.path.join(config.DIR_RESULTADOS, "confirmacao_2stats.csv")

@@ -179,6 +179,48 @@ Detalhes que valem saber:
 - **O token nunca é escrito em nenhum arquivo deste repo** — só existe como
   variável de ambiente durante a execução.
 
+## Busca multi-liga: descobrir na Allsvenskan, confirmar nas outras 4 ligas
+
+`buscar_multiliga.py` busca a Allsvenskan (2024-2026, ~615 jogos disputados)
+para descobrir condições com o mesmo rigor de sempre (treino/teste
+cronológico + Benjamini-Hochberg), e depois testa cada uma nas outras 4
+ligas já monitoradas pelo `ligas_live_app` (Superettan, A Lyga, 1. Lyga,
+1. Division — 2.363 jogos disputados) como confirmação independente. Cada
+liga individualmente só tem 3 temporadas disponíveis neste plano da
+Sportmonks (2024/2025/2026) — pouco pra validar sozinha — mas ligas
+diferentes têm médias de gols diferentes, então elas só entram como
+holdout de confirmação, nunca misturadas com a Allsvenskan na descoberta.
+
+```bash
+export SPORTMONKS_TOKEN=...
+python buscar_multiliga.py
+```
+
+Cada liga fica em cache permanente (`dados/.checkpoint_<id>.json`, nunca
+apagado) — rodar de novo só busca fixtures novos, não a liga inteira.
+
+**Resultado (rodado até o fim, sem cair, em 21/08/2026):**
+- 4 condições de 1 estatística e 6 combinações de 2 estatísticas validadas
+  dentro da Allsvenskan (`resultados/allsvenskan_condicoes_*.csv`).
+- Nenhuma condição de 1 estatística teve amostra suficiente nas outras 4
+  ligas para sequer ser testada.
+- Das 6 combinações de 2 estatísticas, só 4 tinham amostra suficiente nas
+  outras ligas. A mais próxima de um achado real (`accurate_crosses<=2 &
+  saves>=1`, aos 15min/0x0) teve p-valor 0,023 nas outras ligas — pareceria
+  significativo isolado, mas **não sobrevive à correção de
+  Benjamini-Hochberg** aplicada sobre as 8 combinações testadas nesta etapa
+  (precisaria de p≤0,006). `resultados/confirmacao_2stats.csv` tem a
+  coluna `confirmado_bh` — hoje, **nenhuma linha é `True`**.
+
+**Conclusão honesta até aqui:** com ~3.000 jogos disputados no total (5
+ligas, 3 temporadas cada), ainda não existe uma condição de 1 ou 2
+estatísticas que sobreviva ao critério rigoroso completo (descoberta +
+confirmação entre ligas com teste estatístico formal). Isso não invalida a
+metodologia — é evidência de que o sinal, se existir, é mais fraco ou mais
+específico do que os padrões testados até agora, ou que ainda falta
+volume de dados. O caminho natural é: mais temporadas (conforme o tempo
+passa) e/ou revisar as estatísticas candidatas/janelas de minuto testadas.
+
 ## Como rodar
 
 ```bash
