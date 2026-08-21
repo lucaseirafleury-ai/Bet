@@ -10,6 +10,7 @@ ambiente SPORTMONKS_TOKEN. Isso evita o risco de alguém commitar um token
 sem querer (o que aconteceria com um default tipo "COLE_SEU_TOKEN_AQUI").
 """
 import os
+import time
 from datetime import date, timedelta
 
 import requests
@@ -30,19 +31,26 @@ def _token():
     return token
 
 
-def _get(path, params=None, base_url=BASE_URL):
+def _get(path, params=None, base_url=BASE_URL, tentativas=5):
     # token vai no header, não na query string: se a chamada falhar, a exceção
     # do requests inclui a URL na mensagem — com o token como query param, ele
     # vazaria em texto puro em qualquer log/traceback.
-    r = requests.get(
-        f"{base_url}{path}", params=params or {}, timeout=20,
-        headers={"Authorization": _token()},
-    )
-    try:
-        r.raise_for_status()
-    except requests.HTTPError:
-        raise requests.HTTPError(f"Sportmonks respondeu {r.status_code} em {path}") from None
-    return r.json()
+    for tentativa in range(1, tentativas + 1):
+        r = requests.get(
+            f"{base_url}{path}", params=params or {}, timeout=20,
+            headers={"Authorization": _token()},
+        )
+        if r.status_code == 429 and tentativa < tentativas:
+            espera = int(r.headers.get("Retry-After", 5 * tentativa))
+            print(f"  [rate limit] esperando {espera}s antes de tentar de novo ({path})...")
+            time.sleep(espera)
+            continue
+        try:
+            r.raise_for_status()
+        except requests.HTTPError:
+            raise requests.HTTPError(f"Sportmonks respondeu {r.status_code} em {path}") from None
+        return r.json()
+    raise requests.HTTPError(f"Sportmonks respondeu 429 repetidamente em {path}, desisti após {tentativas} tentativas")
 
 
 def _janelas_de_data(date_from, date_to, max_dias=MAX_DIAS_POR_JANELA):

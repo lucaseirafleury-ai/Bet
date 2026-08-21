@@ -25,6 +25,15 @@ CHECKPOINTS = [15, 30, 45, 60, 75, 90]
 ALLSVENSKAN_LEAGUE_ID = 573  # mesmo id já usado em ligas_live_app/config.py
 INTERVALO_ENTRE_FIXTURES_SEGUNDOS = 0.3
 
+# Mesmos ids de ligas_live_app/config.py -> LIGAS_MONITORADAS
+LIGAS_MONITORADAS = {
+    573: "Allsvenskan",
+    579: "Superettan",
+    405: "A Lyga",
+    408: "1. Lyga",
+    447: "1. Division",
+}
+
 # Nomes já confirmados contra a API real (ligas_live_app/xg_pressure.py,
 # conferido em 2026-07-24 direto em /core/types). Para os demais candidatos,
 # tenta o nome "Title Case" óbvio e só aceita se bater exatamente com um tipo
@@ -155,22 +164,30 @@ def processar_fixture(fixture_resumo, candidatas_resolvidas, goal_type_id, jogos
         snapshots.append(snap)
 
 
-def buscar(date_from, date_to, league_id=ALLSVENSKAN_LEAGUE_ID):
-    """Devolve o mesmo formato de carregar_dados.carregar_tudo(), buscado direto da API."""
-    print("Buscando tipos de estatística (uma vez só)...")
-    tipos_disponiveis = sm.mapa_types()
+def buscar(date_from, date_to, league_id=ALLSVENSKAN_LEAGUE_ID, tipos_disponiveis=None):
+    """
+    Devolve o mesmo formato de carregar_dados.carregar_tudo(), buscado direto da API.
+
+    tipos_disponiveis: passe o dict de sm.mapa_types() já buscado se for chamar
+    `buscar()` mais de uma vez (outras ligas/temporadas) — a paginação de
+    ~1.300 tipos é a mesma pra qualquer liga, não precisa refazer a cada chamada.
+    """
+    if tipos_disponiveis is None:
+        print("Buscando tipos de estatística...")
+        tipos_disponiveis = sm.mapa_types()
     candidatas_resolvidas = resolver_candidatas(tipos_disponiveis)
     goal_type_id = identificar_type_id_gol(tipos_disponiveis)
     if goal_type_id is None:
         print("  [aviso] type_id de 'Goal' não identificado — placar parcial vai usar o final como aproximação")
 
-    print(f"Buscando fixtures da liga {league_id} entre {date_from} e {date_to}...")
+    nome_liga = LIGAS_MONITORADAS.get(league_id, str(league_id))
+    print(f"Buscando fixtures de {nome_liga} entre {date_from} e {date_to}...")
     fixtures = sm.fixtures_da_liga(league_id, date_from, date_to)
     print(f"  {len(fixtures)} fixtures encontradas")
 
     jogos, gols_finais, snapshots = {}, {}, []
     for i, f in enumerate(fixtures, 1):
-        print(f"[{i}/{len(fixtures)}] fixture {f['id']}...")
+        print(f"[{nome_liga} {i}/{len(fixtures)}] fixture {f['id']}...")
         try:
             processar_fixture(f, candidatas_resolvidas, goal_type_id, jogos, gols_finais, snapshots)
         except Exception as e:
@@ -184,6 +201,33 @@ def buscar(date_from, date_to, league_id=ALLSVENSKAN_LEAGUE_ID):
         "candidatas": sorted(candidatas_resolvidas),
         "snapshots": snapshots,
     }
+
+
+def mesclar(datasets):
+    """
+    Junta vários dicts no formato de buscar()/carregar_dados.carregar_tudo() num só.
+    Assume que todos vieram de buscar() com o mesmo `tipos_disponiveis` (mesmas
+    candidatas resolvidas em todos) — é assim que buscar_multiliga.py usa.
+    """
+    candidatas = datasets[0]["candidatas"]
+    for d in datasets[1:]:
+        if d["candidatas"] != candidatas:
+            raise ValueError("datasets com candidatas diferentes — junte só datasets vindos do mesmo tipos_disponiveis")
+
+    jogos, gols_finais, snapshots = {}, {}, []
+    for d in datasets:
+        repetidos = set(d["jogos"]) & set(jogos)
+        if repetidos:
+            raise ValueError(f"fixture_id repetido entre datasets: {sorted(repetidos)[:3]}")
+        jogos.update(d["jogos"])
+        gols_finais.update(d["gols_finais"])
+        snapshots.extend(d["snapshots"])
+
+    matriz = {}
+    for d in datasets:
+        matriz.update(d["matriz"])
+
+    return {"jogos": jogos, "gols_finais": gols_finais, "matriz": matriz, "candidatas": candidatas, "snapshots": snapshots}
 
 
 if __name__ == "__main__":
