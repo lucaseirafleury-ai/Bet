@@ -1,12 +1,12 @@
 """
 Monta o mesmo dataset que carregar_dados.carregar_tudo() devolve (jogos,
-gols_finais, matriz, candidatas, snapshots), mas buscando direto da API da
-Sportmonks em vez de precisar de um .xlsx exportado manualmente.
+resultados_alvo, matriz, candidatas, snapshots), mas buscando direto da API
+da Sportmonks em vez de precisar de um .xlsx exportado manualmente.
 
 Usa o include `trends` (progressão minuto a minuto), igual
 ligas_live_app/backtest.py já faz pra reconstruir estatísticas de jogos
-passados — só que aqui para as ~22 estatísticas candidatas da Matriz, não só
-as 9 usadas no cálculo de xG_proxy/pressão.
+passados — só que aqui para todas as candidatas de alvos.py, não só as 9
+usadas no cálculo de xG_proxy/pressão.
 
 Uso:
     export SPORTMONKS_TOKEN=...   # nunca colar o token dentro de um arquivo do repo
@@ -19,11 +19,13 @@ import json
 import os
 import time
 
+import alvos
 import config
 import sportmonks as sm
 from matriz_padrao import CORRELACAO_GOLS_PADRAO
 
 CHECKPOINTS = [15, 30, 45, 60, 75, 90]
+MINUTO_FINAL = 999  # maior que qualquer minuto real — pega o último valor acumulado dos trends
 ALLSVENSKAN_LEAGUE_ID = 573  # mesmo id já usado em ligas_live_app/config.py
 INTERVALO_ENTRE_FIXTURES_SEGUNDOS = 0.3
 INTERVALO_CHECKPOINT_FIXTURES = 20  # salva o progresso a cada N fixtures processadas
@@ -55,17 +57,26 @@ NOMES_CONFIRMADOS = {
     "offsides": "Offsides",
     "saves": "Saves",
     "attacks": "Attacks",
+    "fouls": "Fouls",
+    "yellowcards": "Yellowcards",
+    "redcards": "Redcards",
 }
 
 
-def resolver_candidatas(tipos_disponiveis):
+def resolver_candidatas(tipos_disponiveis, nomes_desejados=None):
     """
     stat_base (nome usado em pesquisa_gols) -> type_id da Sportmonks, só para
     as candidatas que dá pra resolver com confiança. Avisa e pula as que não
     encontrar — nunca assume um type_id errado.
+
+    nomes_desejados: lista de stat_base a resolver. Default: alvos.CAMPOS_PARA_BUSCAR
+    (superset de tudo que qualquer alvo precisa — candidatas preditoras +
+    campos que só servem de alvo, como yellowcards/redcards para cartões).
     """
+    if nomes_desejados is None:
+        nomes_desejados = alvos.CAMPOS_PARA_BUSCAR
     resolvidas = {}
-    for stat_base in sorted(CORRELACAO_GOLS_PADRAO):
+    for stat_base in sorted(nomes_desejados):
         if stat_base in config.INDICADORES_EXCLUIDOS:
             continue
         nome_api = NOMES_CONFIRMADOS.get(stat_base, stat_base.replace("_", " ").title())
@@ -85,12 +96,35 @@ def identificar_type_id_gol(tipos_disponiveis):
     return None
 
 
+def identificar_type_ids_cartao(tipos_disponiveis):
+    """
+    Type_ids de evento de cartão (amarelo, vermelho, segundo amarelo->vermelho).
+    Contagem por evento é mais confiável que os `trends` pra cartões — já visto
+    num jogo real: trends deu 7 cartões, contagem de eventos deu 8, batendo
+    com o total oficial (dois amarelos simultâneos no mesmo minuto parecem
+    fazer o trend perder um incremento).
+    """
+    return [
+        tipos_disponiveis[nome] for nome in ("Yellowcard", "Redcard", "Yellow/Red card")
+        if nome in tipos_disponiveis
+    ]
+
+
 def gols_ate_minuto(events, participant_id, minuto, goal_type_id, gols_finais_fallback):
     if goal_type_id is None:
         return gols_finais_fallback
     return sum(
         1 for e in events
         if e.get("type_id") == goal_type_id
+        and e.get("participant_id") == participant_id
+        and (e.get("minute") or 0) <= minuto
+    )
+
+
+def eventos_ate_minuto(events, participant_id, minuto, type_ids):
+    return sum(
+        1 for e in events
+        if e.get("type_id") in type_ids
         and e.get("participant_id") == participant_id
         and (e.get("minute") or 0) <= minuto
     )
@@ -111,7 +145,46 @@ def valor_acumulado_no_minuto(trends, type_id, participant_id, minuto):
         return 0.0
 
 
-def processar_fixture(fixture_resumo, candidatas_resolvidas, goal_type_id, jogos, gols_finais, snapshots):
+# Alvos cujo total final é mais confiável contando eventos do que lendo o
+# último ponto dos trends (ver identificar_type_ids_cartao).
+ALVOS_POR_EVENTO = {"cartoes": identificar_type_ids_cartao}
+
+
+def resultados_finais_dos_alvos(trends, events, candidatas_resolvidas, tipos_disponiveis,
+                                 home_id, away_id, gols_casa_final, gols_fora_final):
+    """
+    valor final da partida, para cada alvo em alvos.ALVOS — soma casa+fora.
+    'gols' usa o placar oficial (scores), mais preciso. Alvos em
+    ALVOS_POR_EVENTO usam contagem de eventos (mais confiável que trends pra
+    esses casos). Os demais usam o último ponto dos trends (MINUTO_FINAL),
+    que já é buscado mesmo assim para os checkpoints de 15-90 min.
+    """
+    resultado = {"gols": gols_casa_final + gols_fora_final}
+    for alvo_id, definicao in alvos.ALVOS.items():
+        if alvo_id == "gols":
+            continue
+        if alvo_id in ALVOS_POR_EVENTO:
+            type_ids = ALVOS_POR_EVENTO[alvo_id](tipos_disponiveis)
+            resultado[alvo_id] = (
+                eventos_ate_minuto(events, home_id, MINUTO_FINAL, type_ids)
+                + eventos_ate_minuto(events, away_id, MINUTO_FINAL, type_ids)
+            )
+            continue
+        total = 0.0
+        for campo in definicao["campos_base"]:
+            type_id = candidatas_resolvidas.get(campo)
+            if type_id is None:
+                total = None
+                break
+            total += (
+                valor_acumulado_no_minuto(trends, type_id, home_id, MINUTO_FINAL)
+                + valor_acumulado_no_minuto(trends, type_id, away_id, MINUTO_FINAL)
+            )
+        resultado[alvo_id] = total
+    return resultado
+
+
+def processar_fixture(fixture_resumo, candidatas_resolvidas, goal_type_id, tipos_disponiveis, jogos, resultados_alvo, snapshots):
     fixture_id = fixture_resumo["id"]
     jogos[fixture_id] = {
         "rodada": (fixture_resumo.get("round") or {}).get("id"),
@@ -148,9 +221,11 @@ def processar_fixture(fixture_resumo, candidatas_resolvidas, goal_type_id, jogos
     if gols_casa_final is None or gols_fora_final is None:
         print(f"  [sem placar final] fixture {fixture_id} — pulando")
         return
-    gols_finais[fixture_id] = gols_casa_final + gols_fora_final
-
     events = fixture.get("events", [])
+    resultados_alvo[fixture_id] = resultados_finais_dos_alvos(
+        trends, events, candidatas_resolvidas, tipos_disponiveis,
+        home["id"], away["id"], gols_casa_final, gols_fora_final,
+    )
 
     for minuto in CHECKPOINTS:
         gols_casa = gols_ate_minuto(events, home["id"], minuto, goal_type_id, gols_casa_final)
@@ -167,27 +242,39 @@ def processar_fixture(fixture_resumo, candidatas_resolvidas, goal_type_id, jogos
         snapshots.append(snap)
 
 
-def _salvar_checkpoint(caminho, jogos, gols_finais, snapshots, processados):
+def _salvar_checkpoint(caminho, jogos, resultados_alvo, snapshots, processados, candidatas_resolvidas):
     os.makedirs(os.path.dirname(caminho), exist_ok=True)
     tmp = caminho + ".tmp"
     with open(tmp, "w", encoding="utf-8") as fp:
         json.dump({
+            "candidatas": sorted(candidatas_resolvidas),
             "jogos": {str(k): v for k, v in jogos.items()},
-            "gols_finais": {str(k): v for k, v in gols_finais.items()},
+            "resultados_alvo": {str(k): v for k, v in resultados_alvo.items()},
             "snapshots": snapshots,
             "processados": sorted(processados),
         }, fp)
     os.replace(tmp, caminho)  # troca atômica — nunca deixa um checkpoint pela metade
 
 
-def _carregar_checkpoint(caminho):
+def _carregar_checkpoint(caminho, candidatas_resolvidas):
+    """
+    Devolve None se o checkpoint não existir OU se tiver sido salvo com um
+    conjunto de candidatas diferente do atual (ex.: alvos.py ganhou um campo
+    novo desde a última busca) — reaproveitar snapshots que não têm todas as
+    chaves esperadas quebraria o resto do pipeline silenciosamente.
+    """
     if not os.path.exists(caminho):
         return None
     with open(caminho, encoding="utf-8") as fp:
         dados = json.load(fp)
+    candidatas_salvas = dados.get("candidatas")
+    if candidatas_salvas != sorted(candidatas_resolvidas):
+        print(f"  [aviso] checkpoint em {caminho} foi salvo com candidatas diferentes das atuais "
+              f"— ignorando e buscando tudo de novo pra essa liga")
+        return None
     return {
         "jogos": {int(k): v for k, v in dados["jogos"].items()},
-        "gols_finais": {int(k): v for k, v in dados["gols_finais"].items()},
+        "resultados_alvo": {int(k): v for k, v in dados["resultados_alvo"].items()},
         "snapshots": dados["snapshots"],
         "processados": set(dados["processados"]),
     }
@@ -195,7 +282,11 @@ def _carregar_checkpoint(caminho):
 
 def buscar(date_from, date_to, league_id=ALLSVENSKAN_LEAGUE_ID, tipos_disponiveis=None, caminho_checkpoint=None):
     """
-    Devolve o mesmo formato de carregar_dados.carregar_tudo(), buscado direto da API.
+    Devolve jogos/resultados_alvo/matriz/candidatas/snapshots, buscado direto da API.
+    `resultados_alvo[fixture_id][alvo_id]` dá o resultado final da partida
+    pra cada alvo em alvos.ALVOS (gols, escanteios, cartões, chutes...).
+    Também expõe "gols_finais" (= resultados_alvo mapeado só pro alvo "gols")
+    pra quem ainda espera o formato antigo.
 
     tipos_disponiveis: passe o dict de sm.mapa_types() já buscado se for chamar
     `buscar()` mais de uma vez (outras ligas/temporadas) — a paginação de
@@ -204,11 +295,10 @@ def buscar(date_from, date_to, league_id=ALLSVENSKAN_LEAGUE_ID, tipos_disponivei
     caminho_checkpoint: se informado, salva o progresso a cada
     INTERVALO_CHECKPOINT_FIXTURES fixtures nesse arquivo JSON. Serve dois
     papéis com o mesmo arquivo: (1) checkpoint — uma queda do processo no meio
-    (já aconteceu: o proxy deste ambiente trocou de porta no meio de uma busca
-    longa) retoma dali em vez de recomeçar do zero; (2) cache permanente — o
+    retoma dali em vez de recomeçar do zero; (2) cache permanente — o
     arquivo nunca é apagado, então a PRÓXIMA chamada com o mesmo caminho só
-    busca fixtures que ainda não estão nele (ex.: jogos novos de uma temporada
-    em andamento), sem refazer chamadas de API pra quem já foi buscado antes.
+    busca fixtures que ainda não estão nele. Invalidado automaticamente se o
+    conjunto de candidatas mudar (ver _carregar_checkpoint).
     """
     if tipos_disponiveis is None:
         print("Buscando tipos de estatística...")
@@ -223,14 +313,14 @@ def buscar(date_from, date_to, league_id=ALLSVENSKAN_LEAGUE_ID, tipos_disponivei
     fixtures = sm.fixtures_da_liga(league_id, date_from, date_to)
     print(f"  {len(fixtures)} fixtures encontradas")
 
-    cache = _carregar_checkpoint(caminho_checkpoint) if caminho_checkpoint else None
+    cache = _carregar_checkpoint(caminho_checkpoint, candidatas_resolvidas) if caminho_checkpoint else None
     if cache:
-        jogos, gols_finais, snapshots, processados = (
-            cache["jogos"], cache["gols_finais"], cache["snapshots"], cache["processados"]
+        jogos, resultados_alvo, snapshots, processados = (
+            cache["jogos"], cache["resultados_alvo"], cache["snapshots"], cache["processados"]
         )
         print(f"  {len(processados)} fixtures já em cache (de execuções anteriores), reaproveitando")
     else:
-        jogos, gols_finais, snapshots, processados = {}, {}, [], set()
+        jogos, resultados_alvo, snapshots, processados = {}, {}, [], set()
 
     novas = 0
     for i, f in enumerate(fixtures, 1):
@@ -239,26 +329,28 @@ def buscar(date_from, date_to, league_id=ALLSVENSKAN_LEAGUE_ID, tipos_disponivei
         novas += 1
         print(f"[{nome_liga} {i}/{len(fixtures)}] fixture {f['id']}...")
         try:
-            processar_fixture(f, candidatas_resolvidas, goal_type_id, jogos, gols_finais, snapshots)
+            processar_fixture(f, candidatas_resolvidas, goal_type_id, tipos_disponiveis, jogos, resultados_alvo, snapshots)
         except Exception as e:
             print(f"  [ERRO] {e}")
         processados.add(f["id"])
         if caminho_checkpoint and novas % INTERVALO_CHECKPOINT_FIXTURES == 0:
-            _salvar_checkpoint(caminho_checkpoint, jogos, gols_finais, snapshots, processados)
+            _salvar_checkpoint(caminho_checkpoint, jogos, resultados_alvo, snapshots, processados, candidatas_resolvidas)
         time.sleep(INTERVALO_ENTRE_FIXTURES_SEGUNDOS)
 
     if caminho_checkpoint and novas > 0:
         # nunca apaga: o mesmo arquivo funciona como checkpoint (retoma se cair no meio)
         # e como cache permanente (próxima chamada só busca fixtures que ainda não estão aqui —
         # ex.: jogos novos de uma temporada em andamento).
-        _salvar_checkpoint(caminho_checkpoint, jogos, gols_finais, snapshots, processados)
+        _salvar_checkpoint(caminho_checkpoint, jogos, resultados_alvo, snapshots, processados, candidatas_resolvidas)
     print(f"  {novas} fixtures novas buscadas nesta execução, {len(processados) - novas} vieram do cache")
 
+    candidatas_preditoras = sorted(set(candidatas_resolvidas) - alvos.CAMPOS_SO_ALVO)
     return {
         "jogos": jogos,
-        "gols_finais": gols_finais,
+        "resultados_alvo": resultados_alvo,
+        "gols_finais": {fid: r["gols"] for fid, r in resultados_alvo.items()},
         "matriz": dict(CORRELACAO_GOLS_PADRAO),
-        "candidatas": sorted(candidatas_resolvidas),
+        "candidatas": candidatas_preditoras,
         "snapshots": snapshots,
     }
 
@@ -274,20 +366,27 @@ def mesclar(datasets):
         if d["candidatas"] != candidatas:
             raise ValueError("datasets com candidatas diferentes — junte só datasets vindos do mesmo tipos_disponiveis")
 
-    jogos, gols_finais, snapshots = {}, {}, []
+    jogos, resultados_alvo, snapshots = {}, {}, []
     for d in datasets:
         repetidos = set(d["jogos"]) & set(jogos)
         if repetidos:
             raise ValueError(f"fixture_id repetido entre datasets: {sorted(repetidos)[:3]}")
         jogos.update(d["jogos"])
-        gols_finais.update(d["gols_finais"])
+        resultados_alvo.update(d["resultados_alvo"])
         snapshots.extend(d["snapshots"])
 
     matriz = {}
     for d in datasets:
         matriz.update(d["matriz"])
 
-    return {"jogos": jogos, "gols_finais": gols_finais, "matriz": matriz, "candidatas": candidatas, "snapshots": snapshots}
+    return {
+        "jogos": jogos,
+        "resultados_alvo": resultados_alvo,
+        "gols_finais": {fid: r["gols"] for fid, r in resultados_alvo.items()},
+        "matriz": matriz,
+        "candidatas": candidatas,
+        "snapshots": snapshots,
+    }
 
 
 if __name__ == "__main__":

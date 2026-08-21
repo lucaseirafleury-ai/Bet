@@ -8,12 +8,17 @@ de linhas.
 import config
 
 
-def mercado_bate(gols_finais_partida, mercado):
-    """'+N' = pelo menos N gols na partida; '-N' = menos de N gols na partida."""
-    n = int(mercado[1:])
+def mercado_bate(valor_final, mercado):
+    """
+    '+N' = resultado final >= N; '-N' = resultado final < N.
+    N pode ter casas decimais (ex.: '+9.5') — usado pelos alvos além de gols
+    (escanteios, cartões, chutes), que seguem a convenção de linha de aposta
+    terminada em .5 pra nunca empatar exatamente em cima do corte.
+    """
+    n = float(mercado[1:])
     if mercado[0] == "+":
-        return gols_finais_partida >= n
-    return gols_finais_partida < n
+        return valor_final >= n
+    return valor_final < n
 
 
 def _condicao_bate(valor, operador, limite):

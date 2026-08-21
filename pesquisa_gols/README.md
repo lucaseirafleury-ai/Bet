@@ -197,29 +197,61 @@ python buscar_multiliga.py
 ```
 
 Cada liga fica em cache permanente (`dados/.checkpoint_<id>.json`, nunca
-apagado) — rodar de novo só busca fixtures novos, não a liga inteira.
+apagado) — rodar de novo só busca fixtures novos, não a liga inteira. O
+cache é invalidado automaticamente se o conjunto de campos buscados mudar
+(ver seção seguinte), pra nunca reaproveitar snapshots incompletos.
 
-**Resultado (rodado até o fim, sem cair, em 21/08/2026):**
-- 4 condições de 1 estatística e 6 combinações de 2 estatísticas validadas
-  dentro da Allsvenskan (`resultados/allsvenskan_condicoes_*.csv`).
-- Nenhuma condição de 1 estatística teve amostra suficiente nas outras 4
-  ligas para sequer ser testada.
-- Das 6 combinações de 2 estatísticas, só 4 tinham amostra suficiente nas
-  outras ligas. A mais próxima de um achado real (`accurate_crosses<=2 &
-  saves>=1`, aos 15min/0x0) teve p-valor 0,023 nas outras ligas — pareceria
-  significativo isolado, mas **não sobrevive à correção de
-  Benjamini-Hochberg** aplicada sobre as 8 combinações testadas nesta etapa
-  (precisaria de p≤0,006). `resultados/confirmacao_2stats.csv` tem a
-  coluna `confirmado_bh` — hoje, **nenhuma linha é `True`**.
+**Primeiro resultado, só com gols (rodado até o fim, sem cair, em
+21/08/2026):** 4 condições de 1 estatística e 6 combinações de 2
+estatísticas validadas dentro da Allsvenskan; nenhuma sobreviveu à
+confirmação nas outras ligas com o teste estatístico formal (a mais
+próxima, `accurate_crosses<=2 & saves>=1`, teve p=0,023 nas outras ligas —
+pareceria significativa isolada, mas não sobrevive à correção de
+Benjamini-Hochberg sobre as 8 combinações testadas nessa etapa, que exigia
+p≤0,006). Ver seção seguinte pra como isso generalizou pra outros alvos.
 
-**Conclusão honesta até aqui:** com ~3.000 jogos disputados no total (5
-ligas, 3 temporadas cada), ainda não existe uma condição de 1 ou 2
-estatísticas que sobreviva ao critério rigoroso completo (descoberta +
-confirmação entre ligas com teste estatístico formal). Isso não invalida a
-metodologia — é evidência de que o sinal, se existir, é mais fraco ou mais
-específico do que os padrões testados até agora, ou que ainda falta
-volume de dados. O caminho natural é: mais temporadas (conforme o tempo
-passa) e/ou revisar as estatísticas candidatas/janelas de minuto testadas.
+## Outros alvos além de gols: escanteios, cartões, chutes
+
+`alvos.py` generaliza o pipeline pra prever qualquer alvo, não só gols —
+hoje: **escanteios**, **cartões** (amarelos + vermelhos), **chutes totais**
+e **chutes no alvo**, além de gols. Mesmo motor estatístico (treino/teste
+cronológico + Benjamini-Hochberg + confirmação entre ligas), só muda:
+
+- **Resultado final da partida**: soma casa+fora do(s) campo(s) daquele
+  alvo (`campos_base` em `alvos.py`), em vez de gols. Cartões é a soma de
+  dois campos (amarelos + vermelhos).
+- **Linhas de mercado**: cada alvo tem sua própria escala — gols usa linhas
+  inteiras (+1..+4, convenção já estabelecida); os demais usam linhas
+  `.5` (estilo linha de aposta real, nunca empata exatamente em cima do
+  corte): escanteios 7.5–11.5, cartões 1.5–5.5, chutes totais 18.5–28.5,
+  chutes no alvo 6.5–10.5.
+- **Candidatas**: mesmo pool de ~26 estatísticas usado para gols (mais
+  faltas/desarmes/interceptações/duelos, úteis principalmente pra cartões),
+  excluindo sempre o(s) campo(s) do próprio alvo (não testa "escanteios
+  prevê escanteios").
+
+`buscar_multiliga.py` agora roda todos os alvos numa única execução (busca
+os dados uma vez, com o superset de ~28 campos que qualquer alvo precisa;
+a análise em si é só reaproveitar o mesmo `snapshots` com um resultado
+final e uma lista de candidatas diferente por alvo). Saída:
+`resultados/<alvo>_allsvenskan_condicoes_*.csv` e
+`resultados/<alvo>_confirmacao_*.csv` pra cada alvo.
+
+**Achado ao adicionar cartões: contagem por evento é mais confiável que
+`trends` para esse alvo.** Um jogo real testado deu 7 cartões por `trends`
+(o último ponto acumulado) mas 8 por contagem de eventos de cartão —
+batendo com o total oficial. Dois cartões no mesmo minuto parecem fazer o
+feed de trends perder um incremento. `resultados_finais_dos_alvos` usa
+contagem de eventos (`ALVOS_POR_EVENTO`) para cartões, igual já era feito
+pra gols — mais confiável que ler o trend acumulado.
+
+**Limitação conhecida, menor:** chutes totais/no alvo não têm um "evento"
+discreto pra contar (diferente de gol/cartão), então usam o último ponto
+dos `trends` — em 1 de 2 jogos conferidos manualmente, o total ficou 1
+unidade abaixo do valor oficial (~4% de erro relativo). Não é sistemático
+(não aconteceu com escanteios, nem com o outro jogo testado) — tratado como
+ruído de medição aceitável dado o volume de jogos da análise, não como bug
+a corrigir agora.
 
 ## Como rodar
 
@@ -269,13 +301,17 @@ expor um novo mercado calibrado no painel, seguindo a convenção descrita em
 ```
 config.py             → parâmetros ajustáveis (inclui a lista de arquivos de entrada)
 matriz_padrao.py       → correlação indicador→Gols padrão, usada quando o arquivo não tem aba Matriz
+alvos.py                → define os alvos além de gols (escanteios/cartões/chutes): campos,
+                          linhas de mercado e candidatas por alvo
 carregar_dados.py      → lê Jogos/Snapshots/Stats_Finais (+ Matriz opcional) de um ou vários .xlsx
 sportmonks.py           → cliente mínimo da API Sportmonks (token via env var)
-buscar_sportmonks.py    → monta o mesmo dataset direto da API, sem precisar de .xlsx
+buscar_sportmonks.py    → monta o dataset direto da API (todos os alvos de uma vez), sem .xlsx
 probabilidades.py      → P Final / P Base / Impacto sob demanda
 estatistica.py         → teste de duas proporções + correção Benjamini-Hochberg
 buscar_condicoes.py    → orquestra a busca (1 e 2 estatísticas) com treino/teste — aceita
                           dados de carregar_dados.py OU de buscar_sportmonks.py
+buscar_multiliga.py    → roda descoberta (Allsvenskan) + confirmação (outras 4 ligas),
+                          pra cada alvo em alvos.py
 dados/                 → arquivo(s) de entrada (fluxo manual via .xlsx)
 resultados/            → CSVs gerados (não versionados, exceto .gitkeep)
 ```
