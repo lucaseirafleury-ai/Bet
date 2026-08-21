@@ -15,6 +15,8 @@ Uso:
 Precisa da env var SPORTMONKS_TOKEN (ver sportmonks.py). Nada relacionado ao
 token é escrito em disco por este script.
 """
+import json
+import os
 import time
 
 import config
@@ -24,6 +26,7 @@ from matriz_padrao import CORRELACAO_GOLS_PADRAO
 CHECKPOINTS = [15, 30, 45, 60, 75, 90]
 ALLSVENSKAN_LEAGUE_ID = 573  # mesmo id já usado em ligas_live_app/config.py
 INTERVALO_ENTRE_FIXTURES_SEGUNDOS = 0.3
+INTERVALO_CHECKPOINT_FIXTURES = 20  # salva o progresso a cada N fixtures processadas
 
 # Mesmos ids de ligas_live_app/config.py -> LIGAS_MONITORADAS
 LIGAS_MONITORADAS = {
@@ -164,13 +167,45 @@ def processar_fixture(fixture_resumo, candidatas_resolvidas, goal_type_id, jogos
         snapshots.append(snap)
 
 
-def buscar(date_from, date_to, league_id=ALLSVENSKAN_LEAGUE_ID, tipos_disponiveis=None):
+def _salvar_checkpoint(caminho, jogos, gols_finais, snapshots, processados):
+    os.makedirs(os.path.dirname(caminho), exist_ok=True)
+    tmp = caminho + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fp:
+        json.dump({
+            "jogos": {str(k): v for k, v in jogos.items()},
+            "gols_finais": {str(k): v for k, v in gols_finais.items()},
+            "snapshots": snapshots,
+            "processados": sorted(processados),
+        }, fp)
+    os.replace(tmp, caminho)  # troca atômica — nunca deixa um checkpoint pela metade
+
+
+def _carregar_checkpoint(caminho):
+    if not os.path.exists(caminho):
+        return None
+    with open(caminho, encoding="utf-8") as fp:
+        dados = json.load(fp)
+    return {
+        "jogos": {int(k): v for k, v in dados["jogos"].items()},
+        "gols_finais": {int(k): v for k, v in dados["gols_finais"].items()},
+        "snapshots": dados["snapshots"],
+        "processados": set(dados["processados"]),
+    }
+
+
+def buscar(date_from, date_to, league_id=ALLSVENSKAN_LEAGUE_ID, tipos_disponiveis=None, caminho_checkpoint=None):
     """
     Devolve o mesmo formato de carregar_dados.carregar_tudo(), buscado direto da API.
 
     tipos_disponiveis: passe o dict de sm.mapa_types() já buscado se for chamar
     `buscar()` mais de uma vez (outras ligas/temporadas) — a paginação de
     ~1.300 tipos é a mesma pra qualquer liga, não precisa refazer a cada chamada.
+
+    caminho_checkpoint: se informado, salva o progresso a cada
+    INTERVALO_CHECKPOINT_FIXTURES fixtures nesse arquivo JSON e retoma dali se
+    o arquivo já existir — uma queda do processo (já aconteceu: o proxy deste
+    ambiente trocou de porta no meio de uma busca longa) não obriga a
+    recomeçar do zero.
     """
     if tipos_disponiveis is None:
         print("Buscando tipos de estatística...")
@@ -185,14 +220,30 @@ def buscar(date_from, date_to, league_id=ALLSVENSKAN_LEAGUE_ID, tipos_disponivei
     fixtures = sm.fixtures_da_liga(league_id, date_from, date_to)
     print(f"  {len(fixtures)} fixtures encontradas")
 
-    jogos, gols_finais, snapshots = {}, {}, []
+    checkpoint = _carregar_checkpoint(caminho_checkpoint) if caminho_checkpoint else None
+    if checkpoint:
+        jogos, gols_finais, snapshots, processados = (
+            checkpoint["jogos"], checkpoint["gols_finais"], checkpoint["snapshots"], checkpoint["processados"]
+        )
+        print(f"  retomando checkpoint: {len(processados)} fixtures já processadas antes")
+    else:
+        jogos, gols_finais, snapshots, processados = {}, {}, [], set()
+
     for i, f in enumerate(fixtures, 1):
+        if f["id"] in processados:
+            continue
         print(f"[{nome_liga} {i}/{len(fixtures)}] fixture {f['id']}...")
         try:
             processar_fixture(f, candidatas_resolvidas, goal_type_id, jogos, gols_finais, snapshots)
         except Exception as e:
             print(f"  [ERRO] {e}")
+        processados.add(f["id"])
+        if caminho_checkpoint and len(processados) % INTERVALO_CHECKPOINT_FIXTURES == 0:
+            _salvar_checkpoint(caminho_checkpoint, jogos, gols_finais, snapshots, processados)
         time.sleep(INTERVALO_ENTRE_FIXTURES_SEGUNDOS)
+
+    if caminho_checkpoint and os.path.exists(caminho_checkpoint):
+        os.remove(caminho_checkpoint)  # terminou com sucesso, não precisa mais retomar dele
 
     return {
         "jogos": jogos,

@@ -17,6 +17,7 @@ ARQUIVOS_ENTRADA = [
 ]
 
 DIR_RESULTADOS = "resultados"
+DIR_DADOS = "dados"
 
 # Mercados de total de gols na partida avaliados.
 # "+N" = pelo menos N gols na partida; "-N" = menos de N gols na partida.

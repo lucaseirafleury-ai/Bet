@@ -36,10 +36,22 @@ def _get(path, params=None, base_url=BASE_URL, tentativas=5):
     # do requests inclui a URL na mensagem — com o token como query param, ele
     # vazaria em texto puro em qualquer log/traceback.
     for tentativa in range(1, tentativas + 1):
-        r = requests.get(
-            f"{base_url}{path}", params=params or {}, timeout=20,
-            headers={"Authorization": _token()},
-        )
+        try:
+            r = requests.get(
+                f"{base_url}{path}", params=params or {}, timeout=20,
+                headers={"Authorization": _token()},
+            )
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
+            # erro transitório de rede/proxy (já aconteceu: o proxy deste ambiente
+            # trocou de porta no meio de uma busca longa) — vale tentar de novo
+            # antes de derrubar o processo inteiro.
+            if tentativa == tentativas:
+                raise
+            espera = 5 * tentativa
+            print(f"  [erro de conexão] {type(e).__name__} — esperando {espera}s antes de tentar de novo ({path})...")
+            time.sleep(espera)
+            continue
+
         if r.status_code == 429 and tentativa < tentativas:
             espera = int(r.headers.get("Retry-After", 5 * tentativa))
             print(f"  [rate limit] esperando {espera}s antes de tentar de novo ({path})...")

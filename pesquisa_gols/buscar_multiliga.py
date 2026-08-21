@@ -92,7 +92,10 @@ def rodar():
     tipos_disponiveis = sm.mapa_types()
 
     print(f"\n=== Descoberta: Allsvenskan ({DATE_FROM} a {DATE_TO}) ===")
-    dados_allsvenskan = bs.buscar(DATE_FROM, DATE_TO, league_id=573, tipos_disponiveis=tipos_disponiveis)
+    dados_allsvenskan = bs.buscar(
+        DATE_FROM, DATE_TO, league_id=573, tipos_disponiveis=tipos_disponiveis,
+        caminho_checkpoint=os.path.join(config.DIR_DADOS, ".checkpoint_573.json"),
+    )
     print(f"  {len(dados_allsvenskan['jogos'])} jogos, {len(dados_allsvenskan['gols_finais'])} com resultado, "
           f"{len(dados_allsvenskan['snapshots'])} snapshots")
 
@@ -108,7 +111,10 @@ def rodar():
     print(f"\n=== Confirmação: {', '.join(outras_ligas.values())} ({DATE_FROM} a {DATE_TO}) ===")
     datasets_outras = []
     for lid, nome in outras_ligas.items():
-        d = bs.buscar(DATE_FROM, DATE_TO, league_id=lid, tipos_disponiveis=tipos_disponiveis)
+        d = bs.buscar(
+            DATE_FROM, DATE_TO, league_id=lid, tipos_disponiveis=tipos_disponiveis,
+            caminho_checkpoint=os.path.join(config.DIR_DADOS, f".checkpoint_{lid}.json"),
+        )
         print(f"  {nome}: {len(d['jogos'])} jogos, {len(d['gols_finais'])} com resultado, {len(d['snapshots'])} snapshots")
         datasets_outras.append(d)
     dados_confirmacao = bs.mesclar(datasets_outras)
