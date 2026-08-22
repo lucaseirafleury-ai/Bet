@@ -18,7 +18,6 @@ A cada ciclo, para cada jogo ao vivo monitorado:
        - data/live_insights.json   → só os eventos que cruzaram o limiar (feed de alertas)
 """
 import json
-import math
 import os
 import time
 from datetime import datetime, timedelta, timezone
@@ -398,19 +397,20 @@ CHECKPOINTS_REGRA = [15, 30, 45, 60, 75, 90]
 JANELA_MINUTOS_REGRA = 3
 
 
+IMPACTO_MINIMO_PP_VALOR_ATUAL = 5.0  # mesmo limiar usado pra selecionar as regras "fortes" (gerar_regras_sinais.py)
+
+
 def _carregar_regras_sinais():
     if not os.path.exists(CAMINHO_REGRAS_SINAIS):
         print(f"[sinais confirmados] {CAMINHO_REGRAS_SINAIS} não encontrado — sinal desativado")
-        return [], {}
+        return []
     with open(CAMINHO_REGRAS_SINAIS, encoding="utf-8") as fp:
-        payload = json.load(fp)
-    regras = payload.get("regras", [])
-    limites = payload.get("limites_plausibilidade", {})
+        regras = json.load(fp).get("regras", [])
     print(f"[sinais confirmados] {len(regras)} regras carregadas de {CAMINHO_REGRAS_SINAIS}")
-    return regras, limites
+    return regras
 
 
-REGRAS_SINAIS, LIMITES_PLAUSIBILIDADE = _carregar_regras_sinais()
+REGRAS_SINAIS = _carregar_regras_sinais()
 CAMPOS_REGRAS_SINAIS = sorted(
     {c["stat"] for r in REGRAS_SINAIS for c in r["condicoes"]}
     | {r["mercado"]["stat"] for r in REGRAS_SINAIS}
@@ -430,41 +430,30 @@ def _regra_bate(regra, valores):
     return True
 
 
-def _mercado_ainda_em_aberto(regra, valores_combinados):
+def _stats_para_valor_atual(regra, valores_combinados):
     """
-    Confere se o placar parcial JÁ não decidiu o mercado sozinho, antes mesmo
-    da condição da regra entrar em jogo — ex.: recomendar "Menos de 11,5
-    escanteios" quando o jogo só tem 1 escanteio aos 45' é tecnicamente
-    confirmado em média, mas nesse jogo específico (ritmo baixíssimo) o lado
-    oposto já é praticamente impossível, e a odd mínima de referência (que é
-    uma média histórica) fica sem sentido — foi um caso real reportado.
+    Busca a estimativa de probabilidade/impacto da regra CONDICIONADA ao
+    valor atual exato do próprio alvo (escanteios/chutes já ocorridos no
+    momento do snapshot) — não só minuto+placar+condição, que era o critério
+    original e escondia casos como: mesmo minuto/placar/condição, mas um jogo
+    com 1 escanteio até ali e outro com 6, recebendo a MESMA probabilidade.
+    Ver pesquisa_gols/gerar_regras_sinais.py::recalibrar_por_valor_atual —
+    tabela pré-computada sobre as 5 ligas (~3.000 jogos).
 
-    Usa limites_plausibilidade (pesquisa_gols/gerar_regras_sinais.py): p5/p95
-    de "quanto ainda falta somar" (resto), condicionado ao valor atual exato
-    do estat do mercado, calculado sobre os ~3.000 jogos já processados.
-    Sem tabela pra esse alvo/minuto/valor -> deixa passar (sem informação
-    suficiente pra vetar).
+    Retorna None se não houver tabela pra essa regra (nunca deveria
+    acontecer nas regras atuais, mas não impede o painel se faltar).
     """
-    alvo, mercado = regra["alvo"], regra["mercado"]
-    tabela_alvo = LIMITES_PLAUSIBILIDADE.get(alvo, {}).get(str(regra["minuto"]))
-    if not tabela_alvo:
-        return True
-
-    valor_atual = int(round(valores_combinados.get(mercado["stat"], 0.0)))
-    entrada = tabela_alvo.get(str(valor_atual))
+    tabela = regra.get("por_valor_atual")
+    if not tabela:
+        return None
+    valor_atual = int(round(valores_combinados.get(regra["mercado"]["stat"], 0.0)))
+    entrada = tabela.get(str(valor_atual))
     if entrada is None:
         # valor nunca visto nos ~3.000 jogos de referência — usa o mais próximo disponível
-        disponiveis = [int(v) for v in tabela_alvo.keys()]
+        disponiveis = [int(v) for v in tabela.keys()]
         mais_proximo = min(disponiveis, key=lambda v: abs(v - valor_atual))
-        entrada = tabela_alvo[str(mais_proximo)]
-
-    linha_base = math.floor(mercado["linha"])  # linha é sempre X.5
-    if mercado["direcao"] == "menos_de":
-        resto_minimo_para_errar = linha_base + 1 - valor_atual
-        return resto_minimo_para_errar <= entrada["p95"]
-    else:  # "mais_de"
-        resto_maximo_para_errar = linha_base - valor_atual
-        return resto_maximo_para_errar >= entrada["p5"]
+        entrada = tabela[str(mais_proximo)]
+    return entrada
 
 
 def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combinados):
@@ -476,22 +465,29 @@ def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combi
         for regra in REGRAS_POR_CHECKPOINT_PLACAR.get((checkpoint, gols_totais_jogo), []):
             if not _regra_bate(regra, valores_combinados):
                 continue
-            if not _mercado_ainda_em_aberto(regra, valores_combinados):
-                continue  # placar parcial já tornou o lado oposto implausível — sinal sem valor real
+
+            stats = _stats_para_valor_atual(regra, valores_combinados)
+            if stats is None or stats["impacto_pp"] < IMPACTO_MINIMO_PP_VALOR_ATUAL:
+                # dado o placar parcial ATUAL do próprio alvo, a condição não agrega
+                # impacto real (às vezes porque o placar sozinho já decidiu o mercado,
+                # às vezes porque o "impacto" original era em boa parte confundido com
+                # o valor atual, não um efeito genuíno da condição) — não mostra.
+                continue
+
             mensagem = (
-                f"min {minuto} — {regra['rotulo']}. Confirmado em {regra['amostra_confirmacao']} jogos de "
-                f"outras ligas (impacto +{regra['impacto_pp']:.1f} p.p., p-valor {regra['p_valor_confirmacao']:.4f}). "
-                f"Odd mínima de referência: {regra['odd_minima_referencia']:.2f} (estimada da amostra histórica "
-                f"de confirmação, não do modelo ao vivo deste painel)."
+                f"min {minuto} — {regra['rotulo']}. Recalculado para o placar parcial atual: "
+                f"{stats['n']} jogos de referência (impacto +{stats['impacto_pp']:.1f} p.p. sobre a base "
+                f"nesse mesmo estado de jogo). Odd mínima de referência: {stats['odd_minima']:.2f} "
+                f"(estimada da amostra histórica, não do modelo ao vivo deste painel)."
             )
             insight = _insight_base(
-                relatorio, minuto, f"regra_{regra['id']}", "Jogo", regra["impacto_pp"], mensagem
+                relatorio, minuto, f"regra_{regra['id']}", "Jogo", stats["impacto_pp"], mensagem
             )
             # Campos extras (além do formato padrão de insight): permitem o painel
             # mostrar só "mercado + odd mínima" fechado, com o texto acima (mensagem)
             # só ao expandir — ver htmlSinalItem() em static/app.js.
             insight["resumo"] = regra["mercado_curto"]
-            insight["odd_minima"] = regra["odd_minima_referencia"]
+            insight["odd_minima"] = stats["odd_minima"]
             insights.append(insight)
     return insights
 

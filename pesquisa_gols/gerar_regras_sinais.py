@@ -20,8 +20,7 @@ BASE = os.path.join(os.path.dirname(__file__), "resultados")
 DADOS_DIR = os.path.join(os.path.dirname(__file__), "dados")
 DESTINO = os.path.join(os.path.dirname(__file__), "..", "ligas_live_app", "regras_sinais.json")
 
-CHECKPOINTS_PLAUSIBILIDADE = [15, 30, 45, 60, 75]
-AMOSTRA_MINIMA_PLAUSIBILIDADE = 30  # abaixo disso, o percentil não é confiável — busca o valor_atual vizinho
+AMOSTRA_MINIMA_VALOR_ATUAL = 30  # abaixo disso, a proporção não é confiável — busca o valor_atual vizinho
 
 AMOSTRA_MINIMA = 200
 IMPACTO_MINIMO_PP = 5.0
@@ -68,74 +67,104 @@ def ler_csv(caminho):
     return [r for r in linhas if r["confirmado_bh"] == "True"]
 
 
-def _percentil(valores_ordenados, p):
-    return valores_ordenados[min(int(len(valores_ordenados) * p), len(valores_ordenados) - 1)]
-
-
-def calcular_limites_plausibilidade():
-    """
-    Pra cada alvo com sinal confirmado + cada checkpoint, calcula p5/p95 de
-    "quanto ainda falta somar" (resto = valor final − valor no checkpoint),
-    CONDICIONADO ao valor atual exato — não é a mesma coisa que o p5/p95 sem
-    condicionar (que fica solto demais: por exemplo, em escanteios aos 45min
-    o p99 do resto sem condicionar é 13, mas condicionado a "só 1 escanteio
-    até agora" o p95 real é 10 — bem mais apertado).
-
-    Sem isso, uma regra pode recomendar "Menos de 11,5 escanteios" quando o
-    jogo já só tem 1 escanteio aos 45' — tecnicamente confirmado em média,
-    mas nesse estado específico de jogo o mercado já está praticamente
-    decidido (e a odd mínima mostrada fica sem sentido, porque ela é uma
-    média de jogos com ritmo normal, não deste jogo de ritmo baixíssimo).
-    Ver conversa: caso real reportado com odd mínima 1,33 quando o jogo já
-    tinha resultado quase certo (>95% de chance do lado recomendado).
-
-    Usado por live_monitor.py para NÃO disparar regras cujo lado oposto já
-    virou estatisticamente implausível dado o placar parcial atual.
-    """
-    dados_por_alvo_checkpoint = {}  # (alvo, minuto) -> {valor_atual: [restos]}
+def _carregar_dados_pooled():
+    """fixture_id -> {minuto: snapshot}, fixture_id -> resultados_alvo — as 5 ligas juntas."""
+    snaps_por_fixture = {}
+    resultados = {}
     for caminho in glob.glob(f"{DADOS_DIR}/.checkpoint_*.json"):
         d = json.load(open(caminho, encoding="utf-8"))
-        resultados_alvo, snapshots = d["resultados_alvo"], d["snapshots"]
-        for snap in snapshots:
-            minuto = snap["minuto"]
-            if minuto not in CHECKPOINTS_PLAUSIBILIDADE:
-                continue
-            fid = snap["fixture_id"]
-            res = resultados_alvo.get(str(fid), resultados_alvo.get(fid))
-            if not res:
-                continue
-            for alvo_id, stat_alvo in ALVO_STAT_BASE.items():
-                if alvo_id not in ("escanteios", "chutes_totais", "chutes_no_alvo"):
-                    continue  # gols/cartões não têm sinal confirmado, não precisa da tabela
-                if stat_alvo not in snap or res.get(alvo_id) is None:
-                    continue
-                resto = res[alvo_id] - snap[stat_alvo]
-                if resto < 0:
-                    continue
-                chave = (alvo_id, minuto)
-                dados_por_alvo_checkpoint.setdefault(chave, {}).setdefault(int(snap[stat_alvo]), []).append(resto)
+        for fid_str, res in d["resultados_alvo"].items():
+            resultados[int(fid_str)] = res
+        for snap in d["snapshots"]:
+            snaps_por_fixture.setdefault(snap["fixture_id"], {})[snap["minuto"]] = snap
+    return snaps_por_fixture, resultados
 
-    limites = {}
-    for (alvo_id, minuto), por_valor in dados_por_alvo_checkpoint.items():
-        valores_com_amostra = sorted(v for v, restos in por_valor.items() if len(restos) >= AMOSTRA_MINIMA_PLAUSIBILIDADE)
-        tabela = {}
-        for valor_atual, restos in por_valor.items():
-            # amostra pequena pro valor exato -> usa o valor com amostra suficiente mais próximo
-            if len(restos) >= AMOSTRA_MINIMA_PLAUSIBILIDADE:
-                restos_uso = restos
-            elif valores_com_amostra:
-                mais_proximo = min(valores_com_amostra, key=lambda v: abs(v - valor_atual))
-                restos_uso = por_valor[mais_proximo]
-            else:
-                restos_uso = restos  # último recurso — sem nenhum valor com amostra boa nesse alvo/checkpoint
-            ordenado = sorted(restos_uso)
-            tabela[str(valor_atual)] = {
-                "p5": _percentil(ordenado, 0.05),
-                "p95": _percentil(ordenado, 0.95),
-                "n": len(restos),
+
+def _condicao_bate(condicoes, snap):
+    for c in condicoes:
+        v = snap.get(c["stat"])
+        if v is None:
+            return False
+        if c["operador"] == ">=" and v < c["limite"]:
+            return False
+        if c["operador"] == "<=" and v > c["limite"]:
+            return False
+    return True
+
+
+def _tabela_com_fallback(casos_por_valor):
+    """{valor_atual: [bateu, ...]} -> {valor_atual: {"n":.., "p":..}}, usando o valor vizinho com amostra
+    suficiente quando o valor exato tem poucos jogos (mesmo padrão de fallback do resto do projeto)."""
+    com_amostra = sorted(v for v, casos in casos_por_valor.items() if len(casos) >= AMOSTRA_MINIMA_VALOR_ATUAL)
+    tabela = {}
+    for valor, casos in casos_por_valor.items():
+        if len(casos) >= AMOSTRA_MINIMA_VALOR_ATUAL:
+            casos_uso = casos
+        elif com_amostra:
+            casos_uso = casos_por_valor[min(com_amostra, key=lambda v: abs(v - valor))]
+        else:
+            casos_uso = casos  # último recurso — nenhum valor com amostra boa pra esse alvo/regra
+        # n = jogos observados EXATAMENTE nesse valor (transparência); n_usado = amostra
+        # de fato usada pra estimar "p" (pode vir de um valor vizinho, se n for pequeno).
+        tabela[valor] = {"n": len(casos), "n_usado": len(casos_uso), "p": sum(casos_uso) / len(casos_uso)}
+    return tabela
+
+
+def recalibrar_por_valor_atual(regras):
+    """
+    Recalcula p_condicao/p_base de cada regra CONDICIONADO ao valor atual
+    exato da própria estatística-alvo (escanteios/chutes já ocorridos no
+    momento do snapshot) — a versão original só condicionava em
+    minuto+placar+condição, então duas partidas no mesmo minuto/placar com a
+    mesma condição mas progressos bem diferentes do próprio alvo (1
+    escanteio vs. 6 aos 45') recebiam a MESMA probabilidade. Caso real
+    reportado: odd mínima de 1,33 mostrada quando a chance real (dado só 1
+    escanteio até ali) era >95% — o jogo já tinha decidido o mercado sozinho.
+
+    Usa as 5 ligas juntas (não só a Allsvenskan) — isso não é uma nova
+    descoberta de condição (já feita e confirmada antes), é só uma
+    reestimativa mais fina de uma condição já fixada, então usar mais dado
+    aqui não tem o mesmo risco de vazamento que teria na descoberta original.
+    """
+    snaps_por_fixture, resultados = _carregar_dados_pooled()
+
+    for regra in regras:
+        stat_alvo, linha, direcao = regra["mercado"]["stat"], regra["mercado"]["linha"], regra["mercado"]["direcao"]
+        alvo = regra["alvo"]
+
+        casos_condicao, casos_base = {}, {}  # valor_atual -> [bateu, ...]
+        for fid, snaps in snaps_por_fixture.items():
+            snap = snaps.get(regra["minuto"])
+            if not snap or snap.get("gols_momento") != regra["gols_momento"]:
+                continue
+            res = resultados.get(fid)
+            if not res or res.get(alvo) is None or snap.get(stat_alvo) is None:
+                continue
+            valor_atual = int(snap[stat_alvo])
+            bateu = (res[alvo] > linha) if direcao == "mais_de" else (res[alvo] < linha)
+
+            casos_base.setdefault(valor_atual, []).append(bateu)
+            if _condicao_bate(regra["condicoes"], snap):
+                casos_condicao.setdefault(valor_atual, []).append(bateu)
+
+        tabela_condicao = _tabela_com_fallback(casos_condicao)
+        tabela_base = _tabela_com_fallback(casos_base)
+
+        por_valor_atual = {}
+        for valor, entrada in tabela_condicao.items():
+            p_condicao = entrada["p"]
+            p_base = tabela_base.get(valor, {"p": regra["prob_base_confirmacao"]})["p"]
+            por_valor_atual[str(valor)] = {
+                "n": entrada["n"],
+                "n_usado": entrada["n_usado"],
+                "p_condicao": round(p_condicao, 4),
+                "p_base": round(p_base, 4),
+                "impacto_pp": round((p_condicao - p_base) * 100, 2),
+                "odd_minima": round(1 / p_condicao, 2) if p_condicao > 0 else None,
             }
-        limites.setdefault(alvo_id, {})[str(minuto)] = tabela
-    return limites
+        regra["por_valor_atual"] = por_valor_atual
+
+    return regras
 
 
 brutas = []
@@ -242,17 +271,20 @@ for s in fortes:
         "rotulo": rotulo,
     })
 
-print("\ncalculando tabela de plausibilidade (placar parcial já decidiu o mercado?)...")
-limites_plausibilidade = calcular_limites_plausibilidade()
-for alvo_id, por_checkpoint in limites_plausibilidade.items():
-    print(f"  {alvo_id}: {sum(len(t) for t in por_checkpoint.values())} valores-atuais cobertos em {len(por_checkpoint)} checkpoints")
+print("\nrecalibrando cada regra por valor atual do próprio alvo (escanteios/chutes já ocorridos)...")
+regras = recalibrar_por_valor_atual(regras)
+coberturas = [len(r["por_valor_atual"]) for r in regras]
+amostras_min = [min(v["n_usado"] for v in r["por_valor_atual"].values()) for r in regras]
+print(f"  cobertura: {sum(coberturas)/len(coberturas):.1f} valores distintos por regra em média "
+      f"(min {min(coberturas)}, max {max(coberturas)})")
+print(f"  amostra usada por valor: pior caso = {min(amostras_min)} jogos (após fallback pro vizinho)")
 
 payload = {
     "criterio": f"amostra_confirmacao >= {AMOSTRA_MINIMA} e impacto_pp >= {IMPACTO_MINIMO_PP}",
-    "fonte": "pesquisa_gols/resultados/*_confirmacao_*.csv (confirmado_bh=True)",
+    "fonte": "pesquisa_gols/resultados/*_confirmacao_*.csv (confirmado_bh=True) + recalibração por valor atual "
+             "do alvo sobre as 5 ligas (ver recalibrar_por_valor_atual em gerar_regras_sinais.py)",
     "total_regras": len(regras),
     "regras": regras,
-    "limites_plausibilidade": limites_plausibilidade,
 }
 
 os.makedirs(os.path.dirname(DESTINO), exist_ok=True)
