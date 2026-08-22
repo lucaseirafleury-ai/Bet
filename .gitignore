@@ -2,6 +2,7 @@ __pycache__/
 *.pyc
 .venv/
 ligas_live_app/data/*.json
+ligas_live_app/data/*.csv
 pesquisa_gols/resultados/*.csv
 pesquisa_gols/dados/.checkpoint_*.json
 ligas_live_app/backtest_run.log
