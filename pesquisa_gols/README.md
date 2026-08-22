@@ -253,6 +253,53 @@ unidade abaixo do valor oficial (~4% de erro relativo). Não é sistemático
 ruído de medição aceitável dado o volume de jogos da análise, não como bug
 a corrigir agora.
 
+**Bug real encontrado e corrigido: circularidade entre chutes totais/no
+alvo e seus próprios componentes.** A primeira rodada em escala validou uma
+quantidade suspeita de condições pra chutes (1.166 pra chutes totais, 616
+pra chutes no alvo — muito acima de gols/cartões). Causa: `shots_total ≈
+shots_on_target + shots_off_target + shots_blocked` (partição por
+resultado) e `shots_total ≈ shots_insidebox + shots_outsidebox` (partição
+por local) — deixar essas como "candidatas preditoras" não é achar um
+sinal, é medir "resultado parcial de X prevê resultado final do próprio X"
+quase por definição (57-78% das condições "validadas" eram exatamente
+isso). `saves` também é quase 1:1 com chutes no alvo do adversário — mesmo
+problema. `alvos.EXCLUSOES_EXTRAS` agora remove essas estatísticas
+mecanicamente ligadas ao alvo, não só o campo-base literal. Depois da
+correção, os números caíram para uma faixa muito mais plausível (ver
+resultado abaixo) e os preditores que sobraram fazem sentido futebolístico
+(escanteios, cruzamentos, passes-chave — pressão ofensiva geral, não partes
+do próprio chute).
+
+### Resultado final (5 ligas, 3 temporadas cada, ~3.000 jogos, 22/08/2026)
+
+| Alvo | Validadas na Allsvenskan (1 / 2 stats) | Confirmadas nas outras 4 ligas (1 / 2 stats) |
+|---|---|---|
+| Gols | 4 / 38 | 0 / 0 |
+| Escanteios | 260 / 1.434 | **26 / 290** |
+| Cartões | 32 / 128 | 0 / 0 |
+| Chutes totais | 378 / 1.024 | **18 / 148** |
+| Chutes no alvo | 68 / 98 | 0 / 2 |
+
+**Escanteios e chutes totais têm sinal real, ao contrário de gols e
+cartões.** As combinações confirmadas fazem sentido futebolístico e não são
+circulares: pressão ofensiva geral aos 15-30-45min (`attacks`,
+`dangerous_attacks`, `total_crosses`, `key_passes`, `shots_total` para
+prever escanteios; `corners` para prever chutes totais) prevê o total final
+com impacto de 2 a 10 p.p., confirmado de forma independente numa amostra
+de 2.363 jogos em 4 ligas diferentes das que descobriram o padrão.
+
+**Por que gols/cartões continuam sem sinal e escanteios/chutes têm:**
+gols e cartões são eventos raros e de alta variância (poucos por jogo,
+muito influenciados por acaso — um pênalti, uma expulsão). Escanteios e
+chutes são eventos frequentes e cumulativos, muito mais amarrados ao ritmo
+geral do jogo — por isso "o que já está acontecendo aos 15-30min" prevê
+bem "o que vai acontecer até o final" nesses dois casos, mas não em gols.
+
+Arquivos em `resultados/`: `<alvo>_allsvenskan_condicoes_1stat.csv`,
+`<alvo>_allsvenskan_condicoes_2stats.csv`, `<alvo>_confirmacao_1stat.csv`,
+`<alvo>_confirmacao_2stats.csv` (coluna `confirmado_bh` = passou pelo teste
+formal completo) pra cada um dos 5 alvos.
+
 ## Como rodar
 
 ```bash

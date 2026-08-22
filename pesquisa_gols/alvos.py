@@ -70,7 +70,21 @@ def mercados_do_alvo(alvo_id):
     return mercados
 
 
+# Estatísticas que são partes mecânicas do MESMO fenômeno do alvo, não só o
+# próprio campo-base. Achado ao rodar chutes_totais/chutes_no_alvo em escala:
+# shots_total ≈ shots_on_target + shots_off_target + shots_blocked (partição
+# por resultado) e shots_total ≈ shots_insidebox + shots_outsidebox (partição
+# por local) — e "saves" de um time reflete quase 1:1 os chutes no alvo do
+# adversário. Deixar essas como "candidatas" não é achar um sinal preditivo,
+# é medir "resultado parcial de X prevê resultado final de X" — 57-78% das
+# condições "validadas" antes desta correção eram exatamente isso.
+EXCLUSOES_EXTRAS = {
+    "chutes_totais": {"shots_on_target", "shots_insidebox", "shots_outsidebox", "shots_blocked", "goal_attempts", "saves"},
+    "chutes_no_alvo": {"shots_total", "shots_insidebox", "shots_outsidebox", "shots_blocked", "goal_attempts", "saves"},
+}
+
+
 def candidatas_do_alvo(alvo_id, candidatas_disponiveis):
-    """Remove os campos-base do próprio alvo da lista de candidatas (evita circularidade)."""
-    excluidos = set(ALVOS[alvo_id]["campos_base"])
+    """Remove os campos-base do próprio alvo (e partes mecânicas do mesmo fenômeno) da lista de candidatas."""
+    excluidos = set(ALVOS[alvo_id]["campos_base"]) | EXCLUSOES_EXTRAS.get(alvo_id, set())
     return [c for c in candidatas_disponiveis if c not in excluidos]
