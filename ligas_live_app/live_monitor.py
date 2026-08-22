@@ -402,7 +402,9 @@ def _carregar_regras_sinais():
         print(f"[sinais confirmados] {CAMINHO_REGRAS_SINAIS} não encontrado — sinal desativado")
         return []
     with open(CAMINHO_REGRAS_SINAIS, encoding="utf-8") as fp:
-        return json.load(fp).get("regras", [])
+        regras = json.load(fp).get("regras", [])
+    print(f"[sinais confirmados] {len(regras)} regras carregadas de {CAMINHO_REGRAS_SINAIS}")
+    return regras
 
 
 REGRAS_SINAIS = _carregar_regras_sinais()
