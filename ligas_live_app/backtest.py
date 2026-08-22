@@ -231,12 +231,36 @@ def rodar():
     media_com = sum(l["prob_resultado_com_ajuste"] for l in linhas_saida) / len(linhas_saida)
     pct_melhorou = sum(1 for l in linhas_saida if l["melhorou_com_ajuste"]) / len(linhas_saida) * 100
 
+    # "% de leituras que melhoraram" trata os 5 checkpoints do MESMO jogo como
+    # ensaios independentes — não são: se o ajuste ajuda (ou atrapalha) num
+    # jogo, tende a ajudar/atrapalhar nos 5 checkpoints dele juntos (mesmo erro
+    # sistemático de xG_proxy pro jogo inteiro). É a mesma pseudo-replicação
+    # que a pesquisa de gols/escanteios teve que evitar (nunca tratar
+    # snapshots do mesmo jogo como jogos independentes). Por isso o número que
+    # importa de verdade é por JOGO, não por leitura.
+    por_jogo = {}
+    for l in linhas_saida:
+        delta = l["prob_resultado_com_ajuste"] - l["prob_resultado_sem_ajuste"]
+        por_jogo.setdefault(l["fixture_id"], []).append(delta)
+    deltas_medios = [sum(ds) / len(ds) for ds in por_jogo.values()]
+    n_jogos = len(deltas_medios)
+    jogos_melhor = sum(1 for d in deltas_medios if d > 0)
+    jogos_pior = sum(1 for d in deltas_medios if d < 0)
+
     print(f"\n{'='*60}")
     print(f"RESUMO — {len(linhas_saida)} leituras em {len(fixtures)} jogos")
     print(f"{'='*60}")
     print(f"Probabilidade média dada ao resultado real, SEM ajuste: {media_sem*100:.1f}%")
     print(f"Probabilidade média dada ao resultado real, COM ajuste: {media_com*100:.1f}%")
-    print(f"Ajuste melhorou a leitura em {pct_melhorou:.1f}% dos casos")
+    print(f"Ajuste melhorou a leitura em {pct_melhorou:.1f}% dos casos "
+          f"(cuidado: {len(linhas_saida)} leituras não são {len(linhas_saida)} jogos "
+          f"independentes — ver número por JOGO abaixo)")
+    print(f"\nPor JOGO (n={n_jogos}, a unidade que conta de verdade): "
+          f"ajuste melhor em {jogos_melhor}, pior em {jogos_pior} "
+          f"({jogos_melhor/n_jogos*100:.1f}% favorável)")
+    if n_jogos < 100:
+        print(f"Aviso: {n_jogos} jogos é uma amostra pequena — mesmo padrão de rigor do resto do "
+              f"projeto pediria centenas de jogos antes de confiar nesse veredito.")
     print(f"\nDetalhes salvos em: {caminho_csv}")
 
 
