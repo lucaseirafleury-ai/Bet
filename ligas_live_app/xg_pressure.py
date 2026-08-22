@@ -42,6 +42,50 @@ def extrair_stat(lista_stats, nome_campo):
     return 0.0
 
 
+# Nome da API (statistics[].type.name) por stat_base — mesma convenção usada em
+# pesquisa_gols/buscar_sportmonks.py (NOMES_CONFIRMADOS + fallback Title Case),
+# já verificada contra a API real em ~3.000 jogos de 5 ligas sem nenhum aviso
+# de "type não encontrado". Cobre só os campos usados por regras_sinais.json —
+# amplie aqui se um novo alvo/estatística entrar nas regras confirmadas.
+CAMPO_API_REGRAS = {
+    "shots_total": CAMPO_SHOTS_TOTAL,
+    "shots_on_target": CAMPO_SHOTS_ON,
+    "shots_insidebox": CAMPO_SHOTS_IN,
+    "shots_outsidebox": CAMPO_SHOTS_OUT,
+    "dangerous_attacks": CAMPO_DANGEROUS,
+    "attacks": CAMPO_ATTACKS,
+    "corners": CAMPO_CORNERS,
+    "fouls": CAMPO_FOULS,
+    "offsides": CAMPO_OFFSIDES,
+    "saves": CAMPO_SAVES,
+    "accurate_crosses": "Accurate Crosses",
+    "total_crosses": "Total Crosses",
+    "key_passes": "Key Passes",
+    "tackles": "Tackles",
+    "duels_won": "Duels Won",
+    "interceptions": "Interceptions",
+    "goal_attempts": "Goal Attempts",
+    "successful_dribbles": "Successful Dribbles",
+    "successful_dribbles_percentage": "Successful Dribbles Percentage",
+}
+
+
+def extrair_stats_para_regras(lista_stats, campos):
+    """
+    Extrai só os campos pedidos (stat_base -> valor), pelo nome de API mapeado
+    em CAMPO_API_REGRAS. Campo sem mapeamento conhecido retorna 0.0 (mesmo
+    comportamento silencioso de extrair_stat quando o tipo não aparece na
+    lista — evitar quebrar o painel por uma estatística ainda não coberta,
+    mas value 0.0 nunca deveria bater um limiar >=1, então o pior caso é a
+    regra simplesmente não disparar, não disparar errado).
+    """
+    return {
+        campo: extrair_stat(lista_stats, CAMPO_API_REGRAS[campo])
+        for campo in campos
+        if campo in CAMPO_API_REGRAS
+    }
+
+
 def calcular_xg_proxy(lista_stats):
     """
     Usa a fórmula completa (insidebox/outsidebox) quando disponível;

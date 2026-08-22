@@ -1,0 +1,2582 @@
+{
+  "criterio": "amostra_confirmacao >= 200 e impacto_pp >= 5.0",
+  "fonte": "pesquisa_gols/resultados/*_confirmacao_*.csv (confirmado_bh=True)",
+  "total_regras": 85,
+  "regras": [
+    {
+      "id": "chutes_no_alvo_001",
+      "alvo": "chutes_no_alvo",
+      "alvo_nome": "Chutes no alvo",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "dangerous_attacks",
+          "operador": "<=",
+          "limite": 26.0
+        },
+        {
+          "stat": "key_passes",
+          "operador": "<=",
+          "limite": 6.0
+        }
+      ],
+      "mercado": {
+        "stat": "shots_on_target",
+        "direcao": "menos_de",
+        "linha": 8.5
+      },
+      "amostra_confirmacao": 521,
+      "prob_base_confirmacao": 0.4864,
+      "prob_condicao_confirmacao": 0.5585,
+      "impacto_pp": 7.22,
+      "p_valor_confirmacao": 7.536492657999141e-06,
+      "odd_minima_referencia": 1.79,
+      "rotulo": "Ataques perigosos ≤ 26 E Passes-chave ≤ 6 aos 30' (0 gol(s) no jogo) → Menos de 8.5 chutes no alvo"
+    },
+    {
+      "id": "chutes_totais_001",
+      "alvo": "chutes_totais",
+      "alvo_nome": "Chutes totais",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "corners",
+          "operador": "<=",
+          "limite": 1.0
+        },
+        {
+          "stat": "dangerous_attacks",
+          "operador": "<=",
+          "limite": 16.0
+        }
+      ],
+      "mercado": {
+        "stat": "shots_total",
+        "direcao": "menos_de",
+        "linha": 20.5
+      },
+      "amostra_confirmacao": 627,
+      "prob_base_confirmacao": 0.4881,
+      "prob_condicao_confirmacao": 0.5614,
+      "impacto_pp": 7.33,
+      "p_valor_confirmacao": 3.0868109821847418e-06,
+      "odd_minima_referencia": 1.78,
+      "rotulo": "Escanteios ≤ 1 E Ataques perigosos ≤ 16 aos 15' (0 gol(s) no jogo) → Menos de 20.5 chutes totais"
+    },
+    {
+      "id": "chutes_totais_002",
+      "alvo": "chutes_totais",
+      "alvo_nome": "Chutes totais",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "corners",
+          "operador": "<=",
+          "limite": 1.0
+        },
+        {
+          "stat": "dangerous_attacks",
+          "operador": "<=",
+          "limite": 16.0
+        }
+      ],
+      "mercado": {
+        "stat": "shots_total",
+        "direcao": "menos_de",
+        "linha": 24.5
+      },
+      "amostra_confirmacao": 627,
+      "prob_base_confirmacao": 0.7167,
+      "prob_condicao_confirmacao": 0.7879,
+      "impacto_pp": 7.12,
+      "p_valor_confirmacao": 4.983670457048682e-07,
+      "odd_minima_referencia": 1.27,
+      "rotulo": "Escanteios ≤ 1 E Ataques perigosos ≤ 16 aos 15' (0 gol(s) no jogo) → Menos de 24.5 chutes totais"
+    },
+    {
+      "id": "chutes_totais_003",
+      "alvo": "chutes_totais",
+      "alvo_nome": "Chutes totais",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "dangerous_attacks",
+          "operador": "<=",
+          "limite": 26.0
+        },
+        {
+          "stat": "key_passes",
+          "operador": "<=",
+          "limite": 6.0
+        }
+      ],
+      "mercado": {
+        "stat": "shots_total",
+        "direcao": "menos_de",
+        "linha": 18.5
+      },
+      "amostra_confirmacao": 521,
+      "prob_base_confirmacao": 0.4072,
+      "prob_condicao_confirmacao": 0.4779,
+      "impacto_pp": 7.07,
+      "p_valor_confirmacao": 8.068814020988468e-06,
+      "odd_minima_referencia": 2.09,
+      "rotulo": "Ataques perigosos ≤ 26 E Passes-chave ≤ 6 aos 30' (0 gol(s) no jogo) → Menos de 18.5 chutes totais"
+    },
+    {
+      "id": "chutes_totais_004",
+      "alvo": "chutes_totais",
+      "alvo_nome": "Chutes totais",
+      "minuto": 90,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "corners",
+          "operador": "<=",
+          "limite": 10.0
+        }
+      ],
+      "mercado": {
+        "stat": "shots_total",
+        "direcao": "menos_de",
+        "linha": 24.5
+      },
+      "amostra_confirmacao": 337,
+      "prob_base_confirmacao": 0.7196,
+      "prob_condicao_confirmacao": 0.7834,
+      "impacto_pp": 6.38,
+      "p_valor_confirmacao": 2.224347166794174e-05,
+      "odd_minima_referencia": 1.28,
+      "rotulo": "Escanteios ≤ 10 aos 90' (2 gol(s) no jogo) → Menos de 24.5 chutes totais"
+    },
+    {
+      "id": "chutes_totais_005",
+      "alvo": "chutes_totais",
+      "alvo_nome": "Chutes totais",
+      "minuto": 90,
+      "gols_momento": 3,
+      "condicoes": [
+        {
+          "stat": "corners",
+          "operador": "<=",
+          "limite": 10.0
+        }
+      ],
+      "mercado": {
+        "stat": "shots_total",
+        "direcao": "menos_de",
+        "linha": 20.5
+      },
+      "amostra_confirmacao": 343,
+      "prob_base_confirmacao": 0.4403,
+      "prob_condicao_confirmacao": 0.4956,
+      "impacto_pp": 5.53,
+      "p_valor_confirmacao": 0.00031943870776164347,
+      "odd_minima_referencia": 2.02,
+      "rotulo": "Escanteios ≤ 10 aos 90' (3 gol(s) no jogo) → Menos de 20.5 chutes totais"
+    },
+    {
+      "id": "chutes_totais_006",
+      "alvo": "chutes_totais",
+      "alvo_nome": "Chutes totais",
+      "minuto": 60,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "corners",
+          "operador": "<=",
+          "limite": 6.0
+        }
+      ],
+      "mercado": {
+        "stat": "shots_total",
+        "direcao": "menos_de",
+        "linha": 20.5
+      },
+      "amostra_confirmacao": 405,
+      "prob_base_confirmacao": 0.5087,
+      "prob_condicao_confirmacao": 0.563,
+      "impacto_pp": 5.42,
+      "p_valor_confirmacao": 0.0012131817365763093,
+      "odd_minima_referencia": 1.78,
+      "rotulo": "Escanteios ≤ 6 aos 60' (1 gol(s) no jogo) → Menos de 20.5 chutes totais"
+    },
+    {
+      "id": "chutes_totais_007",
+      "alvo": "chutes_totais",
+      "alvo_nome": "Chutes totais",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "dangerous_attacks",
+          "operador": "<=",
+          "limite": 26.0
+        },
+        {
+          "stat": "key_passes",
+          "operador": "<=",
+          "limite": 6.0
+        }
+      ],
+      "mercado": {
+        "stat": "shots_total",
+        "direcao": "menos_de",
+        "linha": 26.5
+      },
+      "amostra_confirmacao": 521,
+      "prob_base_confirmacao": 0.8285,
+      "prob_condicao_confirmacao": 0.881,
+      "impacto_pp": 5.25,
+      "p_valor_confirmacao": 1.5660078624322218e-05,
+      "odd_minima_referencia": 1.14,
+      "rotulo": "Ataques perigosos ≤ 26 E Passes-chave ≤ 6 aos 30' (0 gol(s) no jogo) → Menos de 26.5 chutes totais"
+    },
+    {
+      "id": "chutes_totais_008",
+      "alvo": "chutes_totais",
+      "alvo_nome": "Chutes totais",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "corners",
+          "operador": "<=",
+          "limite": 2.0
+        },
+        {
+          "stat": "dangerous_attacks",
+          "operador": "<=",
+          "limite": 16.0
+        }
+      ],
+      "mercado": {
+        "stat": "shots_total",
+        "direcao": "menos_de",
+        "linha": 20.5
+      },
+      "amostra_confirmacao": 873,
+      "prob_base_confirmacao": 0.4881,
+      "prob_condicao_confirmacao": 0.5395,
+      "impacto_pp": 5.14,
+      "p_valor_confirmacao": 9.305975587103268e-06,
+      "odd_minima_referencia": 1.85,
+      "rotulo": "Escanteios ≤ 2 E Ataques perigosos ≤ 16 aos 15' (0 gol(s) no jogo) → Menos de 20.5 chutes totais"
+    },
+    {
+      "id": "chutes_totais_009",
+      "alvo": "chutes_totais",
+      "alvo_nome": "Chutes totais",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "dangerous_attacks",
+          "operador": ">=",
+          "limite": 26.0
+        },
+        {
+          "stat": "successful_dribbles_percentage",
+          "operador": "<=",
+          "limite": 125.0
+        }
+      ],
+      "mercado": {
+        "stat": "shots_total",
+        "direcao": "mais_de",
+        "linha": 18.5
+      },
+      "amostra_confirmacao": 670,
+      "prob_base_confirmacao": 0.5928,
+      "prob_condicao_confirmacao": 0.6433,
+      "impacto_pp": 5.05,
+      "p_valor_confirmacao": 3.310322500423825e-05,
+      "odd_minima_referencia": 1.55,
+      "rotulo": "Ataques perigosos ≥ 26 E % dribles certos ≤ 125 aos 30' (0 gol(s) no jogo) → Mais de 18.5 chutes totais"
+    },
+    {
+      "id": "escanteios_001",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 45,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "dangerous_attacks",
+          "operador": ">=",
+          "limite": 43.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 10.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 9.5
+      },
+      "amostra_confirmacao": 223,
+      "prob_base_confirmacao": 0.5288,
+      "prob_condicao_confirmacao": 0.6413,
+      "impacto_pp": 11.25,
+      "p_valor_confirmacao": 9.515036150520573e-05,
+      "odd_minima_referencia": 1.56,
+      "rotulo": "Ataques perigosos ≥ 43 E Chutes totais ≥ 10 aos 45' (1 gol(s) no jogo) → Mais de 9.5 escanteios"
+    },
+    {
+      "id": "escanteios_002",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 45,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "dangerous_attacks",
+          "operador": ">=",
+          "limite": 43.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 10.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 10.5
+      },
+      "amostra_confirmacao": 223,
+      "prob_base_confirmacao": 0.4101,
+      "prob_condicao_confirmacao": 0.5202,
+      "impacto_pp": 11.0,
+      "p_valor_confirmacao": 0.00010633012757548404,
+      "odd_minima_referencia": 1.92,
+      "rotulo": "Ataques perigosos ≥ 43 E Chutes totais ≥ 10 aos 45' (1 gol(s) no jogo) → Mais de 10.5 escanteios"
+    },
+    {
+      "id": "escanteios_003",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 37.0
+        },
+        {
+          "stat": "total_crosses",
+          "operador": "<=",
+          "limite": 8.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 9.5
+      },
+      "amostra_confirmacao": 251,
+      "prob_base_confirmacao": 0.4705,
+      "prob_condicao_confirmacao": 0.5777,
+      "impacto_pp": 10.72,
+      "p_valor_confirmacao": 0.0002195645502361265,
+      "odd_minima_referencia": 1.73,
+      "rotulo": "Ataques ≥ 37 E Cruzamentos ≤ 8 aos 15' (0 gol(s) no jogo) → Menos de 9.5 escanteios"
+    },
+    {
+      "id": "escanteios_004",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 34.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": "<=",
+          "limite": 2.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 8.5
+      },
+      "amostra_confirmacao": 213,
+      "prob_base_confirmacao": 0.3672,
+      "prob_condicao_confirmacao": 0.4742,
+      "impacto_pp": 10.7,
+      "p_valor_confirmacao": 0.0005158540217115855,
+      "odd_minima_referencia": 2.11,
+      "rotulo": "Ataques ≥ 34 E Chutes totais ≤ 2 aos 15' (0 gol(s) no jogo) → Menos de 8.5 escanteios"
+    },
+    {
+      "id": "escanteios_005",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 45,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "dangerous_attacks",
+          "operador": ">=",
+          "limite": 39.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 10.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 10.5
+      },
+      "amostra_confirmacao": 269,
+      "prob_base_confirmacao": 0.4101,
+      "prob_condicao_confirmacao": 0.5093,
+      "impacto_pp": 9.92,
+      "p_valor_confirmacao": 6.887337402249783e-05,
+      "odd_minima_referencia": 1.96,
+      "rotulo": "Ataques perigosos ≥ 39 E Chutes totais ≥ 10 aos 45' (1 gol(s) no jogo) → Mais de 10.5 escanteios"
+    },
+    {
+      "id": "escanteios_006",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 30,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": "<=",
+          "limite": 8.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 7.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 9.5
+      },
+      "amostra_confirmacao": 339,
+      "prob_base_confirmacao": 0.5243,
+      "prob_condicao_confirmacao": 0.6195,
+      "impacto_pp": 9.52,
+      "p_valor_confirmacao": 5.73362199863889e-06,
+      "odd_minima_referencia": 1.61,
+      "rotulo": "Faltas ≤ 8 E Chutes totais ≥ 7 aos 30' (1 gol(s) no jogo) → Mais de 9.5 escanteios"
+    },
+    {
+      "id": "escanteios_007",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 60,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": "<=",
+          "limite": 17.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 13.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 8.5
+      },
+      "amostra_confirmacao": 356,
+      "prob_base_confirmacao": 0.6406,
+      "prob_condicao_confirmacao": 0.7331,
+      "impacto_pp": 9.25,
+      "p_valor_confirmacao": 4.65390610560388e-07,
+      "odd_minima_referencia": 1.36,
+      "rotulo": "Faltas ≤ 17 E Chutes totais ≥ 13 aos 60' (1 gol(s) no jogo) → Mais de 8.5 escanteios"
+    },
+    {
+      "id": "escanteios_008",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 30,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "offsides",
+          "operador": "<=",
+          "limite": 1.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 7.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 9.5
+      },
+      "amostra_confirmacao": 335,
+      "prob_base_confirmacao": 0.5243,
+      "prob_condicao_confirmacao": 0.6149,
+      "impacto_pp": 9.07,
+      "p_valor_confirmacao": 1.893618692762551e-05,
+      "odd_minima_referencia": 1.63,
+      "rotulo": "Impedimentos ≤ 1 E Chutes totais ≥ 7 aos 30' (1 gol(s) no jogo) → Mais de 9.5 escanteios"
+    },
+    {
+      "id": "escanteios_009",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 75,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 18.0
+        },
+        {
+          "stat": "tackles",
+          "operador": "<=",
+          "limite": 30.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 10.5
+      },
+      "amostra_confirmacao": 246,
+      "prob_base_confirmacao": 0.4134,
+      "prob_condicao_confirmacao": 0.5041,
+      "impacto_pp": 9.06,
+      "p_valor_confirmacao": 0.0001642089832258931,
+      "odd_minima_referencia": 1.98,
+      "rotulo": "Chutes totais ≥ 18 E Desarmes ≤ 30 aos 75' (2 gol(s) no jogo) → Mais de 10.5 escanteios"
+    },
+    {
+      "id": "escanteios_010",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 37.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 8.5
+      },
+      "amostra_confirmacao": 251,
+      "prob_base_confirmacao": 0.3672,
+      "prob_condicao_confirmacao": 0.4542,
+      "impacto_pp": 8.7,
+      "p_valor_confirmacao": 0.0018927794333380968,
+      "odd_minima_referencia": 2.2,
+      "rotulo": "Ataques ≥ 37 aos 15' (0 gol(s) no jogo) → Menos de 8.5 escanteios"
+    },
+    {
+      "id": "escanteios_011",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 37.0
+        },
+        {
+          "stat": "interceptions",
+          "operador": "<=",
+          "limite": 4.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 8.5
+      },
+      "amostra_confirmacao": 251,
+      "prob_base_confirmacao": 0.3672,
+      "prob_condicao_confirmacao": 0.4542,
+      "impacto_pp": 8.7,
+      "p_valor_confirmacao": 0.0018927794333380968,
+      "odd_minima_referencia": 2.2,
+      "rotulo": "Ataques ≥ 37 E Interceptações ≤ 4 aos 15' (0 gol(s) no jogo) → Menos de 8.5 escanteios"
+    },
+    {
+      "id": "escanteios_012",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 37.0
+        },
+        {
+          "stat": "key_passes",
+          "operador": "<=",
+          "limite": 2.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 8.5
+      },
+      "amostra_confirmacao": 251,
+      "prob_base_confirmacao": 0.3672,
+      "prob_condicao_confirmacao": 0.4542,
+      "impacto_pp": 8.7,
+      "p_valor_confirmacao": 0.0018927794333380968,
+      "odd_minima_referencia": 2.2,
+      "rotulo": "Ataques ≥ 37 E Passes-chave ≤ 2 aos 15' (0 gol(s) no jogo) → Menos de 8.5 escanteios"
+    },
+    {
+      "id": "escanteios_013",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 37.0
+        },
+        {
+          "stat": "total_crosses",
+          "operador": "<=",
+          "limite": 8.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 8.5
+      },
+      "amostra_confirmacao": 251,
+      "prob_base_confirmacao": 0.3672,
+      "prob_condicao_confirmacao": 0.4542,
+      "impacto_pp": 8.7,
+      "p_valor_confirmacao": 0.0018927794333380968,
+      "odd_minima_referencia": 2.2,
+      "rotulo": "Ataques ≥ 37 E Cruzamentos ≤ 8 aos 15' (0 gol(s) no jogo) → Menos de 8.5 escanteios"
+    },
+    {
+      "id": "escanteios_014",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 34.0
+        },
+        {
+          "stat": "key_passes",
+          "operador": "<=",
+          "limite": 2.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 9.5
+      },
+      "amostra_confirmacao": 403,
+      "prob_base_confirmacao": 0.4705,
+      "prob_condicao_confirmacao": 0.5558,
+      "impacto_pp": 8.53,
+      "p_valor_confirmacao": 7.848734746365622e-05,
+      "odd_minima_referencia": 1.8,
+      "rotulo": "Ataques ≥ 34 E Passes-chave ≤ 2 aos 15' (0 gol(s) no jogo) → Menos de 9.5 escanteios"
+    },
+    {
+      "id": "escanteios_015",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 34.0
+        },
+        {
+          "stat": "shots_insidebox",
+          "operador": "<=",
+          "limite": 1.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 9.5
+      },
+      "amostra_confirmacao": 403,
+      "prob_base_confirmacao": 0.4705,
+      "prob_condicao_confirmacao": 0.5558,
+      "impacto_pp": 8.53,
+      "p_valor_confirmacao": 7.848734746365622e-05,
+      "odd_minima_referencia": 1.8,
+      "rotulo": "Ataques ≥ 34 E Chutes de dentro da área ≤ 1 aos 15' (0 gol(s) no jogo) → Menos de 9.5 escanteios"
+    },
+    {
+      "id": "escanteios_016",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 34.0
+        },
+        {
+          "stat": "total_crosses",
+          "operador": "<=",
+          "limite": 4.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 9.5
+      },
+      "amostra_confirmacao": 403,
+      "prob_base_confirmacao": 0.4705,
+      "prob_condicao_confirmacao": 0.5558,
+      "impacto_pp": 8.53,
+      "p_valor_confirmacao": 7.848734746365622e-05,
+      "odd_minima_referencia": 1.8,
+      "rotulo": "Ataques ≥ 34 E Cruzamentos ≤ 4 aos 15' (0 gol(s) no jogo) → Menos de 9.5 escanteios"
+    },
+    {
+      "id": "escanteios_017",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 34.0
+        },
+        {
+          "stat": "total_crosses",
+          "operador": "<=",
+          "limite": 6.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 9.5
+      },
+      "amostra_confirmacao": 403,
+      "prob_base_confirmacao": 0.4705,
+      "prob_condicao_confirmacao": 0.5558,
+      "impacto_pp": 8.53,
+      "p_valor_confirmacao": 7.848734746365622e-05,
+      "odd_minima_referencia": 1.8,
+      "rotulo": "Ataques ≥ 34 E Cruzamentos ≤ 6 aos 15' (0 gol(s) no jogo) → Menos de 9.5 escanteios"
+    },
+    {
+      "id": "escanteios_018",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 34.0
+        },
+        {
+          "stat": "total_crosses",
+          "operador": "<=",
+          "limite": 8.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 9.5
+      },
+      "amostra_confirmacao": 403,
+      "prob_base_confirmacao": 0.4705,
+      "prob_condicao_confirmacao": 0.5558,
+      "impacto_pp": 8.53,
+      "p_valor_confirmacao": 7.848734746365622e-05,
+      "odd_minima_referencia": 1.8,
+      "rotulo": "Ataques ≥ 34 E Cruzamentos ≤ 8 aos 15' (0 gol(s) no jogo) → Menos de 9.5 escanteios"
+    },
+    {
+      "id": "escanteios_019",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 75,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "shots_on_target",
+          "operador": "<=",
+          "limite": 6.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": "<=",
+          "limite": 22.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 11.5
+      },
+      "amostra_confirmacao": 237,
+      "prob_base_confirmacao": 0.7092,
+      "prob_condicao_confirmacao": 0.7932,
+      "impacto_pp": 8.4,
+      "p_valor_confirmacao": 0.00024119717871536481,
+      "odd_minima_referencia": 1.26,
+      "rotulo": "Chutes no alvo ≤ 6 E Chutes totais ≤ 22 aos 75' (2 gol(s) no jogo) → Menos de 11.5 escanteios"
+    },
+    {
+      "id": "escanteios_020",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 31.0
+        },
+        {
+          "stat": "dangerous_attacks",
+          "operador": "<=",
+          "limite": 16.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 9.5
+      },
+      "amostra_confirmacao": 267,
+      "prob_base_confirmacao": 0.4705,
+      "prob_condicao_confirmacao": 0.5506,
+      "impacto_pp": 8.0,
+      "p_valor_confirmacao": 0.0041953170403146445,
+      "odd_minima_referencia": 1.82,
+      "rotulo": "Ataques ≥ 31 E Ataques perigosos ≤ 16 aos 15' (0 gol(s) no jogo) → Menos de 9.5 escanteios"
+    },
+    {
+      "id": "escanteios_021",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 34.0
+        },
+        {
+          "stat": "total_crosses",
+          "operador": "<=",
+          "limite": 8.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 10.5
+      },
+      "amostra_confirmacao": 403,
+      "prob_base_confirmacao": 0.5884,
+      "prob_condicao_confirmacao": 0.6675,
+      "impacto_pp": 7.9,
+      "p_valor_confirmacao": 0.00020653803858608025,
+      "odd_minima_referencia": 1.5,
+      "rotulo": "Ataques ≥ 34 E Cruzamentos ≤ 8 aos 15' (0 gol(s) no jogo) → Menos de 10.5 escanteios"
+    },
+    {
+      "id": "escanteios_022",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 37.0
+        },
+        {
+          "stat": "goal_attempts",
+          "operador": "<=",
+          "limite": 0.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 11.5
+      },
+      "amostra_confirmacao": 242,
+      "prob_base_confirmacao": 0.6979,
+      "prob_condicao_confirmacao": 0.7769,
+      "impacto_pp": 7.9,
+      "p_valor_confirmacao": 0.0037605664376482877,
+      "odd_minima_referencia": 1.29,
+      "rotulo": "Ataques ≥ 37 E Finalizações ≤ 0 aos 15' (0 gol(s) no jogo) → Menos de 11.5 escanteios"
+    },
+    {
+      "id": "escanteios_023",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 90,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "shots_on_target",
+          "operador": "<=",
+          "limite": 8.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 10.5
+      },
+      "amostra_confirmacao": 272,
+      "prob_base_confirmacao": 0.5775,
+      "prob_condicao_confirmacao": 0.6544,
+      "impacto_pp": 7.69,
+      "p_valor_confirmacao": 0.0002739268502650556,
+      "odd_minima_referencia": 1.53,
+      "rotulo": "Chutes no alvo ≤ 8 aos 90' (2 gol(s) no jogo) → Menos de 10.5 escanteios"
+    },
+    {
+      "id": "escanteios_024",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 75,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "shots_on_target",
+          "operador": "<=",
+          "limite": 7.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": "<=",
+          "limite": 22.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 10.5
+      },
+      "amostra_confirmacao": 299,
+      "prob_base_confirmacao": 0.5866,
+      "prob_condicao_confirmacao": 0.6622,
+      "impacto_pp": 7.57,
+      "p_valor_confirmacao": 0.00016571547430679185,
+      "odd_minima_referencia": 1.51,
+      "rotulo": "Chutes no alvo ≤ 7 E Chutes totais ≤ 22 aos 75' (2 gol(s) no jogo) → Menos de 10.5 escanteios"
+    },
+    {
+      "id": "escanteios_025",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "accurate_crosses",
+          "operador": "<=",
+          "limite": 2.0
+        },
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 37.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 11.5
+      },
+      "amostra_confirmacao": 251,
+      "prob_base_confirmacao": 0.6979,
+      "prob_condicao_confirmacao": 0.7729,
+      "impacto_pp": 7.5,
+      "p_valor_confirmacao": 0.00491753649298288,
+      "odd_minima_referencia": 1.29,
+      "rotulo": "Cruzamentos certos ≤ 2 E Ataques ≥ 37 aos 15' (0 gol(s) no jogo) → Menos de 11.5 escanteios"
+    },
+    {
+      "id": "escanteios_026",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 37.0
+        },
+        {
+          "stat": "total_crosses",
+          "operador": "<=",
+          "limite": 8.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 11.5
+      },
+      "amostra_confirmacao": 251,
+      "prob_base_confirmacao": 0.6979,
+      "prob_condicao_confirmacao": 0.7729,
+      "impacto_pp": 7.5,
+      "p_valor_confirmacao": 0.00491753649298288,
+      "odd_minima_referencia": 1.29,
+      "rotulo": "Ataques ≥ 37 E Cruzamentos ≤ 8 aos 15' (0 gol(s) no jogo) → Menos de 11.5 escanteios"
+    },
+    {
+      "id": "escanteios_027",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 75,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "shots_on_target",
+          "operador": "<=",
+          "limite": 7.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 10.5
+      },
+      "amostra_confirmacao": 307,
+      "prob_base_confirmacao": 0.5866,
+      "prob_condicao_confirmacao": 0.6612,
+      "impacto_pp": 7.47,
+      "p_valor_confirmacao": 0.0001337972562439523,
+      "odd_minima_referencia": 1.51,
+      "rotulo": "Chutes no alvo ≤ 7 aos 75' (2 gol(s) no jogo) → Menos de 10.5 escanteios"
+    },
+    {
+      "id": "escanteios_028",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 75,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "shots_insidebox",
+          "operador": "<=",
+          "limite": 14.0
+        },
+        {
+          "stat": "shots_on_target",
+          "operador": "<=",
+          "limite": 7.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 10.5
+      },
+      "amostra_confirmacao": 307,
+      "prob_base_confirmacao": 0.5866,
+      "prob_condicao_confirmacao": 0.6612,
+      "impacto_pp": 7.47,
+      "p_valor_confirmacao": 0.0001337972562439523,
+      "odd_minima_referencia": 1.51,
+      "rotulo": "Chutes de dentro da área ≤ 14 E Chutes no alvo ≤ 7 aos 75' (2 gol(s) no jogo) → Menos de 10.5 escanteios"
+    },
+    {
+      "id": "escanteios_029",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 45,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 11.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 11.5
+      },
+      "amostra_confirmacao": 286,
+      "prob_base_confirmacao": 0.3065,
+      "prob_condicao_confirmacao": 0.3811,
+      "impacto_pp": 7.47,
+      "p_valor_confirmacao": 0.0008229128020707511,
+      "odd_minima_referencia": 2.62,
+      "rotulo": "Chutes totais ≥ 11 aos 45' (1 gol(s) no jogo) → Mais de 11.5 escanteios"
+    },
+    {
+      "id": "escanteios_030",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 45,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 11.0
+        },
+        {
+          "stat": "successful_dribbles_percentage",
+          "operador": "<=",
+          "limite": 133.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 11.5
+      },
+      "amostra_confirmacao": 286,
+      "prob_base_confirmacao": 0.3065,
+      "prob_condicao_confirmacao": 0.3811,
+      "impacto_pp": 7.47,
+      "p_valor_confirmacao": 0.0008229128020707511,
+      "odd_minima_referencia": 2.62,
+      "rotulo": "Chutes totais ≥ 11 E % dribles certos ≤ 133 aos 45' (1 gol(s) no jogo) → Mais de 11.5 escanteios"
+    },
+    {
+      "id": "escanteios_031",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 34.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": "<=",
+          "limite": 2.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 7.5
+      },
+      "amostra_confirmacao": 213,
+      "prob_base_confirmacao": 0.2681,
+      "prob_condicao_confirmacao": 0.3427,
+      "impacto_pp": 7.46,
+      "p_valor_confirmacao": 0.008396688180935806,
+      "odd_minima_referencia": 2.92,
+      "rotulo": "Ataques ≥ 34 E Chutes totais ≤ 2 aos 15' (0 gol(s) no jogo) → Menos de 7.5 escanteios"
+    },
+    {
+      "id": "escanteios_032",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 60,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "duels_won",
+          "operador": "<=",
+          "limite": 61.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 13.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 7.5
+      },
+      "amostra_confirmacao": 360,
+      "prob_base_confirmacao": 0.7429,
+      "prob_condicao_confirmacao": 0.8167,
+      "impacto_pp": 7.37,
+      "p_valor_confirmacao": 8.245725075519108e-06,
+      "odd_minima_referencia": 1.22,
+      "rotulo": "Duelos vencidos ≤ 61 E Chutes totais ≥ 13 aos 60' (1 gol(s) no jogo) → Mais de 7.5 escanteios"
+    },
+    {
+      "id": "escanteios_033",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 45,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": "<=",
+          "limite": 12.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 10.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 11.5
+      },
+      "amostra_confirmacao": 369,
+      "prob_base_confirmacao": 0.3065,
+      "prob_condicao_confirmacao": 0.3794,
+      "impacto_pp": 7.3,
+      "p_valor_confirmacao": 6.096293097556213e-05,
+      "odd_minima_referencia": 2.64,
+      "rotulo": "Faltas ≤ 12 E Chutes totais ≥ 10 aos 45' (1 gol(s) no jogo) → Mais de 11.5 escanteios"
+    },
+    {
+      "id": "escanteios_034",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 75,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "shots_on_target",
+          "operador": "<=",
+          "limite": 6.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": "<=",
+          "limite": 22.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 7.5
+      },
+      "amostra_confirmacao": 237,
+      "prob_base_confirmacao": 0.2605,
+      "prob_condicao_confirmacao": 0.3333,
+      "impacto_pp": 7.28,
+      "p_valor_confirmacao": 0.000990461160861099,
+      "odd_minima_referencia": 3.0,
+      "rotulo": "Chutes no alvo ≤ 6 E Chutes totais ≤ 22 aos 75' (2 gol(s) no jogo) → Menos de 7.5 escanteios"
+    },
+    {
+      "id": "escanteios_035",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 65.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": "<=",
+          "limite": 9.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 8.5
+      },
+      "amostra_confirmacao": 217,
+      "prob_base_confirmacao": 0.365,
+      "prob_condicao_confirmacao": 0.4378,
+      "impacto_pp": 7.28,
+      "p_valor_confirmacao": 0.013282221850840615,
+      "odd_minima_referencia": 2.28,
+      "rotulo": "Ataques ≥ 65 E Chutes totais ≤ 9 aos 30' (0 gol(s) no jogo) → Menos de 8.5 escanteios"
+    },
+    {
+      "id": "escanteios_036",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 45,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": "<=",
+          "limite": 12.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 10.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 10.5
+      },
+      "amostra_confirmacao": 369,
+      "prob_base_confirmacao": 0.4101,
+      "prob_condicao_confirmacao": 0.4824,
+      "impacto_pp": 7.22,
+      "p_valor_confirmacao": 0.0001981655128672691,
+      "odd_minima_referencia": 2.07,
+      "rotulo": "Faltas ≤ 12 E Chutes totais ≥ 10 aos 45' (1 gol(s) no jogo) → Mais de 10.5 escanteios"
+    },
+    {
+      "id": "escanteios_037",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 75,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "saves",
+          "operador": "<=",
+          "limite": 5.0
+        },
+        {
+          "stat": "shots_on_target",
+          "operador": "<=",
+          "limite": 7.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 10.5
+      },
+      "amostra_confirmacao": 293,
+      "prob_base_confirmacao": 0.5866,
+      "prob_condicao_confirmacao": 0.6587,
+      "impacto_pp": 7.21,
+      "p_valor_confirmacao": 0.0004314167738240076,
+      "odd_minima_referencia": 1.52,
+      "rotulo": "Defesas ≤ 5 E Chutes no alvo ≤ 7 aos 75' (2 gol(s) no jogo) → Menos de 10.5 escanteios"
+    },
+    {
+      "id": "escanteios_038",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 65.0
+        },
+        {
+          "stat": "total_crosses",
+          "operador": "<=",
+          "limite": 15.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 8.5
+      },
+      "amostra_confirmacao": 238,
+      "prob_base_confirmacao": 0.365,
+      "prob_condicao_confirmacao": 0.437,
+      "impacto_pp": 7.2,
+      "p_valor_confirmacao": 0.009487695172572093,
+      "odd_minima_referencia": 2.29,
+      "rotulo": "Ataques ≥ 65 E Cruzamentos ≤ 15 aos 30' (0 gol(s) no jogo) → Menos de 8.5 escanteios"
+    },
+    {
+      "id": "escanteios_039",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 45,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "shots_on_target",
+          "operador": ">=",
+          "limite": 3.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 11.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 11.5
+      },
+      "amostra_confirmacao": 262,
+      "prob_base_confirmacao": 0.3065,
+      "prob_condicao_confirmacao": 0.3779,
+      "impacto_pp": 7.14,
+      "p_valor_confirmacao": 0.0026937637605429885,
+      "odd_minima_referencia": 2.65,
+      "rotulo": "Chutes no alvo ≥ 3 E Chutes totais ≥ 11 aos 45' (1 gol(s) no jogo) → Mais de 11.5 escanteios"
+    },
+    {
+      "id": "escanteios_040",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 60,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "shots_on_target",
+          "operador": "<=",
+          "limite": 6.0
+        },
+        {
+          "stat": "total_crosses",
+          "operador": "<=",
+          "limite": 27.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 10.5
+      },
+      "amostra_confirmacao": 308,
+      "prob_base_confirmacao": 0.6267,
+      "prob_condicao_confirmacao": 0.6981,
+      "impacto_pp": 7.13,
+      "p_valor_confirmacao": 0.00014846153856547237,
+      "odd_minima_referencia": 1.43,
+      "rotulo": "Chutes no alvo ≤ 6 E Cruzamentos ≤ 27 aos 60' (2 gol(s) no jogo) → Menos de 10.5 escanteios"
+    },
+    {
+      "id": "escanteios_041",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 75,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 18.0
+        },
+        {
+          "stat": "tackles",
+          "operador": "<=",
+          "limite": 30.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 11.5
+      },
+      "amostra_confirmacao": 246,
+      "prob_base_confirmacao": 0.2908,
+      "prob_condicao_confirmacao": 0.3618,
+      "impacto_pp": 7.1,
+      "p_valor_confirmacao": 0.00135829770307555,
+      "odd_minima_referencia": 2.76,
+      "rotulo": "Chutes totais ≥ 18 E Desarmes ≤ 30 aos 75' (2 gol(s) no jogo) → Mais de 11.5 escanteios"
+    },
+    {
+      "id": "escanteios_042",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 60,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "shots_on_target",
+          "operador": ">=",
+          "limite": 4.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 13.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 11.5
+      },
+      "amostra_confirmacao": 323,
+      "prob_base_confirmacao": 0.3284,
+      "prob_condicao_confirmacao": 0.3994,
+      "impacto_pp": 7.1,
+      "p_valor_confirmacao": 0.00030269908020028833,
+      "odd_minima_referencia": 2.5,
+      "rotulo": "Chutes no alvo ≥ 4 E Chutes totais ≥ 13 aos 60' (1 gol(s) no jogo) → Mais de 11.5 escanteios"
+    },
+    {
+      "id": "escanteios_043",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 30,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 7.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 11.5
+      },
+      "amostra_confirmacao": 342,
+      "prob_base_confirmacao": 0.3006,
+      "prob_condicao_confirmacao": 0.3713,
+      "impacto_pp": 7.08,
+      "p_valor_confirmacao": 0.00021669783270229938,
+      "odd_minima_referencia": 2.69,
+      "rotulo": "Chutes totais ≥ 7 aos 30' (1 gol(s) no jogo) → Mais de 11.5 escanteios"
+    },
+    {
+      "id": "escanteios_044",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 75,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "shots_on_target",
+          "operador": "<=",
+          "limite": 6.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": "<=",
+          "limite": 22.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 8.5
+      },
+      "amostra_confirmacao": 237,
+      "prob_base_confirmacao": 0.3429,
+      "prob_condicao_confirmacao": 0.4135,
+      "impacto_pp": 7.06,
+      "p_valor_confirmacao": 0.0031385425592125754,
+      "odd_minima_referencia": 2.42,
+      "rotulo": "Chutes no alvo ≤ 6 E Chutes totais ≤ 22 aos 75' (2 gol(s) no jogo) → Menos de 8.5 escanteios"
+    },
+    {
+      "id": "escanteios_045",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 60,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "shots_on_target",
+          "operador": "<=",
+          "limite": 6.0
+        },
+        {
+          "stat": "total_crosses",
+          "operador": "<=",
+          "limite": 27.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 11.5
+      },
+      "amostra_confirmacao": 308,
+      "prob_base_confirmacao": 0.7378,
+      "prob_condicao_confirmacao": 0.8084,
+      "impacto_pp": 7.06,
+      "p_valor_confirmacao": 3.630851514003066e-05,
+      "odd_minima_referencia": 1.24,
+      "rotulo": "Chutes no alvo ≤ 6 E Cruzamentos ≤ 27 aos 60' (2 gol(s) no jogo) → Menos de 11.5 escanteios"
+    },
+    {
+      "id": "escanteios_046",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 30,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 56.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": "<=",
+          "limite": 8.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 9.5
+      },
+      "amostra_confirmacao": 260,
+      "prob_base_confirmacao": 0.4757,
+      "prob_condicao_confirmacao": 0.5462,
+      "impacto_pp": 7.04,
+      "p_valor_confirmacao": 0.006288088554515634,
+      "odd_minima_referencia": 1.83,
+      "rotulo": "Ataques ≥ 56 E Chutes totais ≤ 8 aos 30' (1 gol(s) no jogo) → Menos de 9.5 escanteios"
+    },
+    {
+      "id": "escanteios_047",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 75,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "shots_on_target",
+          "operador": "<=",
+          "limite": 6.0
+        },
+        {
+          "stat": "successful_dribbles_percentage",
+          "operador": "<=",
+          "limite": 117.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 7.5
+      },
+      "amostra_confirmacao": 239,
+      "prob_base_confirmacao": 0.2605,
+      "prob_condicao_confirmacao": 0.3305,
+      "impacto_pp": 7.0,
+      "p_valor_confirmacao": 0.0014259491966718912,
+      "odd_minima_referencia": 3.03,
+      "rotulo": "Chutes no alvo ≤ 6 E % dribles certos ≤ 117 aos 75' (2 gol(s) no jogo) → Menos de 7.5 escanteios"
+    },
+    {
+      "id": "escanteios_048",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 75,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "shots_on_target",
+          "operador": "<=",
+          "limite": 7.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": "<=",
+          "limite": 22.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 11.5
+      },
+      "amostra_confirmacao": 299,
+      "prob_base_confirmacao": 0.7092,
+      "prob_condicao_confirmacao": 0.7793,
+      "impacto_pp": 7.0,
+      "p_valor_confirmacao": 0.00015672192054262427,
+      "odd_minima_referencia": 1.28,
+      "rotulo": "Chutes no alvo ≤ 7 E Chutes totais ≤ 22 aos 75' (2 gol(s) no jogo) → Menos de 11.5 escanteios"
+    },
+    {
+      "id": "escanteios_049",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 30,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "offsides",
+          "operador": "<=",
+          "limite": 1.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 6.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 9.5
+      },
+      "amostra_confirmacao": 455,
+      "prob_base_confirmacao": 0.5243,
+      "prob_condicao_confirmacao": 0.5934,
+      "impacto_pp": 6.91,
+      "p_valor_confirmacao": 1.3787071130561897e-05,
+      "odd_minima_referencia": 1.69,
+      "rotulo": "Impedimentos ≤ 1 E Chutes totais ≥ 6 aos 30' (1 gol(s) no jogo) → Mais de 9.5 escanteios"
+    },
+    {
+      "id": "escanteios_050",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 60,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "dangerous_attacks",
+          "operador": "<=",
+          "limite": 65.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": "<=",
+          "limite": 18.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 8.5
+      },
+      "amostra_confirmacao": 440,
+      "prob_base_confirmacao": 0.3594,
+      "prob_condicao_confirmacao": 0.4273,
+      "impacto_pp": 6.79,
+      "p_valor_confirmacao": 3.325228989152578e-06,
+      "odd_minima_referencia": 2.34,
+      "rotulo": "Ataques perigosos ≤ 65 E Chutes totais ≤ 18 aos 60' (1 gol(s) no jogo) → Menos de 8.5 escanteios"
+    },
+    {
+      "id": "escanteios_051",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 60,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": "<=",
+          "limite": 17.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 13.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 11.5
+      },
+      "amostra_confirmacao": 356,
+      "prob_base_confirmacao": 0.3284,
+      "prob_condicao_confirmacao": 0.3961,
+      "impacto_pp": 6.77,
+      "p_valor_confirmacao": 0.0001652101719855938,
+      "odd_minima_referencia": 2.52,
+      "rotulo": "Faltas ≤ 17 E Chutes totais ≥ 13 aos 60' (1 gol(s) no jogo) → Mais de 11.5 escanteios"
+    },
+    {
+      "id": "escanteios_052",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 75,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "shots_on_target",
+          "operador": "<=",
+          "limite": 6.0
+        },
+        {
+          "stat": "successful_dribbles_percentage",
+          "operador": "<=",
+          "limite": 117.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 8.5
+      },
+      "amostra_confirmacao": 239,
+      "prob_base_confirmacao": 0.3429,
+      "prob_condicao_confirmacao": 0.41,
+      "impacto_pp": 6.72,
+      "p_valor_confirmacao": 0.00467095152976494,
+      "odd_minima_referencia": 2.44,
+      "rotulo": "Chutes no alvo ≤ 6 E % dribles certos ≤ 117 aos 75' (2 gol(s) no jogo) → Menos de 8.5 escanteios"
+    },
+    {
+      "id": "escanteios_053",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 45,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 10.0
+        },
+        {
+          "stat": "successful_dribbles_percentage",
+          "operador": "<=",
+          "limite": 133.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 11.5
+      },
+      "amostra_confirmacao": 375,
+      "prob_base_confirmacao": 0.3065,
+      "prob_condicao_confirmacao": 0.3733,
+      "impacto_pp": 6.69,
+      "p_valor_confirmacao": 0.000193240593847165,
+      "odd_minima_referencia": 2.68,
+      "rotulo": "Chutes totais ≥ 10 E % dribles certos ≤ 133 aos 45' (1 gol(s) no jogo) → Mais de 11.5 escanteios"
+    },
+    {
+      "id": "escanteios_054",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 45,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 86.0
+        },
+        {
+          "stat": "total_crosses",
+          "operador": "<=",
+          "limite": 18.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 11.5
+      },
+      "amostra_confirmacao": 249,
+      "prob_base_confirmacao": 0.6844,
+      "prob_condicao_confirmacao": 0.751,
+      "impacto_pp": 6.67,
+      "p_valor_confirmacao": 0.005388721544234065,
+      "odd_minima_referencia": 1.33,
+      "rotulo": "Ataques ≥ 86 E Cruzamentos ≤ 18 aos 45' (0 gol(s) no jogo) → Menos de 11.5 escanteios"
+    },
+    {
+      "id": "escanteios_055",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 60,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 13.0
+        },
+        {
+          "stat": "tackles",
+          "operador": "<=",
+          "limite": 24.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 11.5
+      },
+      "amostra_confirmacao": 360,
+      "prob_base_confirmacao": 0.3284,
+      "prob_condicao_confirmacao": 0.3944,
+      "impacto_pp": 6.6,
+      "p_valor_confirmacao": 0.00020198336554818163,
+      "odd_minima_referencia": 2.54,
+      "rotulo": "Chutes totais ≥ 13 E Desarmes ≤ 24 aos 60' (1 gol(s) no jogo) → Mais de 11.5 escanteios"
+    },
+    {
+      "id": "escanteios_056",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 31.0
+        },
+        {
+          "stat": "total_crosses",
+          "operador": "<=",
+          "limite": 4.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 9.5
+      },
+      "amostra_confirmacao": 602,
+      "prob_base_confirmacao": 0.4705,
+      "prob_condicao_confirmacao": 0.5365,
+      "impacto_pp": 6.6,
+      "p_valor_confirmacao": 4.577964223236724e-05,
+      "odd_minima_referencia": 1.86,
+      "rotulo": "Ataques ≥ 31 E Cruzamentos ≤ 4 aos 15' (0 gol(s) no jogo) → Menos de 9.5 escanteios"
+    },
+    {
+      "id": "escanteios_057",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 31.0
+        },
+        {
+          "stat": "total_crosses",
+          "operador": "<=",
+          "limite": 5.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 9.5
+      },
+      "amostra_confirmacao": 602,
+      "prob_base_confirmacao": 0.4705,
+      "prob_condicao_confirmacao": 0.5365,
+      "impacto_pp": 6.6,
+      "p_valor_confirmacao": 4.577964223236724e-05,
+      "odd_minima_referencia": 1.86,
+      "rotulo": "Ataques ≥ 31 E Cruzamentos ≤ 5 aos 15' (0 gol(s) no jogo) → Menos de 9.5 escanteios"
+    },
+    {
+      "id": "escanteios_058",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 31.0
+        },
+        {
+          "stat": "total_crosses",
+          "operador": "<=",
+          "limite": 6.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 9.5
+      },
+      "amostra_confirmacao": 602,
+      "prob_base_confirmacao": 0.4705,
+      "prob_condicao_confirmacao": 0.5365,
+      "impacto_pp": 6.6,
+      "p_valor_confirmacao": 4.577964223236724e-05,
+      "odd_minima_referencia": 1.86,
+      "rotulo": "Ataques ≥ 31 E Cruzamentos ≤ 6 aos 15' (0 gol(s) no jogo) → Menos de 9.5 escanteios"
+    },
+    {
+      "id": "escanteios_059",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 31.0
+        },
+        {
+          "stat": "total_crosses",
+          "operador": "<=",
+          "limite": 8.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 9.5
+      },
+      "amostra_confirmacao": 602,
+      "prob_base_confirmacao": 0.4705,
+      "prob_condicao_confirmacao": 0.5365,
+      "impacto_pp": 6.6,
+      "p_valor_confirmacao": 4.577964223236724e-05,
+      "odd_minima_referencia": 1.86,
+      "rotulo": "Ataques ≥ 31 E Cruzamentos ≤ 8 aos 15' (0 gol(s) no jogo) → Menos de 9.5 escanteios"
+    },
+    {
+      "id": "escanteios_060",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 75,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "saves",
+          "operador": "<=",
+          "limite": 5.0
+        },
+        {
+          "stat": "shots_on_target",
+          "operador": "<=",
+          "limite": 7.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 9.5
+      },
+      "amostra_confirmacao": 293,
+      "prob_base_confirmacao": 0.4504,
+      "prob_condicao_confirmacao": 0.5154,
+      "impacto_pp": 6.49,
+      "p_valor_confirmacao": 0.0017131701146195547,
+      "odd_minima_referencia": 1.94,
+      "rotulo": "Defesas ≤ 5 E Chutes no alvo ≤ 7 aos 75' (2 gol(s) no jogo) → Menos de 9.5 escanteios"
+    },
+    {
+      "id": "escanteios_061",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 34.0
+        },
+        {
+          "stat": "goal_attempts",
+          "operador": "<=",
+          "limite": 0.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 11.5
+      },
+      "amostra_confirmacao": 387,
+      "prob_base_confirmacao": 0.6979,
+      "prob_condicao_confirmacao": 0.7623,
+      "impacto_pp": 6.44,
+      "p_valor_confirmacao": 0.0016045051383495603,
+      "odd_minima_referencia": 1.31,
+      "rotulo": "Ataques ≥ 34 E Finalizações ≤ 0 aos 15' (0 gol(s) no jogo) → Menos de 11.5 escanteios"
+    },
+    {
+      "id": "escanteios_062",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 61.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": "<=",
+          "limite": 7.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 8.5
+      },
+      "amostra_confirmacao": 266,
+      "prob_base_confirmacao": 0.365,
+      "prob_condicao_confirmacao": 0.4286,
+      "impacto_pp": 6.36,
+      "p_valor_confirmacao": 0.01386375051172367,
+      "odd_minima_referencia": 2.33,
+      "rotulo": "Ataques ≥ 61 E Chutes totais ≤ 7 aos 30' (0 gol(s) no jogo) → Menos de 8.5 escanteios"
+    },
+    {
+      "id": "escanteios_063",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 57.0
+        },
+        {
+          "stat": "key_passes",
+          "operador": "<=",
+          "limite": 5.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 9.5
+      },
+      "amostra_confirmacao": 429,
+      "prob_base_confirmacao": 0.4626,
+      "prob_condicao_confirmacao": 0.5245,
+      "impacto_pp": 6.19,
+      "p_valor_confirmacao": 0.0011291384702616233,
+      "odd_minima_referencia": 1.91,
+      "rotulo": "Ataques ≥ 57 E Passes-chave ≤ 5 aos 30' (0 gol(s) no jogo) → Menos de 9.5 escanteios"
+    },
+    {
+      "id": "escanteios_064",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 34.0
+        },
+        {
+          "stat": "total_crosses",
+          "operador": "<=",
+          "limite": 4.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 11.5
+      },
+      "amostra_confirmacao": 403,
+      "prob_base_confirmacao": 0.6979,
+      "prob_condicao_confirmacao": 0.7593,
+      "impacto_pp": 6.14,
+      "p_valor_confirmacao": 0.0019951594209427917,
+      "odd_minima_referencia": 1.32,
+      "rotulo": "Ataques ≥ 34 E Cruzamentos ≤ 4 aos 15' (0 gol(s) no jogo) → Menos de 11.5 escanteios"
+    },
+    {
+      "id": "escanteios_065",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 75,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "shots_insidebox",
+          "operador": "<=",
+          "limite": 14.0
+        },
+        {
+          "stat": "shots_on_target",
+          "operador": "<=",
+          "limite": 7.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 9.5
+      },
+      "amostra_confirmacao": 307,
+      "prob_base_confirmacao": 0.4504,
+      "prob_condicao_confirmacao": 0.5114,
+      "impacto_pp": 6.1,
+      "p_valor_confirmacao": 0.002023745187435808,
+      "odd_minima_referencia": 1.96,
+      "rotulo": "Chutes de dentro da área ≤ 14 E Chutes no alvo ≤ 7 aos 75' (2 gol(s) no jogo) → Menos de 9.5 escanteios"
+    },
+    {
+      "id": "escanteios_066",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 34.0
+        },
+        {
+          "stat": "key_passes",
+          "operador": "<=",
+          "limite": 2.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 8.5
+      },
+      "amostra_confirmacao": 403,
+      "prob_base_confirmacao": 0.3672,
+      "prob_condicao_confirmacao": 0.4268,
+      "impacto_pp": 5.96,
+      "p_valor_confirmacao": 0.004265997436553619,
+      "odd_minima_referencia": 2.34,
+      "rotulo": "Ataques ≥ 34 E Passes-chave ≤ 2 aos 15' (0 gol(s) no jogo) → Menos de 8.5 escanteios"
+    },
+    {
+      "id": "escanteios_067",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 30,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 6.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 10.5
+      },
+      "amostra_confirmacao": 465,
+      "prob_base_confirmacao": 0.4059,
+      "prob_condicao_confirmacao": 0.4645,
+      "impacto_pp": 5.86,
+      "p_valor_confirmacao": 0.00012446139282600762,
+      "odd_minima_referencia": 2.15,
+      "rotulo": "Chutes totais ≥ 6 aos 30' (1 gol(s) no jogo) → Mais de 10.5 escanteios"
+    },
+    {
+      "id": "escanteios_068",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 75,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "shots_on_target",
+          "operador": "<=",
+          "limite": 7.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": "<=",
+          "limite": 22.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 8.5
+      },
+      "amostra_confirmacao": 299,
+      "prob_base_confirmacao": 0.3429,
+      "prob_condicao_confirmacao": 0.4013,
+      "impacto_pp": 5.85,
+      "p_valor_confirmacao": 0.0025238625801613022,
+      "odd_minima_referencia": 2.49,
+      "rotulo": "Chutes no alvo ≤ 7 E Chutes totais ≤ 22 aos 75' (2 gol(s) no jogo) → Menos de 8.5 escanteios"
+    },
+    {
+      "id": "escanteios_069",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 57.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": "<=",
+          "limite": 7.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 8.5
+      },
+      "amostra_confirmacao": 339,
+      "prob_base_confirmacao": 0.365,
+      "prob_condicao_confirmacao": 0.4218,
+      "impacto_pp": 5.68,
+      "p_valor_confirmacao": 0.009473569479006003,
+      "odd_minima_referencia": 2.37,
+      "rotulo": "Ataques ≥ 57 E Chutes totais ≤ 7 aos 30' (0 gol(s) no jogo) → Menos de 8.5 escanteios"
+    },
+    {
+      "id": "escanteios_070",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 75,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "saves",
+          "operador": "<=",
+          "limite": 5.0
+        },
+        {
+          "stat": "shots_on_target",
+          "operador": "<=",
+          "limite": 7.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 8.5
+      },
+      "amostra_confirmacao": 293,
+      "prob_base_confirmacao": 0.3429,
+      "prob_condicao_confirmacao": 0.3993,
+      "impacto_pp": 5.65,
+      "p_valor_confirmacao": 0.004264707222100438,
+      "odd_minima_referencia": 2.5,
+      "rotulo": "Defesas ≤ 5 E Chutes no alvo ≤ 7 aos 75' (2 gol(s) no jogo) → Menos de 8.5 escanteios"
+    },
+    {
+      "id": "escanteios_071",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 90,
+      "gols_momento": 3,
+      "condicoes": [
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 21.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 8.5
+      },
+      "amostra_confirmacao": 247,
+      "prob_base_confirmacao": 0.6204,
+      "prob_condicao_confirmacao": 0.6761,
+      "impacto_pp": 5.58,
+      "p_valor_confirmacao": 0.011993276200419997,
+      "odd_minima_referencia": 1.48,
+      "rotulo": "Chutes totais ≥ 21 aos 90' (3 gol(s) no jogo) → Mais de 8.5 escanteios"
+    },
+    {
+      "id": "escanteios_072",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 30,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "shots_total",
+          "operador": "<=",
+          "limite": 7.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 9.5
+      },
+      "amostra_confirmacao": 607,
+      "prob_base_confirmacao": 0.4757,
+      "prob_condicao_confirmacao": 0.5288,
+      "impacto_pp": 5.31,
+      "p_valor_confirmacao": 8.011775575599108e-07,
+      "odd_minima_referencia": 1.89,
+      "rotulo": "Chutes totais ≤ 7 aos 30' (1 gol(s) no jogo) → Menos de 9.5 escanteios"
+    },
+    {
+      "id": "escanteios_073",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 75,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "shots_on_target",
+          "operador": "<=",
+          "limite": 7.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 8.5
+      },
+      "amostra_confirmacao": 307,
+      "prob_base_confirmacao": 0.3429,
+      "prob_condicao_confirmacao": 0.3941,
+      "impacto_pp": 5.13,
+      "p_valor_confirmacao": 0.006513218406149419,
+      "odd_minima_referencia": 2.54,
+      "rotulo": "Chutes no alvo ≤ 7 aos 75' (2 gol(s) no jogo) → Menos de 8.5 escanteios"
+    },
+    {
+      "id": "escanteios_074",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 75,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "shots_insidebox",
+          "operador": "<=",
+          "limite": 14.0
+        },
+        {
+          "stat": "shots_on_target",
+          "operador": "<=",
+          "limite": 7.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 8.5
+      },
+      "amostra_confirmacao": 307,
+      "prob_base_confirmacao": 0.3429,
+      "prob_condicao_confirmacao": 0.3941,
+      "impacto_pp": 5.13,
+      "p_valor_confirmacao": 0.006513218406149419,
+      "odd_minima_referencia": 2.54,
+      "rotulo": "Chutes de dentro da área ≤ 14 E Chutes no alvo ≤ 7 aos 75' (2 gol(s) no jogo) → Menos de 8.5 escanteios"
+    },
+    {
+      "id": "escanteios_075",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 75,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "shots_on_target",
+          "operador": "<=",
+          "limite": 7.0
+        },
+        {
+          "stat": "successful_dribbles_percentage",
+          "operador": "<=",
+          "limite": 117.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 8.5
+      },
+      "amostra_confirmacao": 307,
+      "prob_base_confirmacao": 0.3429,
+      "prob_condicao_confirmacao": 0.3941,
+      "impacto_pp": 5.13,
+      "p_valor_confirmacao": 0.006513218406149419,
+      "odd_minima_referencia": 2.54,
+      "rotulo": "Chutes no alvo ≤ 7 E % dribles certos ≤ 117 aos 75' (2 gol(s) no jogo) → Menos de 8.5 escanteios"
+    }
+  ]
+}

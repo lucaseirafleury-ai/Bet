@@ -29,7 +29,7 @@ import sportmonks_client as sm
 from xg_pressure import (
     calcular_xg_proxy, calcular_pressao, calcular_cartoes,
     calcular_escanteios, calcular_eficiencia, calcular_momentum,
-    extrair_stats_completas, extrair_minuto,
+    extrair_stats_completas, extrair_minuto, extrair_stats_para_regras,
 )
 from live_poisson import (
     probabilidades_ao_vivo, probabilidade_escanteios,
@@ -379,6 +379,73 @@ def comparar_mercados(relatorio, probs_ao_vivo):
     return comparacao
 
 
+# ── Sinais confirmados (pesquisa cross-liga) ──────────────────
+# Regras estatísticas geradas por pesquisa_gols/gerar_regras_sinais.py: cada
+# uma é uma condição (minuto + placar-no-momento + estatística(s) do jogo)
+# validada dentro da Allsvenskan (split treino/teste) e depois CONFIRMADA de
+# forma independente em 4 outras ligas (teste de duas proporções +
+# Benjamini-Hochberg) — ver pesquisa_gols/README.md pra metodologia completa.
+# Diferente de checar_ritmo_gols (heurística ao vivo deste app), aqui a
+# validação estatística já foi feita fora do painel; o papel deste bloco é
+# só comparar o jogo real contra as regras já confirmadas.
+CAMINHO_REGRAS_SINAIS = os.path.join(os.path.dirname(__file__), "regras_sinais.json")
+CHECKPOINTS_REGRA = [15, 30, 45, 60, 75, 90]
+# Tolerância: uma regra do minuto X pode disparar em qualquer ciclo entre X e
+# X+JANELA (polling a cada 60s raramente cai exatamente no minuto do
+# checkpoint). Menor que os 15min entre checkpoints, então nunca contamina o
+# checkpoint seguinte.
+JANELA_MINUTOS_REGRA = 3
+
+
+def _carregar_regras_sinais():
+    if not os.path.exists(CAMINHO_REGRAS_SINAIS):
+        print(f"[sinais confirmados] {CAMINHO_REGRAS_SINAIS} não encontrado — sinal desativado")
+        return []
+    with open(CAMINHO_REGRAS_SINAIS, encoding="utf-8") as fp:
+        return json.load(fp).get("regras", [])
+
+
+REGRAS_SINAIS = _carregar_regras_sinais()
+CAMPOS_REGRAS_SINAIS = sorted(
+    {c["stat"] for r in REGRAS_SINAIS for c in r["condicoes"]}
+    | {r["mercado"]["stat"] for r in REGRAS_SINAIS}
+)
+REGRAS_POR_CHECKPOINT_PLACAR = {}
+for _r in REGRAS_SINAIS:
+    REGRAS_POR_CHECKPOINT_PLACAR.setdefault((_r["minuto"], _r["gols_momento"]), []).append(_r)
+
+
+def _regra_bate(regra, valores):
+    for c in regra["condicoes"]:
+        valor = valores.get(c["stat"], 0.0)
+        if c["operador"] == ">=" and valor < c["limite"]:
+            return False
+        if c["operador"] == "<=" and valor > c["limite"]:
+            return False
+    return True
+
+
+def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combinados):
+    """Um insight por regra confirmada que bate com o jogo agora (no máximo uma vez por partida — dedup por (fixture_id, tipo) já cuida disso em ciclo())."""
+    insights = []
+    for checkpoint in CHECKPOINTS_REGRA:
+        if not (checkpoint <= minuto <= checkpoint + JANELA_MINUTOS_REGRA):
+            continue
+        for regra in REGRAS_POR_CHECKPOINT_PLACAR.get((checkpoint, gols_totais_jogo), []):
+            if not _regra_bate(regra, valores_combinados):
+                continue
+            mensagem = (
+                f"min {minuto} — {regra['rotulo']}. Confirmado em {regra['amostra_confirmacao']} jogos de "
+                f"outras ligas (impacto +{regra['impacto_pp']:.1f} p.p., p-valor {regra['p_valor_confirmacao']:.4f}). "
+                f"Odd mínima de referência: {regra['odd_minima_referencia']:.2f} (estimada da amostra histórica "
+                f"de confirmação, não do modelo ao vivo deste painel)."
+            )
+            insights.append(_insight_base(
+                relatorio, minuto, f"regra_{regra['id']}", "Jogo", regra["impacto_pp"], mensagem
+            ))
+    return insights
+
+
 # ── Ciclo principal ────────────────────────────────────────────
 
 def ciclo():
@@ -449,6 +516,12 @@ def ciclo():
         momentum_home, momentum_away = calcular_momentum(stats_home, stats_away)
         stats_completas_home = extrair_stats_completas(stats_home)
         stats_completas_away = extrair_stats_completas(stats_away)
+        valores_regras_home = extrair_stats_para_regras(stats_home, CAMPOS_REGRAS_SINAIS)
+        valores_regras_away = extrair_stats_para_regras(stats_away, CAMPOS_REGRAS_SINAIS)
+        valores_regras_combinados = {
+            campo: valores_regras_home.get(campo, 0.0) + valores_regras_away.get(campo, 0.0)
+            for campo in CAMPOS_REGRAS_SINAIS
+        }
 
         scores = f.get("scores", [])
         gols_home = next((s["score"]["goals"] for s in scores
@@ -552,6 +625,11 @@ def ciclo():
             checar_ritmo_gols(relatorio, minuto, home["name"], gols_home, lambda_home, xg_home, perfil_c["xg_proxy_media"], dados_ofensivos_disponiveis, gols_restantes_calibrado, gols_totais_jogo, probs["comparacao"]),
             checar_ritmo_gols(relatorio, minuto, away["name"], gols_away, lambda_away, xg_away, perfil_f["xg_proxy_media"], dados_ofensivos_disponiveis, gols_restantes_calibrado, gols_totais_jogo, probs["comparacao"]),
         ]
+        # Sinais de escanteios/chutes confirmados por pesquisa cross-liga —
+        # ver comentário acima de checar_sinais_confirmados(). Pode gerar
+        # mais de um insight por ciclo (regras diferentes podem bater ao
+        # mesmo tempo), por isso extend em vez de um único item na lista.
+        candidatos.extend(checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_regras_combinados))
 
         for c in candidatos:
             if c is None:

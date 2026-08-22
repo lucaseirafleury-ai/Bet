@@ -97,6 +97,13 @@ function toggleCard(fixtureId) {
   if (chevron) chevron.textContent = estavaExpandido ? "▼ expandir" : "▲ recolher";
 }
 
+function unidadeDelta(insight) {
+  // Sinais confirmados por pesquisa cross-liga (tipo "regra_*") reportam
+  // impacto em pontos percentuais (p.p.), não desvio percentual relativo
+  // como o sinal de ritmo de gols — unidades diferentes, rótulo diferente.
+  return (insight.tipo || "").startsWith("regra_") ? "p.p." : "%";
+}
+
 function badgeSinalCard(fixtureId, insights) {
   const doJogo = (insights || []).filter((i) => i.fixture_id === fixtureId);
   if (doJogo.length === 0) return "";
@@ -237,7 +244,7 @@ function renderJogosAnteriores(lista) {
     const sinaisHtml = sinais.length
       ? sinais.map((i) => `
           <div class="insight-item ${i.delta_pct >= 0 ? "delta-up" : "delta-down"}">
-            <div class="msg"><span class="delta-tag">${i.delta_pct >= 0 ? "▲" : "▼"} ${Math.abs(i.delta_pct)}%</span>${i.mensagem}</div>
+            <div class="msg"><span class="delta-tag">${i.delta_pct >= 0 ? "▲" : "▼"} ${Math.abs(i.delta_pct)}${unidadeDelta(i)}</span>${i.mensagem}</div>
           </div>`).join("")
       : `<p class="empty-state">Nenhum sinal gerado nesse jogo.</p>`;
 
@@ -306,7 +313,7 @@ function renderInsights(lista) {
     return `
       <div class="insight-item ${dirClass}">
         <div class="jogo">${i.jogo} <span style="color:var(--muted);font-weight:400">— ${i.liga}</span><span class="horario-emissao">${horarioBrasilia(i.timestamp)} (Brasília)</span></div>
-        <div class="msg"><span class="delta-tag">${seta} ${Math.abs(i.delta_pct)}%</span>${i.mensagem}</div>
+        <div class="msg"><span class="delta-tag">${seta} ${Math.abs(i.delta_pct)}${unidadeDelta(i)}</span>${i.mensagem}</div>
       </div>
     `;
   }).join("");
