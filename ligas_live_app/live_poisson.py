@@ -20,36 +20,45 @@ PESO_XG = 0.5
 PESO_PRESSAO = 0.3
 
 # ── Modelo calibrado de gols TOTAIS restantes (Over/Under), POR LIGA ────────
-# Poisson GLM validado fora da amostra, cronologicamente (569 jogos, 2.845
-# snapshots, 5 ligas — treino/teste sem vazamento entre snapshots do mesmo jogo).
+# Recalibrado (pesquisa_gols/validar_over_under.py) contra os 3.001 jogos já
+# cacheados em pesquisa_gols/dados/.checkpoint_*.json — bem mais dado que a
+# calibração anterior (569 jogos). Testamos ~19 métricas de ritmo (chutes,
+# ataques, cruzamentos, etc.) por liga, com split cronológico 70/30 e teste
+# pareado POR JOGO (não por checkpoint, pra não repetir o erro de
+# pseudo-replicação achado no backtest.py de xG_proxy). Depois de corrigir
+# por Benjamini-Hochberg (5 ligas testadas), NENHUMA métrica sobreviveu em
+# NENHUMA liga — inclusive as métricas que estavam calibradas antes
+# (shots_total pra Allsvenskan, attacks pra 1. Division) nem eram mais as
+# "melhores" nesta base maior, sinal de que a calibração original estava
+# ajustando ruído, não um efeito real. Resultado bate com a pesquisa de gols
+# (pesquisa_gols/README.md): nenhuma estatística de ritmo prevê gols de forma
+# confiável, nem olhando pro jogo todo (Over/Under) nem por time.
 #
-# IMPORTANTE: nem toda liga tem uma métrica incremental que ajuda de verdade.
-# A Lyga e Superettan não tiveram nenhuma métrica testada que melhorasse o
-# modelo de forma consistente — pra essas duas, o mais seguro é usar "somente
-# minuto" (coeficiente de ritmo = 0). Aplicar o coeficiente de uma liga em
-# outra reduziria a precisão, por isso os valores são mantidos separados.
+# Por isso as 5 ligas usam "somente minuto" agora (coeficiente de ritmo = 0,
+# só o intercepto por minuto) — mais simples e sem a falsa precisão de um
+# coeficiente que não se sustentou fora da amostra.
 #
 # xG_restante_total = EXP(intercepto_do_minuto[liga] + coef[liga] × ritmo_da_métrica_da_liga)
 MODELOS_CALIBRADOS_POR_LIGA = {
-    579: {  # Superettan
+    573: {  # Allsvenskan — recalibrado em 616 jogos
+        "liga": "Allsvenskan", "metrica": None, "coef": 0.0,
+        "interceptos": {15: 0.937915, 30: 0.767022, 45: 0.531492, 60: 0.196361, 75: -0.23628},
+    },
+    579: {  # Superettan — recalibrado em 631 jogos
         "liga": "Superettan", "metrica": None, "coef": 0.0,
-        "interceptos": {15: 0.9902, 30: 0.8183, 45: 0.5644, 60: 0.1754, 75: -0.3101},
+        "interceptos": {15: 0.891998, 30: 0.739267, 45: 0.514021, 60: 0.204735, 75: -0.166763},
     },
-    573: {  # Allsvenskan
-        "liga": "Allsvenskan", "metrica": "shots_total_rate15", "coef": 0.094703,
-        "interceptos": {15: 0.654329, 30: 0.463077, 45: 0.164337, 60: -0.244564, 75: -0.883578},
-    },
-    405: {  # A Lyga
+    405: {  # A Lyga — recalibrado em 481 jogos
         "liga": "A Lyga", "metrica": None, "coef": 0.0,
-        "interceptos": {15: 0.8255, 30: 0.6596, 45: 0.3405, 60: 0.0279, 75: -0.5203},
+        "interceptos": {15: 0.814448, 30: 0.671779, 45: 0.435318, 60: 0.152639, 75: -0.229506},
     },
-    408: {  # 1. Lyga
-        "liga": "1. Lyga", "metrica": "shots_off_target_rate15", "coef": 0.10081,
-        "interceptos": {15: 0.7161, 30: 0.5324, 45: 0.3192, 60: -0.0695, 75: -0.6755},
+    408: {  # 1. Lyga — recalibrado em 644 jogos
+        "liga": "1. Lyga", "metrica": None, "coef": 0.0,
+        "interceptos": {15: 0.946364, 30: 0.78959, 45: 0.57068, 60: 0.298141, 75: -0.089563},
     },
-    447: {  # 1. Division (Noruega)
-        "liga": "1. Division", "metrica": "attacks_rate15", "coef": 0.012355,
-        "interceptos": {15: 0.7954, 30: 0.6461, 45: 0.3954, 60: 0.0034, 75: -0.5198},
+    447: {  # 1. Division (Noruega) — recalibrado em 629 jogos
+        "liga": "1. Division", "metrica": None, "coef": 0.0,
+        "interceptos": {15: 1.08137, 30: 0.927129, 45: 0.702717, 60: 0.402255, 75: -0.04591},
     },
 }
 
