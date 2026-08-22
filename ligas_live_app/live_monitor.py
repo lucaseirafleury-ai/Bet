@@ -442,9 +442,15 @@ def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combi
                 f"Odd mínima de referência: {regra['odd_minima_referencia']:.2f} (estimada da amostra histórica "
                 f"de confirmação, não do modelo ao vivo deste painel)."
             )
-            insights.append(_insight_base(
+            insight = _insight_base(
                 relatorio, minuto, f"regra_{regra['id']}", "Jogo", regra["impacto_pp"], mensagem
-            ))
+            )
+            # Campos extras (além do formato padrão de insight): permitem o painel
+            # mostrar só "mercado + odd mínima" fechado, com o texto acima (mensagem)
+            # só ao expandir — ver htmlSinalItem() em static/app.js.
+            insight["resumo"] = regra["mercado_curto"]
+            insight["odd_minima"] = regra["odd_minima_referencia"]
+            insights.append(insight)
     return insights
 
 

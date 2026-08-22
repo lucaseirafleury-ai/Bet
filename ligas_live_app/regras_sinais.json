@@ -26,6 +26,7 @@
         "direcao": "menos_de",
         "linha": 8.5
       },
+      "mercado_curto": "Menos de 8.5 chutes no alvo",
       "amostra_confirmacao": 521,
       "prob_base_confirmacao": 0.4864,
       "prob_condicao_confirmacao": 0.5585,
@@ -57,6 +58,7 @@
         "direcao": "menos_de",
         "linha": 20.5
       },
+      "mercado_curto": "Menos de 20.5 chutes totais",
       "amostra_confirmacao": 627,
       "prob_base_confirmacao": 0.4881,
       "prob_condicao_confirmacao": 0.5614,
@@ -88,6 +90,7 @@
         "direcao": "menos_de",
         "linha": 24.5
       },
+      "mercado_curto": "Menos de 24.5 chutes totais",
       "amostra_confirmacao": 627,
       "prob_base_confirmacao": 0.7167,
       "prob_condicao_confirmacao": 0.7879,
@@ -119,6 +122,7 @@
         "direcao": "menos_de",
         "linha": 18.5
       },
+      "mercado_curto": "Menos de 18.5 chutes totais",
       "amostra_confirmacao": 521,
       "prob_base_confirmacao": 0.4072,
       "prob_condicao_confirmacao": 0.4779,
@@ -145,6 +149,7 @@
         "direcao": "menos_de",
         "linha": 24.5
       },
+      "mercado_curto": "Menos de 24.5 chutes totais",
       "amostra_confirmacao": 337,
       "prob_base_confirmacao": 0.7196,
       "prob_condicao_confirmacao": 0.7834,
@@ -171,6 +176,7 @@
         "direcao": "menos_de",
         "linha": 20.5
       },
+      "mercado_curto": "Menos de 20.5 chutes totais",
       "amostra_confirmacao": 343,
       "prob_base_confirmacao": 0.4403,
       "prob_condicao_confirmacao": 0.4956,
@@ -197,6 +203,7 @@
         "direcao": "menos_de",
         "linha": 20.5
       },
+      "mercado_curto": "Menos de 20.5 chutes totais",
       "amostra_confirmacao": 405,
       "prob_base_confirmacao": 0.5087,
       "prob_condicao_confirmacao": 0.563,
@@ -228,6 +235,7 @@
         "direcao": "menos_de",
         "linha": 26.5
       },
+      "mercado_curto": "Menos de 26.5 chutes totais",
       "amostra_confirmacao": 521,
       "prob_base_confirmacao": 0.8285,
       "prob_condicao_confirmacao": 0.881,
@@ -259,6 +267,7 @@
         "direcao": "menos_de",
         "linha": 20.5
       },
+      "mercado_curto": "Menos de 20.5 chutes totais",
       "amostra_confirmacao": 873,
       "prob_base_confirmacao": 0.4881,
       "prob_condicao_confirmacao": 0.5395,
@@ -290,6 +299,7 @@
         "direcao": "mais_de",
         "linha": 18.5
       },
+      "mercado_curto": "Mais de 18.5 chutes totais",
       "amostra_confirmacao": 670,
       "prob_base_confirmacao": 0.5928,
       "prob_condicao_confirmacao": 0.6433,
@@ -321,6 +331,7 @@
         "direcao": "mais_de",
         "linha": 9.5
       },
+      "mercado_curto": "Mais de 9.5 escanteios",
       "amostra_confirmacao": 223,
       "prob_base_confirmacao": 0.5288,
       "prob_condicao_confirmacao": 0.6413,
@@ -352,6 +363,7 @@
         "direcao": "mais_de",
         "linha": 10.5
       },
+      "mercado_curto": "Mais de 10.5 escanteios",
       "amostra_confirmacao": 223,
       "prob_base_confirmacao": 0.4101,
       "prob_condicao_confirmacao": 0.5202,
@@ -383,6 +395,7 @@
         "direcao": "menos_de",
         "linha": 9.5
       },
+      "mercado_curto": "Menos de 9.5 escanteios",
       "amostra_confirmacao": 251,
       "prob_base_confirmacao": 0.4705,
       "prob_condicao_confirmacao": 0.5777,
@@ -414,6 +427,7 @@
         "direcao": "menos_de",
         "linha": 8.5
       },
+      "mercado_curto": "Menos de 8.5 escanteios",
       "amostra_confirmacao": 213,
       "prob_base_confirmacao": 0.3672,
       "prob_condicao_confirmacao": 0.4742,
@@ -445,6 +459,7 @@
         "direcao": "mais_de",
         "linha": 10.5
       },
+      "mercado_curto": "Mais de 10.5 escanteios",
       "amostra_confirmacao": 269,
       "prob_base_confirmacao": 0.4101,
       "prob_condicao_confirmacao": 0.5093,
@@ -476,6 +491,7 @@
         "direcao": "mais_de",
         "linha": 9.5
       },
+      "mercado_curto": "Mais de 9.5 escanteios",
       "amostra_confirmacao": 339,
       "prob_base_confirmacao": 0.5243,
       "prob_condicao_confirmacao": 0.6195,
@@ -507,6 +523,7 @@
         "direcao": "mais_de",
         "linha": 8.5
       },
+      "mercado_curto": "Mais de 8.5 escanteios",
       "amostra_confirmacao": 356,
       "prob_base_confirmacao": 0.6406,
       "prob_condicao_confirmacao": 0.7331,
@@ -538,6 +555,7 @@
         "direcao": "mais_de",
         "linha": 9.5
       },
+      "mercado_curto": "Mais de 9.5 escanteios",
       "amostra_confirmacao": 335,
       "prob_base_confirmacao": 0.5243,
       "prob_condicao_confirmacao": 0.6149,
@@ -569,6 +587,7 @@
         "direcao": "mais_de",
         "linha": 10.5
       },
+      "mercado_curto": "Mais de 10.5 escanteios",
       "amostra_confirmacao": 246,
       "prob_base_confirmacao": 0.4134,
       "prob_condicao_confirmacao": 0.5041,
@@ -595,6 +614,7 @@
         "direcao": "menos_de",
         "linha": 8.5
       },
+      "mercado_curto": "Menos de 8.5 escanteios",
       "amostra_confirmacao": 251,
       "prob_base_confirmacao": 0.3672,
       "prob_condicao_confirmacao": 0.4542,
@@ -626,6 +646,7 @@
         "direcao": "menos_de",
         "linha": 8.5
       },
+      "mercado_curto": "Menos de 8.5 escanteios",
       "amostra_confirmacao": 251,
       "prob_base_confirmacao": 0.3672,
       "prob_condicao_confirmacao": 0.4542,
@@ -657,6 +678,7 @@
         "direcao": "menos_de",
         "linha": 8.5
       },
+      "mercado_curto": "Menos de 8.5 escanteios",
       "amostra_confirmacao": 251,
       "prob_base_confirmacao": 0.3672,
       "prob_condicao_confirmacao": 0.4542,
@@ -688,6 +710,7 @@
         "direcao": "menos_de",
         "linha": 8.5
       },
+      "mercado_curto": "Menos de 8.5 escanteios",
       "amostra_confirmacao": 251,
       "prob_base_confirmacao": 0.3672,
       "prob_condicao_confirmacao": 0.4542,
@@ -719,6 +742,7 @@
         "direcao": "menos_de",
         "linha": 9.5
       },
+      "mercado_curto": "Menos de 9.5 escanteios",
       "amostra_confirmacao": 403,
       "prob_base_confirmacao": 0.4705,
       "prob_condicao_confirmacao": 0.5558,
@@ -750,6 +774,7 @@
         "direcao": "menos_de",
         "linha": 9.5
       },
+      "mercado_curto": "Menos de 9.5 escanteios",
       "amostra_confirmacao": 403,
       "prob_base_confirmacao": 0.4705,
       "prob_condicao_confirmacao": 0.5558,
@@ -781,6 +806,7 @@
         "direcao": "menos_de",
         "linha": 9.5
       },
+      "mercado_curto": "Menos de 9.5 escanteios",
       "amostra_confirmacao": 403,
       "prob_base_confirmacao": 0.4705,
       "prob_condicao_confirmacao": 0.5558,
@@ -812,6 +838,7 @@
         "direcao": "menos_de",
         "linha": 9.5
       },
+      "mercado_curto": "Menos de 9.5 escanteios",
       "amostra_confirmacao": 403,
       "prob_base_confirmacao": 0.4705,
       "prob_condicao_confirmacao": 0.5558,
@@ -843,6 +870,7 @@
         "direcao": "menos_de",
         "linha": 9.5
       },
+      "mercado_curto": "Menos de 9.5 escanteios",
       "amostra_confirmacao": 403,
       "prob_base_confirmacao": 0.4705,
       "prob_condicao_confirmacao": 0.5558,
@@ -874,6 +902,7 @@
         "direcao": "menos_de",
         "linha": 11.5
       },
+      "mercado_curto": "Menos de 11.5 escanteios",
       "amostra_confirmacao": 237,
       "prob_base_confirmacao": 0.7092,
       "prob_condicao_confirmacao": 0.7932,
@@ -905,6 +934,7 @@
         "direcao": "menos_de",
         "linha": 9.5
       },
+      "mercado_curto": "Menos de 9.5 escanteios",
       "amostra_confirmacao": 267,
       "prob_base_confirmacao": 0.4705,
       "prob_condicao_confirmacao": 0.5506,
@@ -936,6 +966,7 @@
         "direcao": "menos_de",
         "linha": 10.5
       },
+      "mercado_curto": "Menos de 10.5 escanteios",
       "amostra_confirmacao": 403,
       "prob_base_confirmacao": 0.5884,
       "prob_condicao_confirmacao": 0.6675,
@@ -967,6 +998,7 @@
         "direcao": "menos_de",
         "linha": 11.5
       },
+      "mercado_curto": "Menos de 11.5 escanteios",
       "amostra_confirmacao": 242,
       "prob_base_confirmacao": 0.6979,
       "prob_condicao_confirmacao": 0.7769,
@@ -993,6 +1025,7 @@
         "direcao": "menos_de",
         "linha": 10.5
       },
+      "mercado_curto": "Menos de 10.5 escanteios",
       "amostra_confirmacao": 272,
       "prob_base_confirmacao": 0.5775,
       "prob_condicao_confirmacao": 0.6544,
@@ -1024,6 +1057,7 @@
         "direcao": "menos_de",
         "linha": 10.5
       },
+      "mercado_curto": "Menos de 10.5 escanteios",
       "amostra_confirmacao": 299,
       "prob_base_confirmacao": 0.5866,
       "prob_condicao_confirmacao": 0.6622,
@@ -1055,6 +1089,7 @@
         "direcao": "menos_de",
         "linha": 11.5
       },
+      "mercado_curto": "Menos de 11.5 escanteios",
       "amostra_confirmacao": 251,
       "prob_base_confirmacao": 0.6979,
       "prob_condicao_confirmacao": 0.7729,
@@ -1086,6 +1121,7 @@
         "direcao": "menos_de",
         "linha": 11.5
       },
+      "mercado_curto": "Menos de 11.5 escanteios",
       "amostra_confirmacao": 251,
       "prob_base_confirmacao": 0.6979,
       "prob_condicao_confirmacao": 0.7729,
@@ -1112,6 +1148,7 @@
         "direcao": "menos_de",
         "linha": 10.5
       },
+      "mercado_curto": "Menos de 10.5 escanteios",
       "amostra_confirmacao": 307,
       "prob_base_confirmacao": 0.5866,
       "prob_condicao_confirmacao": 0.6612,
@@ -1143,6 +1180,7 @@
         "direcao": "menos_de",
         "linha": 10.5
       },
+      "mercado_curto": "Menos de 10.5 escanteios",
       "amostra_confirmacao": 307,
       "prob_base_confirmacao": 0.5866,
       "prob_condicao_confirmacao": 0.6612,
@@ -1169,6 +1207,7 @@
         "direcao": "mais_de",
         "linha": 11.5
       },
+      "mercado_curto": "Mais de 11.5 escanteios",
       "amostra_confirmacao": 286,
       "prob_base_confirmacao": 0.3065,
       "prob_condicao_confirmacao": 0.3811,
@@ -1200,6 +1239,7 @@
         "direcao": "mais_de",
         "linha": 11.5
       },
+      "mercado_curto": "Mais de 11.5 escanteios",
       "amostra_confirmacao": 286,
       "prob_base_confirmacao": 0.3065,
       "prob_condicao_confirmacao": 0.3811,
@@ -1231,6 +1271,7 @@
         "direcao": "menos_de",
         "linha": 7.5
       },
+      "mercado_curto": "Menos de 7.5 escanteios",
       "amostra_confirmacao": 213,
       "prob_base_confirmacao": 0.2681,
       "prob_condicao_confirmacao": 0.3427,
@@ -1262,6 +1303,7 @@
         "direcao": "mais_de",
         "linha": 7.5
       },
+      "mercado_curto": "Mais de 7.5 escanteios",
       "amostra_confirmacao": 360,
       "prob_base_confirmacao": 0.7429,
       "prob_condicao_confirmacao": 0.8167,
@@ -1293,6 +1335,7 @@
         "direcao": "mais_de",
         "linha": 11.5
       },
+      "mercado_curto": "Mais de 11.5 escanteios",
       "amostra_confirmacao": 369,
       "prob_base_confirmacao": 0.3065,
       "prob_condicao_confirmacao": 0.3794,
@@ -1324,6 +1367,7 @@
         "direcao": "menos_de",
         "linha": 7.5
       },
+      "mercado_curto": "Menos de 7.5 escanteios",
       "amostra_confirmacao": 237,
       "prob_base_confirmacao": 0.2605,
       "prob_condicao_confirmacao": 0.3333,
@@ -1355,6 +1399,7 @@
         "direcao": "menos_de",
         "linha": 8.5
       },
+      "mercado_curto": "Menos de 8.5 escanteios",
       "amostra_confirmacao": 217,
       "prob_base_confirmacao": 0.365,
       "prob_condicao_confirmacao": 0.4378,
@@ -1386,6 +1431,7 @@
         "direcao": "mais_de",
         "linha": 10.5
       },
+      "mercado_curto": "Mais de 10.5 escanteios",
       "amostra_confirmacao": 369,
       "prob_base_confirmacao": 0.4101,
       "prob_condicao_confirmacao": 0.4824,
@@ -1417,6 +1463,7 @@
         "direcao": "menos_de",
         "linha": 10.5
       },
+      "mercado_curto": "Menos de 10.5 escanteios",
       "amostra_confirmacao": 293,
       "prob_base_confirmacao": 0.5866,
       "prob_condicao_confirmacao": 0.6587,
@@ -1448,6 +1495,7 @@
         "direcao": "menos_de",
         "linha": 8.5
       },
+      "mercado_curto": "Menos de 8.5 escanteios",
       "amostra_confirmacao": 238,
       "prob_base_confirmacao": 0.365,
       "prob_condicao_confirmacao": 0.437,
@@ -1479,6 +1527,7 @@
         "direcao": "mais_de",
         "linha": 11.5
       },
+      "mercado_curto": "Mais de 11.5 escanteios",
       "amostra_confirmacao": 262,
       "prob_base_confirmacao": 0.3065,
       "prob_condicao_confirmacao": 0.3779,
@@ -1510,6 +1559,7 @@
         "direcao": "menos_de",
         "linha": 10.5
       },
+      "mercado_curto": "Menos de 10.5 escanteios",
       "amostra_confirmacao": 308,
       "prob_base_confirmacao": 0.6267,
       "prob_condicao_confirmacao": 0.6981,
@@ -1541,6 +1591,7 @@
         "direcao": "mais_de",
         "linha": 11.5
       },
+      "mercado_curto": "Mais de 11.5 escanteios",
       "amostra_confirmacao": 246,
       "prob_base_confirmacao": 0.2908,
       "prob_condicao_confirmacao": 0.3618,
@@ -1572,6 +1623,7 @@
         "direcao": "mais_de",
         "linha": 11.5
       },
+      "mercado_curto": "Mais de 11.5 escanteios",
       "amostra_confirmacao": 323,
       "prob_base_confirmacao": 0.3284,
       "prob_condicao_confirmacao": 0.3994,
@@ -1598,6 +1650,7 @@
         "direcao": "mais_de",
         "linha": 11.5
       },
+      "mercado_curto": "Mais de 11.5 escanteios",
       "amostra_confirmacao": 342,
       "prob_base_confirmacao": 0.3006,
       "prob_condicao_confirmacao": 0.3713,
@@ -1629,6 +1682,7 @@
         "direcao": "menos_de",
         "linha": 8.5
       },
+      "mercado_curto": "Menos de 8.5 escanteios",
       "amostra_confirmacao": 237,
       "prob_base_confirmacao": 0.3429,
       "prob_condicao_confirmacao": 0.4135,
@@ -1660,6 +1714,7 @@
         "direcao": "menos_de",
         "linha": 11.5
       },
+      "mercado_curto": "Menos de 11.5 escanteios",
       "amostra_confirmacao": 308,
       "prob_base_confirmacao": 0.7378,
       "prob_condicao_confirmacao": 0.8084,
@@ -1691,6 +1746,7 @@
         "direcao": "menos_de",
         "linha": 9.5
       },
+      "mercado_curto": "Menos de 9.5 escanteios",
       "amostra_confirmacao": 260,
       "prob_base_confirmacao": 0.4757,
       "prob_condicao_confirmacao": 0.5462,
@@ -1722,6 +1778,7 @@
         "direcao": "menos_de",
         "linha": 7.5
       },
+      "mercado_curto": "Menos de 7.5 escanteios",
       "amostra_confirmacao": 239,
       "prob_base_confirmacao": 0.2605,
       "prob_condicao_confirmacao": 0.3305,
@@ -1753,6 +1810,7 @@
         "direcao": "menos_de",
         "linha": 11.5
       },
+      "mercado_curto": "Menos de 11.5 escanteios",
       "amostra_confirmacao": 299,
       "prob_base_confirmacao": 0.7092,
       "prob_condicao_confirmacao": 0.7793,
@@ -1784,6 +1842,7 @@
         "direcao": "mais_de",
         "linha": 9.5
       },
+      "mercado_curto": "Mais de 9.5 escanteios",
       "amostra_confirmacao": 455,
       "prob_base_confirmacao": 0.5243,
       "prob_condicao_confirmacao": 0.5934,
@@ -1815,6 +1874,7 @@
         "direcao": "menos_de",
         "linha": 8.5
       },
+      "mercado_curto": "Menos de 8.5 escanteios",
       "amostra_confirmacao": 440,
       "prob_base_confirmacao": 0.3594,
       "prob_condicao_confirmacao": 0.4273,
@@ -1846,6 +1906,7 @@
         "direcao": "mais_de",
         "linha": 11.5
       },
+      "mercado_curto": "Mais de 11.5 escanteios",
       "amostra_confirmacao": 356,
       "prob_base_confirmacao": 0.3284,
       "prob_condicao_confirmacao": 0.3961,
@@ -1877,6 +1938,7 @@
         "direcao": "menos_de",
         "linha": 8.5
       },
+      "mercado_curto": "Menos de 8.5 escanteios",
       "amostra_confirmacao": 239,
       "prob_base_confirmacao": 0.3429,
       "prob_condicao_confirmacao": 0.41,
@@ -1908,6 +1970,7 @@
         "direcao": "mais_de",
         "linha": 11.5
       },
+      "mercado_curto": "Mais de 11.5 escanteios",
       "amostra_confirmacao": 375,
       "prob_base_confirmacao": 0.3065,
       "prob_condicao_confirmacao": 0.3733,
@@ -1939,6 +2002,7 @@
         "direcao": "menos_de",
         "linha": 11.5
       },
+      "mercado_curto": "Menos de 11.5 escanteios",
       "amostra_confirmacao": 249,
       "prob_base_confirmacao": 0.6844,
       "prob_condicao_confirmacao": 0.751,
@@ -1970,6 +2034,7 @@
         "direcao": "mais_de",
         "linha": 11.5
       },
+      "mercado_curto": "Mais de 11.5 escanteios",
       "amostra_confirmacao": 360,
       "prob_base_confirmacao": 0.3284,
       "prob_condicao_confirmacao": 0.3944,
@@ -2001,6 +2066,7 @@
         "direcao": "menos_de",
         "linha": 9.5
       },
+      "mercado_curto": "Menos de 9.5 escanteios",
       "amostra_confirmacao": 602,
       "prob_base_confirmacao": 0.4705,
       "prob_condicao_confirmacao": 0.5365,
@@ -2032,6 +2098,7 @@
         "direcao": "menos_de",
         "linha": 9.5
       },
+      "mercado_curto": "Menos de 9.5 escanteios",
       "amostra_confirmacao": 602,
       "prob_base_confirmacao": 0.4705,
       "prob_condicao_confirmacao": 0.5365,
@@ -2063,6 +2130,7 @@
         "direcao": "menos_de",
         "linha": 9.5
       },
+      "mercado_curto": "Menos de 9.5 escanteios",
       "amostra_confirmacao": 602,
       "prob_base_confirmacao": 0.4705,
       "prob_condicao_confirmacao": 0.5365,
@@ -2094,6 +2162,7 @@
         "direcao": "menos_de",
         "linha": 9.5
       },
+      "mercado_curto": "Menos de 9.5 escanteios",
       "amostra_confirmacao": 602,
       "prob_base_confirmacao": 0.4705,
       "prob_condicao_confirmacao": 0.5365,
@@ -2125,6 +2194,7 @@
         "direcao": "menos_de",
         "linha": 9.5
       },
+      "mercado_curto": "Menos de 9.5 escanteios",
       "amostra_confirmacao": 293,
       "prob_base_confirmacao": 0.4504,
       "prob_condicao_confirmacao": 0.5154,
@@ -2156,6 +2226,7 @@
         "direcao": "menos_de",
         "linha": 11.5
       },
+      "mercado_curto": "Menos de 11.5 escanteios",
       "amostra_confirmacao": 387,
       "prob_base_confirmacao": 0.6979,
       "prob_condicao_confirmacao": 0.7623,
@@ -2187,6 +2258,7 @@
         "direcao": "menos_de",
         "linha": 8.5
       },
+      "mercado_curto": "Menos de 8.5 escanteios",
       "amostra_confirmacao": 266,
       "prob_base_confirmacao": 0.365,
       "prob_condicao_confirmacao": 0.4286,
@@ -2218,6 +2290,7 @@
         "direcao": "menos_de",
         "linha": 9.5
       },
+      "mercado_curto": "Menos de 9.5 escanteios",
       "amostra_confirmacao": 429,
       "prob_base_confirmacao": 0.4626,
       "prob_condicao_confirmacao": 0.5245,
@@ -2249,6 +2322,7 @@
         "direcao": "menos_de",
         "linha": 11.5
       },
+      "mercado_curto": "Menos de 11.5 escanteios",
       "amostra_confirmacao": 403,
       "prob_base_confirmacao": 0.6979,
       "prob_condicao_confirmacao": 0.7593,
@@ -2280,6 +2354,7 @@
         "direcao": "menos_de",
         "linha": 9.5
       },
+      "mercado_curto": "Menos de 9.5 escanteios",
       "amostra_confirmacao": 307,
       "prob_base_confirmacao": 0.4504,
       "prob_condicao_confirmacao": 0.5114,
@@ -2311,6 +2386,7 @@
         "direcao": "menos_de",
         "linha": 8.5
       },
+      "mercado_curto": "Menos de 8.5 escanteios",
       "amostra_confirmacao": 403,
       "prob_base_confirmacao": 0.3672,
       "prob_condicao_confirmacao": 0.4268,
@@ -2337,6 +2413,7 @@
         "direcao": "mais_de",
         "linha": 10.5
       },
+      "mercado_curto": "Mais de 10.5 escanteios",
       "amostra_confirmacao": 465,
       "prob_base_confirmacao": 0.4059,
       "prob_condicao_confirmacao": 0.4645,
@@ -2368,6 +2445,7 @@
         "direcao": "menos_de",
         "linha": 8.5
       },
+      "mercado_curto": "Menos de 8.5 escanteios",
       "amostra_confirmacao": 299,
       "prob_base_confirmacao": 0.3429,
       "prob_condicao_confirmacao": 0.4013,
@@ -2399,6 +2477,7 @@
         "direcao": "menos_de",
         "linha": 8.5
       },
+      "mercado_curto": "Menos de 8.5 escanteios",
       "amostra_confirmacao": 339,
       "prob_base_confirmacao": 0.365,
       "prob_condicao_confirmacao": 0.4218,
@@ -2430,6 +2509,7 @@
         "direcao": "menos_de",
         "linha": 8.5
       },
+      "mercado_curto": "Menos de 8.5 escanteios",
       "amostra_confirmacao": 293,
       "prob_base_confirmacao": 0.3429,
       "prob_condicao_confirmacao": 0.3993,
@@ -2456,6 +2536,7 @@
         "direcao": "mais_de",
         "linha": 8.5
       },
+      "mercado_curto": "Mais de 8.5 escanteios",
       "amostra_confirmacao": 247,
       "prob_base_confirmacao": 0.6204,
       "prob_condicao_confirmacao": 0.6761,
@@ -2482,6 +2563,7 @@
         "direcao": "menos_de",
         "linha": 9.5
       },
+      "mercado_curto": "Menos de 9.5 escanteios",
       "amostra_confirmacao": 607,
       "prob_base_confirmacao": 0.4757,
       "prob_condicao_confirmacao": 0.5288,
@@ -2508,6 +2590,7 @@
         "direcao": "menos_de",
         "linha": 8.5
       },
+      "mercado_curto": "Menos de 8.5 escanteios",
       "amostra_confirmacao": 307,
       "prob_base_confirmacao": 0.3429,
       "prob_condicao_confirmacao": 0.3941,
@@ -2539,6 +2622,7 @@
         "direcao": "menos_de",
         "linha": 8.5
       },
+      "mercado_curto": "Menos de 8.5 escanteios",
       "amostra_confirmacao": 307,
       "prob_base_confirmacao": 0.3429,
       "prob_condicao_confirmacao": 0.3941,
@@ -2570,6 +2654,7 @@
         "direcao": "menos_de",
         "linha": 8.5
       },
+      "mercado_curto": "Menos de 8.5 escanteios",
       "amostra_confirmacao": 307,
       "prob_base_confirmacao": 0.3429,
       "prob_condicao_confirmacao": 0.3941,

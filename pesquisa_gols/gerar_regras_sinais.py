@@ -140,10 +140,10 @@ for s in fortes:
     )
     direcao = "mais_de" if s["sinal_mercado"] == "+" else "menos_de"
     stat_alvo = ALVO_STAT_BASE[alvo_id]
-    rotulo = (
-        f"{cond_txt} aos {s['minuto']}' ({s['gols_momento']} gol(s) no jogo) "
-        f"→ {'Mais' if direcao == 'mais_de' else 'Menos'} de {s['linha_mercado']:g} {ALVO_TITULO[alvo_id].lower()}"
+    mercado_curto = (
+        f"{'Mais' if direcao == 'mais_de' else 'Menos'} de {s['linha_mercado']:g} {ALVO_TITULO[alvo_id].lower()}"
     )
+    rotulo = f"{cond_txt} aos {s['minuto']}' ({s['gols_momento']} gol(s) no jogo) → {mercado_curto}"
 
     regras.append({
         "id": regra_id,
@@ -157,6 +157,7 @@ for s in fortes:
             "direcao": direcao,
             "linha": s["linha_mercado"],
         },
+        "mercado_curto": mercado_curto,
         "amostra_confirmacao": s["amostra"],
         "prob_base_confirmacao": round(s["p_base"], 4),
         "prob_condicao_confirmacao": round(s["p_condicao"], 4),

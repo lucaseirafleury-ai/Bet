@@ -97,6 +97,58 @@ function toggleCard(fixtureId) {
   if (chevron) chevron.textContent = estavaExpandido ? "▼ expandir" : "▲ recolher";
 }
 
+const sinaisExpandidos = new Set();
+
+function toggleSinal(chave) {
+  const estavaExpandido = sinaisExpandidos.has(chave);
+  if (estavaExpandido) {
+    sinaisExpandidos.delete(chave);
+  } else {
+    sinaisExpandidos.add(chave);
+  }
+  const detalhe = document.getElementById(`sinal-detalhe-${chave}`);
+  const chevron = document.getElementById(`sinal-chevron-${chave}`);
+  if (detalhe) detalhe.style.display = estavaExpandido ? "none" : "block";
+  if (chevron) chevron.textContent = estavaExpandido ? "▼ detalhes" : "▲ ocultar";
+}
+
+// Sinais confirmados por pesquisa cross-liga (tipo "regra_*") vêm com
+// resumo/odd_minima próprios — mostra só isso fechado, com o texto completo
+// (condição, amostra, p-valor) atrás de um "▼ detalhes". Os demais sinais
+// (ex: ritmo de gols) continuam com o texto completo sempre visível, como já
+// era antes de existir esse tipo de sinal.
+function htmlSinalItem(i, { mostrarJogo }) {
+  const dirClass = i.delta_pct >= 0 ? "delta-up" : "delta-down";
+  const seta = i.delta_pct >= 0 ? "▲" : "▼";
+  const jogoHtml = mostrarJogo
+    ? `<div class="jogo">${i.jogo} <span style="color:var(--muted);font-weight:400">— ${i.liga}</span><span class="horario-emissao">${horarioBrasilia(i.timestamp)} (Brasília)</span></div>`
+    : "";
+
+  const ehRegraConfirmada = (i.tipo || "").startsWith("regra_") && i.resumo;
+  if (!ehRegraConfirmada) {
+    return `
+      <div class="insight-item ${dirClass}">
+        ${jogoHtml}
+        <div class="msg"><span class="delta-tag">${seta} ${Math.abs(i.delta_pct)}${unidadeDelta(i)}</span>${i.mensagem}</div>
+      </div>
+    `;
+  }
+
+  const chave = `${i.fixture_id}-${i.tipo}`;
+  const expandido = sinaisExpandidos.has(chave);
+  return `
+    <div class="insight-item ${dirClass} sinal-compacto">
+      ${jogoHtml}
+      <div class="sinal-resumo-row" onclick="toggleSinal('${chave}')">
+        <span class="delta-tag">${seta} ${i.resumo}</span>
+        ${i.odd_minima != null ? `<span class="odd-min-tag">odd mín. ${i.odd_minima.toFixed(2)}</span>` : ""}
+        <span id="sinal-chevron-${chave}" class="chevron-link">${expandido ? "▲ ocultar" : "▼ detalhes"}</span>
+      </div>
+      <div id="sinal-detalhe-${chave}" class="msg" style="display:${expandido ? "block" : "none"}">${i.mensagem}</div>
+    </div>
+  `;
+}
+
 function unidadeDelta(insight) {
   // Sinais confirmados por pesquisa cross-liga (tipo "regra_*") reportam
   // impacto em pontos percentuais (p.p.), não desvio percentual relativo
@@ -242,10 +294,7 @@ function renderJogosAnteriores(lista) {
       ? j.eventos_gols.map((g) => `${g.minuto_texto}' ${g.time}`).join(", ")
       : "sem gols";
     const sinaisHtml = sinais.length
-      ? sinais.map((i) => `
-          <div class="insight-item ${i.delta_pct >= 0 ? "delta-up" : "delta-down"}">
-            <div class="msg"><span class="delta-tag">${i.delta_pct >= 0 ? "▲" : "▼"} ${Math.abs(i.delta_pct)}${unidadeDelta(i)}</span>${i.mensagem}</div>
-          </div>`).join("")
+      ? sinais.map((i) => htmlSinalItem(i, { mostrarJogo: false })).join("")
       : `<p class="empty-state">Nenhum sinal gerado nesse jogo.</p>`;
 
     return `
@@ -307,16 +356,7 @@ function renderInsights(lista) {
     feed.innerHTML = `<p class="empty-state">Nenhum sinal gerado ainda.</p>`;
     return;
   }
-  feed.innerHTML = lista.map((i) => {
-    const dirClass = i.delta_pct >= 0 ? "delta-up" : "delta-down";
-    const seta = i.delta_pct >= 0 ? "▲" : "▼";
-    return `
-      <div class="insight-item ${dirClass}">
-        <div class="jogo">${i.jogo} <span style="color:var(--muted);font-weight:400">— ${i.liga}</span><span class="horario-emissao">${horarioBrasilia(i.timestamp)} (Brasília)</span></div>
-        <div class="msg"><span class="delta-tag">${seta} ${Math.abs(i.delta_pct)}${unidadeDelta(i)}</span>${i.mensagem}</div>
-      </div>
-    `;
-  }).join("");
+  feed.innerHTML = lista.map((i) => htmlSinalItem(i, { mostrarJogo: true })).join("");
 }
 
 function renderStatus(status) {
