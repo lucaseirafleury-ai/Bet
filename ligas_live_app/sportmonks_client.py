@@ -5,13 +5,23 @@ Centraliza autenticação, includes e tratamento de erro/paginação.
 import requests
 import config
 
+CORE_BASE_URL = "https://api.sportmonks.com/v3/core"  # /types vive aqui, não em /football
 
-def _get(path, params=None):
-    params = dict(params or {})
-    params["api_token"] = config.SPORTMONKS_TOKEN
-    url = f"{config.BASE_URL}{path}"
-    r = requests.get(url, params=params, timeout=20)
-    r.raise_for_status()
+
+def _get(path, params=None, base_url=None):
+    # Token vai no header, não na query string: se a chamada falhar, a exceção
+    # do requests inclui a URL na mensagem — com o token como query param, ele
+    # vazaria em texto puro em qualquer log/traceback (já aconteceu antes desta
+    # correção). raise_for_status() também é evitado por isso: sua mensagem
+    # inclui a URL completa da requisição.
+    r = requests.get(
+        f"{base_url or config.BASE_URL}{path}", params=params or {}, timeout=20,
+        headers={"Authorization": config.SPORTMONKS_TOKEN},
+    )
+    try:
+        r.raise_for_status()
+    except requests.HTTPError:
+        raise requests.HTTPError(f"Sportmonks respondeu {r.status_code} em {path}") from None
     return r.json()
 
 
@@ -58,9 +68,21 @@ def team_recent_fixtures(team_id, n, include="statistics.type;participants;score
 
 
 def all_types():
-    """Lista completa de tipos (usada para mapear nome de estatística -> type_id, para trends)."""
-    data = _get("/types", {"per_page": 1000})
-    return data.get("data", [])
+    """
+    Lista completa de tipos (usada para mapear nome de estatística -> type_id,
+    para trends). Vive em /core/types, não em /football — e a API ignora
+    per_page grande, paginando sempre de 25 em 25 (confirmado: per_page=1000
+    pedido, 25 devolvido) — por isso pagina até has_more virar False.
+    """
+    tipos = []
+    pagina = 1
+    while True:
+        data = _get("/types", {"page": pagina}, base_url=CORE_BASE_URL)
+        tipos.extend(data.get("data", []))
+        if not data.get("pagination", {}).get("has_more"):
+            break
+        pagina += 1
+    return tipos
 
 
 def fixture_com_trends(fixture_id, include="trends;statistics.type;participants;scores;league;events"):
