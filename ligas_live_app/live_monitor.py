@@ -18,6 +18,7 @@ A cada ciclo, para cada jogo ao vivo monitorado:
        - data/live_insights.json   → só os eventos que cruzaram o limiar (feed de alertas)
 """
 import json
+import math
 import os
 import time
 from datetime import datetime, timedelta, timezone
@@ -400,14 +401,16 @@ JANELA_MINUTOS_REGRA = 3
 def _carregar_regras_sinais():
     if not os.path.exists(CAMINHO_REGRAS_SINAIS):
         print(f"[sinais confirmados] {CAMINHO_REGRAS_SINAIS} não encontrado — sinal desativado")
-        return []
+        return [], {}
     with open(CAMINHO_REGRAS_SINAIS, encoding="utf-8") as fp:
-        regras = json.load(fp).get("regras", [])
+        payload = json.load(fp)
+    regras = payload.get("regras", [])
+    limites = payload.get("limites_plausibilidade", {})
     print(f"[sinais confirmados] {len(regras)} regras carregadas de {CAMINHO_REGRAS_SINAIS}")
-    return regras
+    return regras, limites
 
 
-REGRAS_SINAIS = _carregar_regras_sinais()
+REGRAS_SINAIS, LIMITES_PLAUSIBILIDADE = _carregar_regras_sinais()
 CAMPOS_REGRAS_SINAIS = sorted(
     {c["stat"] for r in REGRAS_SINAIS for c in r["condicoes"]}
     | {r["mercado"]["stat"] for r in REGRAS_SINAIS}
@@ -427,6 +430,43 @@ def _regra_bate(regra, valores):
     return True
 
 
+def _mercado_ainda_em_aberto(regra, valores_combinados):
+    """
+    Confere se o placar parcial JÁ não decidiu o mercado sozinho, antes mesmo
+    da condição da regra entrar em jogo — ex.: recomendar "Menos de 11,5
+    escanteios" quando o jogo só tem 1 escanteio aos 45' é tecnicamente
+    confirmado em média, mas nesse jogo específico (ritmo baixíssimo) o lado
+    oposto já é praticamente impossível, e a odd mínima de referência (que é
+    uma média histórica) fica sem sentido — foi um caso real reportado.
+
+    Usa limites_plausibilidade (pesquisa_gols/gerar_regras_sinais.py): p5/p95
+    de "quanto ainda falta somar" (resto), condicionado ao valor atual exato
+    do estat do mercado, calculado sobre os ~3.000 jogos já processados.
+    Sem tabela pra esse alvo/minuto/valor -> deixa passar (sem informação
+    suficiente pra vetar).
+    """
+    alvo, mercado = regra["alvo"], regra["mercado"]
+    tabela_alvo = LIMITES_PLAUSIBILIDADE.get(alvo, {}).get(str(regra["minuto"]))
+    if not tabela_alvo:
+        return True
+
+    valor_atual = int(round(valores_combinados.get(mercado["stat"], 0.0)))
+    entrada = tabela_alvo.get(str(valor_atual))
+    if entrada is None:
+        # valor nunca visto nos ~3.000 jogos de referência — usa o mais próximo disponível
+        disponiveis = [int(v) for v in tabela_alvo.keys()]
+        mais_proximo = min(disponiveis, key=lambda v: abs(v - valor_atual))
+        entrada = tabela_alvo[str(mais_proximo)]
+
+    linha_base = math.floor(mercado["linha"])  # linha é sempre X.5
+    if mercado["direcao"] == "menos_de":
+        resto_minimo_para_errar = linha_base + 1 - valor_atual
+        return resto_minimo_para_errar <= entrada["p95"]
+    else:  # "mais_de"
+        resto_maximo_para_errar = linha_base - valor_atual
+        return resto_maximo_para_errar >= entrada["p5"]
+
+
 def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combinados):
     """Um insight por regra confirmada que bate com o jogo agora (no máximo uma vez por partida — dedup por (fixture_id, tipo) já cuida disso em ciclo())."""
     insights = []
@@ -436,6 +476,8 @@ def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combi
         for regra in REGRAS_POR_CHECKPOINT_PLACAR.get((checkpoint, gols_totais_jogo), []):
             if not _regra_bate(regra, valores_combinados):
                 continue
+            if not _mercado_ainda_em_aberto(regra, valores_combinados):
+                continue  # placar parcial já tornou o lado oposto implausível — sinal sem valor real
             mensagem = (
                 f"min {minuto} — {regra['rotulo']}. Confirmado em {regra['amostra_confirmacao']} jogos de "
                 f"outras ligas (impacto +{regra['impacto_pp']:.1f} p.p., p-valor {regra['p_valor_confirmacao']:.4f}). "

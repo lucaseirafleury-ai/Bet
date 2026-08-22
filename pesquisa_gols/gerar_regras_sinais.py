@@ -12,11 +12,16 @@ depois editando AMOSTRA_MINIMA/IMPACTO_MINIMO abaixo e rodando de novo.
 Uso: python3 gerar_regras_sinais.py
 """
 import csv
+import glob
 import json
 import os
 
 BASE = os.path.join(os.path.dirname(__file__), "resultados")
+DADOS_DIR = os.path.join(os.path.dirname(__file__), "dados")
 DESTINO = os.path.join(os.path.dirname(__file__), "..", "ligas_live_app", "regras_sinais.json")
+
+CHECKPOINTS_PLAUSIBILIDADE = [15, 30, 45, 60, 75]
+AMOSTRA_MINIMA_PLAUSIBILIDADE = 30  # abaixo disso, o percentil não é confiável — busca o valor_atual vizinho
 
 AMOSTRA_MINIMA = 200
 IMPACTO_MINIMO_PP = 5.0
@@ -61,6 +66,76 @@ def ler_csv(caminho):
     if not linhas or "confirmado_bh" not in linhas[0]:
         return []
     return [r for r in linhas if r["confirmado_bh"] == "True"]
+
+
+def _percentil(valores_ordenados, p):
+    return valores_ordenados[min(int(len(valores_ordenados) * p), len(valores_ordenados) - 1)]
+
+
+def calcular_limites_plausibilidade():
+    """
+    Pra cada alvo com sinal confirmado + cada checkpoint, calcula p5/p95 de
+    "quanto ainda falta somar" (resto = valor final − valor no checkpoint),
+    CONDICIONADO ao valor atual exato — não é a mesma coisa que o p5/p95 sem
+    condicionar (que fica solto demais: por exemplo, em escanteios aos 45min
+    o p99 do resto sem condicionar é 13, mas condicionado a "só 1 escanteio
+    até agora" o p95 real é 10 — bem mais apertado).
+
+    Sem isso, uma regra pode recomendar "Menos de 11,5 escanteios" quando o
+    jogo já só tem 1 escanteio aos 45' — tecnicamente confirmado em média,
+    mas nesse estado específico de jogo o mercado já está praticamente
+    decidido (e a odd mínima mostrada fica sem sentido, porque ela é uma
+    média de jogos com ritmo normal, não deste jogo de ritmo baixíssimo).
+    Ver conversa: caso real reportado com odd mínima 1,33 quando o jogo já
+    tinha resultado quase certo (>95% de chance do lado recomendado).
+
+    Usado por live_monitor.py para NÃO disparar regras cujo lado oposto já
+    virou estatisticamente implausível dado o placar parcial atual.
+    """
+    dados_por_alvo_checkpoint = {}  # (alvo, minuto) -> {valor_atual: [restos]}
+    for caminho in glob.glob(f"{DADOS_DIR}/.checkpoint_*.json"):
+        d = json.load(open(caminho, encoding="utf-8"))
+        resultados_alvo, snapshots = d["resultados_alvo"], d["snapshots"]
+        for snap in snapshots:
+            minuto = snap["minuto"]
+            if minuto not in CHECKPOINTS_PLAUSIBILIDADE:
+                continue
+            fid = snap["fixture_id"]
+            res = resultados_alvo.get(str(fid), resultados_alvo.get(fid))
+            if not res:
+                continue
+            for alvo_id, stat_alvo in ALVO_STAT_BASE.items():
+                if alvo_id not in ("escanteios", "chutes_totais", "chutes_no_alvo"):
+                    continue  # gols/cartões não têm sinal confirmado, não precisa da tabela
+                if stat_alvo not in snap or res.get(alvo_id) is None:
+                    continue
+                resto = res[alvo_id] - snap[stat_alvo]
+                if resto < 0:
+                    continue
+                chave = (alvo_id, minuto)
+                dados_por_alvo_checkpoint.setdefault(chave, {}).setdefault(int(snap[stat_alvo]), []).append(resto)
+
+    limites = {}
+    for (alvo_id, minuto), por_valor in dados_por_alvo_checkpoint.items():
+        valores_com_amostra = sorted(v for v, restos in por_valor.items() if len(restos) >= AMOSTRA_MINIMA_PLAUSIBILIDADE)
+        tabela = {}
+        for valor_atual, restos in por_valor.items():
+            # amostra pequena pro valor exato -> usa o valor com amostra suficiente mais próximo
+            if len(restos) >= AMOSTRA_MINIMA_PLAUSIBILIDADE:
+                restos_uso = restos
+            elif valores_com_amostra:
+                mais_proximo = min(valores_com_amostra, key=lambda v: abs(v - valor_atual))
+                restos_uso = por_valor[mais_proximo]
+            else:
+                restos_uso = restos  # último recurso — sem nenhum valor com amostra boa nesse alvo/checkpoint
+            ordenado = sorted(restos_uso)
+            tabela[str(valor_atual)] = {
+                "p5": _percentil(ordenado, 0.05),
+                "p95": _percentil(ordenado, 0.95),
+                "n": len(restos),
+            }
+        limites.setdefault(alvo_id, {})[str(minuto)] = tabela
+    return limites
 
 
 brutas = []
@@ -167,11 +242,17 @@ for s in fortes:
         "rotulo": rotulo,
     })
 
+print("\ncalculando tabela de plausibilidade (placar parcial já decidiu o mercado?)...")
+limites_plausibilidade = calcular_limites_plausibilidade()
+for alvo_id, por_checkpoint in limites_plausibilidade.items():
+    print(f"  {alvo_id}: {sum(len(t) for t in por_checkpoint.values())} valores-atuais cobertos em {len(por_checkpoint)} checkpoints")
+
 payload = {
     "criterio": f"amostra_confirmacao >= {AMOSTRA_MINIMA} e impacto_pp >= {IMPACTO_MINIMO_PP}",
     "fonte": "pesquisa_gols/resultados/*_confirmacao_*.csv (confirmado_bh=True)",
     "total_regras": len(regras),
     "regras": regras,
+    "limites_plausibilidade": limites_plausibilidade,
 }
 
 os.makedirs(os.path.dirname(DESTINO), exist_ok=True)
