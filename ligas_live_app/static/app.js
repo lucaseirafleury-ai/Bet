@@ -124,8 +124,8 @@ function htmlSinalItem(i, { mostrarJogo }) {
     ? `<div class="jogo">${i.jogo} <span style="color:var(--muted);font-weight:400">— ${i.liga}</span><span class="horario-emissao">${horarioBrasilia(i.timestamp)} (Brasília)</span></div>`
     : "";
 
-  const ehRegraConfirmada = (i.tipo || "").startsWith("regra_") && i.resumo;
-  if (!ehRegraConfirmada) {
+  const ehSinalConfirmado = i.resumo != null;
+  if (!ehSinalConfirmado) {
     return `
       <div class="insight-item ${dirClass}">
         ${jogoHtml}
@@ -150,10 +150,12 @@ function htmlSinalItem(i, { mostrarJogo }) {
 }
 
 function unidadeDelta(insight) {
-  // Sinais confirmados por pesquisa cross-liga (tipo "regra_*") reportam
-  // impacto em pontos percentuais (p.p.), não desvio percentual relativo
-  // como o sinal de ritmo de gols — unidades diferentes, rótulo diferente.
-  return (insight.tipo || "").startsWith("regra_") ? "p.p." : "%";
+  // Sinais confirmados por pesquisa cross-liga (identificados pelo campo
+  // "resumo", que só eles têm) reportam impacto em pontos percentuais
+  // (p.p.), não desvio percentual relativo como o sinal de ritmo de gols —
+  // unidades diferentes, rótulo diferente. Checa o campo em si, não um
+  // prefixo de "tipo" (que já mudou uma vez — regra_* virou sinal_*).
+  return insight.resumo != null ? "p.p." : "%";
 }
 
 function badgeSinalCard(fixtureId, insights) {

@@ -500,11 +500,13 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
             f" Confirmado por {n_condicoes} condições independentes (a mais forte: {melhor_regra['rotulo']})."
             if n_condicoes > 1 else f" Condição: {melhor_regra['rotulo']}."
         )
+        nome_alvo_valor = "escanteios" if alvo == "escanteios" else ("chutes totais" if alvo == "chutes_totais" else "chutes no alvo")
         mensagem = (
-            f"min {minuto} — {melhor_regra['mercado_curto']}.{reforco} Recalculado para o placar parcial "
-            f"atual: {melhor_stats['n']} jogos de referência (impacto +{melhor_stats['impacto_pp']:.1f} p.p. "
-            f"sobre a base nesse mesmo estado de jogo). Odd mínima de referência: {melhor_stats['odd_minima']:.2f} "
-            f"(estimada da amostra histórica, não do modelo ao vivo deste painel)."
+            f"min {minuto} — {melhor_regra['mercado_curto']}.{reforco} Recalculado já considerando que o jogo "
+            f"tem {melhor_stats['valor_atual_real']} {nome_alvo_valor} até agora: {melhor_stats['n']} jogos de "
+            f"referência com esse mesmo valor (impacto +{melhor_stats['impacto_pp']:.1f} p.p. sobre a base nesse "
+            f"estado de jogo). Odd mínima de referência: {melhor_stats['odd_minima']:.2f} (estimada da amostra "
+            f"histórica, não do modelo ao vivo deste painel)."
         )
         insight = _insight_base(
             relatorio, minuto, f"sinal_{alvo}_{direcao}", "Jogo", melhor_stats["impacto_pp"], mensagem
@@ -541,6 +543,10 @@ def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combi
                 # às vezes porque o "impacto" original era em boa parte confundido com
                 # o valor atual, não um efeito genuíno da condição) — não mostra.
                 continue
+            # Cópia (não muta a entrada compartilhada de por_valor_atual, reaproveitada
+            # entre partidas) só pra anotar o valor ATUAL de verdade do jogo — pode
+            # diferir da chave usada na tabela quando caiu no fallback pro vizinho.
+            stats = dict(stats, valor_atual_real=int(round(valores_combinados.get(regra["mercado"]["stat"], 0.0))))
             candidatas.append((regra, stats))
 
     direcoes_ja_disparadas = _direcoes_ja_disparadas(insights_existentes, fixture_id)
