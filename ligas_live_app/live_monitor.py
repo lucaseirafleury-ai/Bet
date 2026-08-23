@@ -398,6 +398,11 @@ JANELA_MINUTOS_REGRA = 3
 
 
 IMPACTO_MINIMO_PP_VALOR_ATUAL = 5.0  # mesmo limiar usado pra selecionar as regras "fortes" (gerar_regras_sinais.py)
+# Exigir só vantagem sobre a base deixa passar casos tipo "20% -> 27%": bateu
+# a base (impacto +7pp), mas ainda é uma aposta ruim (73% de chance de
+# perder). Esse segundo filtro exige que a PROBABILIDADE em si (não só o
+# ganho sobre a base) já esteja alta — critério ajustável, pode mudar depois.
+PROBABILIDADE_MINIMA_VALOR_ATUAL = 0.75
 
 
 def _carregar_regras_sinais():
@@ -542,6 +547,11 @@ def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combi
                 # impacto real (às vezes porque o placar sozinho já decidiu o mercado,
                 # às vezes porque o "impacto" original era em boa parte confundido com
                 # o valor atual, não um efeito genuíno da condição) — não mostra.
+                continue
+            if stats["p_condicao"] < PROBABILIDADE_MINIMA_VALOR_ATUAL:
+                # bateu a base, mas a probabilidade em si ainda é baixa demais pra
+                # ser uma aposta assertiva (ex.: 20% -> 27% é +7pp de impacto, mas
+                # ainda 73% de chance de perder) — vantagem sobre a base não basta.
                 continue
             # Cópia (não muta a entrada compartilhada de por_valor_atual, reaproveitada
             # entre partidas) só pra anotar o valor ATUAL de verdade do jogo — pode
