@@ -19,6 +19,14 @@ from live_monitor import _notificar_push
 HORA_PRELIVE_UTC = 6  # 06:00 UTC ~ manhã na Suécia/Lituânia (UTC+2 no verão)
 
 app = Flask(__name__)
+# Sem isso, o Flask manda os arquivos estáticos (app.js, style.css) com cache
+# longo por padrão — depois de um redeploy, o navegador pode continuar
+# rodando a versão JS antiga por horas sem o usuário perceber (já aconteceu:
+# uma correção no app.js não aparecia até fechar/reabrir a aba). 0 = sempre
+# revalida (ETag/Last-Modified) antes de usar a versão em cache, então um
+# arquivo que não mudou ainda economiza banda (304), mas um que mudou é
+# pego na hora.
+app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
 PYTHON = sys.executable
 BASE_DIR = os.path.dirname(__file__)
 
