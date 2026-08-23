@@ -456,16 +456,84 @@ def _stats_para_valor_atual(regra, valores_combinados):
     return entrada
 
 
-def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combinados):
-    """Um insight por regra confirmada que bate com o jogo agora (no máximo uma vez por partida — dedup por (fixture_id, tipo) já cuida disso em ciclo())."""
+def _direcoes_ja_disparadas(insights_existentes, fixture_id):
+    """{alvo: direção} já mostrada nesta partida — usado pra nunca disparar um sinal
+    contrário ao que já foi mostrado (ver _consolidar_candidatas)."""
+    disparadas = {}
+    for i in insights_existentes:
+        if i.get("fixture_id") != fixture_id or not (i.get("tipo") or "").startswith("sinal_"):
+            continue
+        if i.get("alvo") and i.get("direcao"):
+            disparadas[i["alvo"]] = i["direcao"]
+    return disparadas
+
+
+def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto):
+    """
+    Agrupa as regras que bateram por (alvo, direção do mercado) — várias
+    condições diferentes costumam apontar pro MESMO mercado ao mesmo tempo
+    (ex.: 3 regras de escanteios recomendando "Menos de 11,5" juntas), e sem
+    isso cada uma virava um card repetido no painel. Só a melhor evidência
+    do grupo (maior impacto) vira o card; as demais só somam como "N
+    condições concordam", reforçando em vez de poluir.
+
+    Também nunca deixa passar uma direção CONTRÁRIA à que já foi mostrada
+    pro mesmo alvo nesta partida (ex.: já mostrou "Menos de" escanteios,
+    então "Mais de" escanteios não dispara mais depois) — caso real
+    reportado: painel recomendou Under 8,5 e minutos depois Over, sem
+    nenhuma indicação de que uma coisa cancelava a outra.
+    """
+    grupos = {}
+    for regra, stats in candidatas:
+        chave = (regra["alvo"], regra["mercado"]["direcao"])
+        grupos.setdefault(chave, []).append((regra, stats))
+
     insights = []
+    for (alvo, direcao), itens in grupos.items():
+        direcao_oposta = "mais_de" if direcao == "menos_de" else "menos_de"
+        if direcoes_ja_disparadas.get(alvo) == direcao_oposta:
+            continue  # contradiria um sinal já mostrado pra esse alvo nesta partida
+
+        melhor_regra, melhor_stats = max(itens, key=lambda par: par[1]["impacto_pp"])
+        n_condicoes = len(itens)
+        reforco = (
+            f" Confirmado por {n_condicoes} condições independentes (a mais forte: {melhor_regra['rotulo']})."
+            if n_condicoes > 1 else f" Condição: {melhor_regra['rotulo']}."
+        )
+        mensagem = (
+            f"min {minuto} — {melhor_regra['mercado_curto']}.{reforco} Recalculado para o placar parcial "
+            f"atual: {melhor_stats['n']} jogos de referência (impacto +{melhor_stats['impacto_pp']:.1f} p.p. "
+            f"sobre a base nesse mesmo estado de jogo). Odd mínima de referência: {melhor_stats['odd_minima']:.2f} "
+            f"(estimada da amostra histórica, não do modelo ao vivo deste painel)."
+        )
+        insight = _insight_base(
+            relatorio, minuto, f"sinal_{alvo}_{direcao}", "Jogo", melhor_stats["impacto_pp"], mensagem
+        )
+        # Campos extras (além do formato padrão de insight): permitem o painel
+        # mostrar só "mercado + odd mínima" fechado — ver htmlSinalItem() em
+        # static/app.js — e o gate de contradição acima em partidas futuras.
+        insight["resumo"] = melhor_regra["mercado_curto"]
+        insight["odd_minima"] = melhor_stats["odd_minima"]
+        insight["alvo"] = alvo
+        insight["direcao"] = direcao
+        insights.append(insight)
+    return insights
+
+
+def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combinados, insights_existentes, fixture_id):
+    """
+    Um insight por (alvo, direção) confirmada que bate com o jogo agora — não
+    mais um por regra, ver _consolidar_candidatas. No máximo uma vez por
+    (alvo, direção) por partida (dedup por (fixture_id, tipo) já cuida disso
+    em ciclo(), já que o tipo agora é estável por alvo+direção).
+    """
+    candidatas = []
     for checkpoint in CHECKPOINTS_REGRA:
         if not (checkpoint <= minuto <= checkpoint + JANELA_MINUTOS_REGRA):
             continue
         for regra in REGRAS_POR_CHECKPOINT_PLACAR.get((checkpoint, gols_totais_jogo), []):
             if not _regra_bate(regra, valores_combinados):
                 continue
-
             stats = _stats_para_valor_atual(regra, valores_combinados)
             if stats is None or stats["impacto_pp"] < IMPACTO_MINIMO_PP_VALOR_ATUAL:
                 # dado o placar parcial ATUAL do próprio alvo, a condição não agrega
@@ -473,23 +541,10 @@ def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combi
                 # às vezes porque o "impacto" original era em boa parte confundido com
                 # o valor atual, não um efeito genuíno da condição) — não mostra.
                 continue
+            candidatas.append((regra, stats))
 
-            mensagem = (
-                f"min {minuto} — {regra['rotulo']}. Recalculado para o placar parcial atual: "
-                f"{stats['n']} jogos de referência (impacto +{stats['impacto_pp']:.1f} p.p. sobre a base "
-                f"nesse mesmo estado de jogo). Odd mínima de referência: {stats['odd_minima']:.2f} "
-                f"(estimada da amostra histórica, não do modelo ao vivo deste painel)."
-            )
-            insight = _insight_base(
-                relatorio, minuto, f"regra_{regra['id']}", "Jogo", stats["impacto_pp"], mensagem
-            )
-            # Campos extras (além do formato padrão de insight): permitem o painel
-            # mostrar só "mercado + odd mínima" fechado, com o texto acima (mensagem)
-            # só ao expandir — ver htmlSinalItem() em static/app.js.
-            insight["resumo"] = regra["mercado_curto"]
-            insight["odd_minima"] = stats["odd_minima"]
-            insights.append(insight)
-    return insights
+    direcoes_ja_disparadas = _direcoes_ja_disparadas(insights_existentes, fixture_id)
+    return _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto)
 
 
 # ── Ciclo principal ────────────────────────────────────────────
@@ -672,10 +727,13 @@ def ciclo():
             checar_ritmo_gols(relatorio, minuto, away["name"], gols_away, lambda_away, xg_away, perfil_f["xg_proxy_media"], dados_ofensivos_disponiveis, gols_restantes_calibrado, gols_totais_jogo, probs["comparacao"]),
         ]
         # Sinais de escanteios/chutes confirmados por pesquisa cross-liga —
-        # ver comentário acima de checar_sinais_confirmados(). Pode gerar
-        # mais de um insight por ciclo (regras diferentes podem bater ao
-        # mesmo tempo), por isso extend em vez de um único item na lista.
-        candidatos.extend(checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_regras_combinados))
+        # ver comentário acima de checar_sinais_confirmados(). Pode gerar mais
+        # de um insight por ciclo (alvos diferentes podem bater ao mesmo
+        # tempo — já consolidado por (alvo, direção), não mais por regra
+        # individual), por isso extend em vez de um único item na lista.
+        candidatos.extend(checar_sinais_confirmados(
+            relatorio, minuto, gols_totais_jogo, valores_regras_combinados, insights, fixture_id
+        ))
 
         for c in candidatos:
             if c is None:
