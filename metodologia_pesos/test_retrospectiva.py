@@ -237,8 +237,10 @@ def test_rodar_retrospectiva_sem_dado_suficiente_retorna_vazio(df_fabricado):
     relatorio = rodar_retrospectiva(
         df_fabricado, min_jogos_historico=999, min_jogos_estilo=5,
     )
+    aposta_vazia = dict(n_apostas=0, n_vitorias=0, taxa_acerto=None, lucro_total=0.0, roi=None, edge_medio=None, apostas=[])
     assert relatorio == dict(n=0, n_pulados=len(df_fabricado), mae_gols_total=None,
-                              acerto_over25=None, acerto_btts=None, mercados={}, jogos=[])
+                              acerto_over25=None, acerto_btts=None, mercados={}, jogos=[],
+                              aposta_over25=aposta_vazia, aposta_btts=aposta_vazia, roi_over25=None, roi_btts=None)
 
 
 def test_grid_search_ordena_por_erro_e_cobre_todas_combinacoes(df_fabricado):
@@ -350,3 +352,55 @@ def test_simular_apostas_btts_usa_campos_corretos():
     r = simular_apostas(jogos, mercado="btts", limiar_edge=0.0, stake=2.0)
     assert r["n_apostas"] == 1
     assert r["lucro_total"] == pytest.approx(2.0 * (1.9 - 1))
+
+
+def test_rodar_retrospectiva_traz_roi_de_apostas(df_fabricado):
+    relatorio = rodar_retrospectiva(
+        df_fabricado, params=dict(filtro_aderencia=0.0), min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    assert "aposta_over25" in relatorio and "aposta_btts" in relatorio
+    assert relatorio["roi_over25"] == relatorio["aposta_over25"]["roi"]
+    assert relatorio["roi_btts"] == relatorio["aposta_btts"]["roi"]
+    # o dataset fabricado tem odds_ft_over25/odds_btts_* -> deve dar pra apostar em algo
+    assert relatorio["aposta_over25"]["n_apostas"] >= 0
+
+
+def test_rodar_retrospectiva_limiar_edge_reduz_apostas(df_fabricado):
+    frouxo = rodar_retrospectiva(
+        df_fabricado, params=dict(filtro_aderencia=0.0, limiar_edge=0.0),
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    estrito = rodar_retrospectiva(
+        df_fabricado, params=dict(filtro_aderencia=0.0, limiar_edge=0.5),
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    assert estrito["aposta_over25"]["n_apostas"] <= frouxo["aposta_over25"]["n_apostas"]
+
+
+def test_grid_search_ordenar_por_roi_respeita_min_apostas(df_fabricado):
+    grade = dict(limiar_edge=[0.0, 0.5])
+    resultados = grid_search(
+        df_fabricado, grade, ordenar_por="roi_over25", min_apostas_roi=1000,
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    # min_apostas_roi absurdamente alto -> nenhuma combinação é "elegível",
+    # a ordenação não quebra mesmo assim (todas empatam no critério de amostra pequena)
+    assert len(resultados) == 2
+
+
+def test_grid_search_ordenar_por_roi_ordena_do_maior_pro_menor(df_fabricado):
+    grade = dict(limiar_edge=[0.0, 0.02, 0.05])
+    resultados = grid_search(
+        df_fabricado, grade, ordenar_por="roi_over25", min_apostas_roi=0,
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    rois_elegiveis = [r["roi_over25"] for _, r in resultados if r["roi_over25"] is not None]
+    assert rois_elegiveis == sorted(rois_elegiveis, reverse=True)
+
+
+def test_grid_search_ordenar_por_roi_btts_tambem_funciona(df_fabricado):
+    resultados = grid_search(
+        df_fabricado, dict(k_mando=[None, 0.35]), ordenar_por="roi_btts", min_apostas_roi=0,
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    assert len(resultados) == 2

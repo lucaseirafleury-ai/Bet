@@ -47,6 +47,7 @@ STAT_KEY_MAP = {
 PARAMS_PADRAO = dict(
     k_mando=None, filtro_aderencia=0.65, limite_unilateral=4, multiplicador_dp=2.5,
     usar_estilo=True, estilo_por_mando=False,
+    limiar_edge=0.0,  # edge mínimo (prob_modelo - prob_mercado) pra simular_apostas contar como aposta
 )
 
 _MANDO_OPOSTO = {"Casa": "Fora", "Fora": "Casa"}
@@ -309,6 +310,7 @@ def rodar_retrospectiva(df, params=None, min_jogos_historico=10, min_jogos_estil
     "melhor" de um grid grande na mesma amostra onde ele foi medido é
     viés de comparação múltipla, não validação de verdade.
     """
+    params_completos = {**PARAMS_PADRAO, **(params or {})}
     df_ordenado = df.sort_values("timestamp")
     if timestamp_minimo is not None:
         df_ordenado = df_ordenado[df_ordenado["timestamp"] >= timestamp_minimo]
@@ -323,9 +325,11 @@ def rodar_retrospectiva(df, params=None, min_jogos_historico=10, min_jogos_estil
         else:
             avaliados.append(resultado)
 
+    aposta_vazia = dict(n_apostas=0, n_vitorias=0, taxa_acerto=None, lucro_total=0.0, roi=None, edge_medio=None, apostas=[])
     if not avaliados:
         return dict(n=0, n_pulados=n_pulados, mae_gols_total=None, acerto_over25=None, acerto_btts=None,
-                     mercados={}, jogos=[])
+                     mercados={}, jogos=[],
+                     aposta_over25=aposta_vazia, aposta_btts=aposta_vazia, roi_over25=None, roi_btts=None)
 
     n = len(avaliados)
     mae_gols_total = sum(j["erro_gf"] + j["erro_ga"] for j in avaliados) / n
@@ -344,25 +348,36 @@ def rodar_retrospectiva(df, params=None, min_jogos_historico=10, min_jogos_estil
             mae_relativo=(mae / media_real) if media_real else None,
         )
 
+    aposta_over25 = simular_apostas(avaliados, mercado="over25", limiar_edge=params_completos["limiar_edge"])
+    aposta_btts = simular_apostas(avaliados, mercado="btts", limiar_edge=params_completos["limiar_edge"])
+
     return dict(
         n=n, n_pulados=n_pulados,
         mae_gols_total=mae_gols_total, acerto_over25=acerto_over25, acerto_btts=acerto_btts,
         mercados=mercados_agg,
+        aposta_over25=aposta_over25, aposta_btts=aposta_btts,
+        roi_over25=aposta_over25["roi"], roi_btts=aposta_btts["roi"],
         jogos=avaliados,
     )
 
 
-def grid_search(df, grade_parametros, ordenar_por="mae_gols_total", **kwargs):
+def grid_search(df, grade_parametros, ordenar_por="mae_gols_total", min_apostas_roi=15, **kwargs):
     """Roda `rodar_retrospectiva` para cada combinação de
     `grade_parametros` (dict {nome: [valores]}) e retorna
     `[(params, relatorio), ...]` ordenado do MELHOR pro PIOR segundo
     `ordenar_por` (combinações sem jogos avaliados ficam no fim).
 
-    `ordenar_por`: `"mae_gols_total"` (menor é melhor, default) ou
-    `"acerto_over25"`/`"acerto_btts"` (maior é melhor) — use o segundo
-    quando o que importa é acertar a linha de aposta, não o placar exato
-    (MAE e acerto de Over/Under podem apontar em direções opostas — ver
-    `docs/retrospectiva_2025_2026_recalibracao.md`).
+    `ordenar_por`:
+    - `"mae_gols_total"` (menor é melhor, default) — erro do placar exato.
+    - `"acerto_over25"`/`"acerto_btts"` (maior é melhor) — taxa de acerto.
+    - `"roi_over25"`/`"roi_btts"` (maior é melhor) — **vantagem real**
+      (ROI simulado contra odd de mercado, via `simular_apostas`; inclua
+      `limiar_edge` na grade pra também variar o edge mínimo exigido).
+      Acerto e ROI podem apontar em direções OPOSTAS — ver
+      `docs/retrospectiva_roi_2026-08-24.md`. Combinações com menos de
+      `min_apostas_roi` apostas feitas (amostra pequena demais pro ROI
+      significar algo) ficam no fim, mesmo com ROI alto — evita que um
+      resultado de sorte com poucas apostas vença por acaso.
 
     Custo: uma passada completa de `rodar_retrospectiva` por combinação —
     use `max_jogos_avaliados` (via kwargs) para limitar o custo em
@@ -379,6 +394,16 @@ def grid_search(df, grade_parametros, ordenar_por="mae_gols_total", **kwargs):
         resultados.sort(key=lambda par: (par[1]["mae_gols_total"] is None, par[1]["mae_gols_total"]))
     elif ordenar_por in ("acerto_over25", "acerto_btts"):
         resultados.sort(key=lambda par: (par[1][ordenar_por] is None, -(par[1][ordenar_por] or 0)))
+    elif ordenar_por in ("roi_over25", "roi_btts"):
+        campo_aposta = "aposta_over25" if ordenar_por == "roi_over25" else "aposta_btts"
+
+        def chave(par):
+            roi = par[1][ordenar_por]
+            n_apostas = par[1][campo_aposta]["n_apostas"]
+            amostra_pequena_demais = roi is None or n_apostas < min_apostas_roi
+            return (amostra_pequena_demais, -(roi or 0))
+
+        resultados.sort(key=chave)
     else:
         raise ValueError(f"ordenar_por inválido: {ordenar_por!r}")
     return resultados
