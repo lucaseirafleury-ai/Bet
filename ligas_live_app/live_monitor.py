@@ -90,6 +90,36 @@ def _podar_jogos_antigos(jogos_anteriores):
     ]
 
 
+def _avaliar_sinais_confirmados(sinais_do_jogo, registro):
+    """
+    Compara cada sinal confirmado (tipo "sinal_*", com alvo/direção/linha
+    limpos) que disparou nesse jogo contra o resultado final, marcando
+    "green" (bateu o mercado) ou "red" (não bateu). Sinais sem "alvo" (ex.:
+    ritmo de gols) não têm uma linha única pra avaliar como green/red —
+    ficam de fora por enquanto. Mutação in-place: os mesmos dicts também
+    estão em `insights`/`live_insights.json`, então marcar aqui já reflete
+    lá também.
+
+    Usado pro acompanhamento diário de assertividade dos sinais (rotina
+    externa que lê /api/jogos-anteriores) — ver conversa.
+    """
+    sc_home = registro.get("stats_completas_home") or {}
+    sc_away = registro.get("stats_completas_away") or {}
+    valor_final_por_alvo = {
+        "escanteios": (registro.get("escanteios_home") or 0) + (registro.get("escanteios_away") or 0),
+        "chutes_totais": (sc_home.get("finalizacoes") or 0) + (sc_away.get("finalizacoes") or 0),
+        "chutes_no_alvo": (sc_home.get("chutes_no_alvo") or 0) + (sc_away.get("chutes_no_alvo") or 0),
+    }
+    for sinal in sinais_do_jogo:
+        alvo = sinal.get("alvo")
+        if not alvo or alvo not in valor_final_por_alvo or "linha" not in sinal:
+            continue
+        valor_final = valor_final_por_alvo[alvo]
+        bateu = (valor_final > sinal["linha"]) if sinal["direcao"] == "mais_de" else (valor_final < sinal["linha"])
+        sinal["valor_final_alvo"] = valor_final
+        sinal["resultado"] = "green" if bateu else "red"
+
+
 def _arquivar_jogo_finalizado(fixture_id, snapshot_final, insights):
     """
     Chamado quando um fixture some do feed de "ao vivo" — busca o placar
@@ -156,6 +186,7 @@ def _arquivar_jogo_finalizado(fixture_id, snapshot_final, insights):
         "sinais": sinais_do_jogo,
         "arquivado_em": datetime.now(timezone.utc).isoformat(),
     }
+    _avaliar_sinais_confirmados(sinais_do_jogo, registro)
 
     jogos_anteriores = _carregar(config.JOGOS_ANTERIORES_FILE, [])
     jogos_anteriores = [j for j in jogos_anteriores if j["fixture_id"] != fixture_id]
@@ -525,6 +556,7 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
         insight["probabilidade"] = round(melhor_stats["p_condicao"] * 100, 1)
         insight["alvo"] = alvo
         insight["direcao"] = direcao
+        insight["linha"] = melhor_regra["mercado"]["linha"]  # valor numérico limpo — permite avaliar green/red depois sem parsear texto
         insights.append(insight)
     return insights
 
