@@ -103,6 +103,33 @@ def test_calcular_pesos_historico_pipeline_completo():
     assert "peso_final" not in historico[0]
 
 
+def test_calcular_pesos_historico_usar_estilo_false_forca_aderencia_1():
+    historico = [
+        dict(data=date(2026, 8, 1), notas_estilo_adv=[1, 1, 1, 1, 1], favoritismo=0.60, mando="Casa"),
+    ]
+    resultado = calcular_pesos_historico(
+        historico, estilo_alvo=[5, 5, 5, 5, 5], favoritismo_alvo=0.60,
+        data_jogo=date(2026, 8, 10), usar_estilo=False,
+    )
+    j1 = resultado[0]
+    # estilos completamente opostos (diferença máxima) -> normalmente daria aderencia 0,
+    # mas usar_estilo=False força 1.0 e ignora a diferença
+    assert j1["aderencia_estilo"] == 1.0
+    assert j1["aderencia_favoritismo"] == pytest.approx(1.0)
+    assert j1["peso_final"] == pytest.approx(j1["aderencia_favoritismo"] * j1["peso_recencia"])
+
+
+def test_calcular_pesos_historico_usar_estilo_true_e_o_padrao():
+    historico = [dict(data=date(2026, 8, 1), notas_estilo_adv=[1, 1, 1, 1, 1], favoritismo=0.60, mando="Casa")]
+    com_flag = calcular_pesos_historico(
+        historico, estilo_alvo=[5, 5, 5, 5, 5], favoritismo_alvo=0.60, data_jogo=date(2026, 8, 10), usar_estilo=True
+    )
+    sem_flag = calcular_pesos_historico(
+        historico, estilo_alvo=[5, 5, 5, 5, 5], favoritismo_alvo=0.60, data_jogo=date(2026, 8, 10)
+    )
+    assert com_flag[0]["aderencia_estilo"] == sem_flag[0]["aderencia_estilo"] == 0.0
+
+
 def test_ajuste_mando_mantem_peso_do_mando_alvo_e_encolhe_o_oposto():
     historico = [
         dict(mando="Casa", peso_final=0.8),

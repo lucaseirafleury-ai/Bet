@@ -38,7 +38,7 @@ sessões — complete/corrija o que estiver incompleto ou desatualizado.**
 | `k` (encolhimento de mando) — Copa | 0.35 | ainda "no olho" — Copa é torneio neutro, sem mando; parâmetro pouco relevante lá |
 | `limite_unilateral` (corte outlier) | 4 | testado (3/4/5) na Série A e B, sem diferença mensurável no mercado de gols — ver retrospectivas |
 | `multiplicador_dp` (corte outlier) | 2.5 | testado (2/2.5/3) na Série A e B, diferença dentro do ruído — ver retrospectivas |
-| Filtro de validade (aderência estilo/favoritismo) | ≥65% nos dois | fórmula original do template (Times!O2 etc.) — ainda não retestado |
+| Filtro de validade (aderência estilo/favoritismo) | ≥65% nos dois | testado (0/0.5/0.65/0.8) 24/08/2026 — ver "Teste de ablação do estilo" abaixo. Mantido em 65% |
 
 **Primeira rodada de calibração feita em 24/08/2026** contra a Série A
 (154 jogos, rodada 24/38) e a Série B (156 jogos, rodada 24/38) — ambas
@@ -59,6 +59,27 @@ divergem por liga:**
 
 Tratar as duas como recomendação preliminar (amostra de temporada
 parcial, só mercado de gols validado — não cartões/escanteios/chutes).
+
+## Teste de ablação do estilo (24/08/2026)
+
+Pergunta: o filtro/peso de aderência de estilo (≥65% nos dois, multiplica
+em `peso_final`) está realmente ajudando a prever gols, ou é peso morto?
+Testado isolando o efeito do estilo (`pesos.calcular_pesos_historico(usar_estilo=False)`)
+contra o comportamento padrão, nas duas ligas, variando o limiar do
+filtro — ver `docs/retrospectiva_estilo_2026-08-24.md` para o relatório
+completo.
+
+**Achado: no filtro atual (65%), o estilo é essencialmente indiferente**
+(diferença de ~0.001-0.002 de MAE e 0-0.6pp de acerto, dentro do ruído) —
+nas duas ligas. **Em filtro estrito (80%), o estilo ATRAPALHA**
+(principalmente Série A: MAE piora 0.029, acerto de Over/Under 2.5 cai
+6.5pp). Interpretação: não é que "estilo não importa" — é que os proxies
+atuais (3 das 5 dimensões são proxies mais fracos, ver seção abaixo) não
+estão discriminando bem o suficiente pra fazer diferença nesta amostra.
+**Decisão**: manter `filtro_aderencia=0.65` (sem motivo pra trocar) e
+manter o estilo ativado (não prejudica no filtro usual, só em 80%) — mas
+não tratar como pilar comprovado do modelo até os proxies melhorarem ou o
+teste for refeito nos outros mercados (cartões/escanteios).
 
 ## Notas de estilo — agora automáticas (últimos 5 jogos)
 
@@ -96,9 +117,13 @@ um cache sobrescrito a cada sessão, não mais editado à mão.
 - [x] Rodar a mesma retrospectiva pra Série B (24/08/2026) — sinal misto,
       `k=0.35` mantido (ver relatório acima). Confirmado: não dava pra
       assumir que o achado da Série A valeria lá.
+- [x] Teste de ablação do estilo (24/08/2026) — filtro de 65% mantido,
+      estilo é indiferente nesse nível, atrapalha em 80% (ver acima).
 - [ ] Estender `retrospectiva.py` pra validar os outros 10 indicadores
       Pró/Contra (cartões, escanteios, chutes, chutes no gol, gols 1T) —
-      hoje só gols foi validado, nas duas ligas.
+      hoje só gols foi validado, nas duas ligas. Vale reavaliar o teste de
+      ablação do estilo nesses mercados também (pode importar mais em
+      escanteios, ligado ao "Princípio 5" do protocolo antigo).
 - [ ] Confirmar com Lucas a decisão de zerar o `k` de mando da Série A
       antes de aplicar de vez nas planilhas reais (é recomendação
       preliminar, amostra de temporada parcial).

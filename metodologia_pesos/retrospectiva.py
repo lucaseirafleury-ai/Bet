@@ -36,7 +36,7 @@ STAT_KEY_MAP = {
     "gols_1t_pro": "htf", "gols_1t_contra": "hta",
 }
 
-PARAMS_PADRAO = dict(k_mando=None, filtro_aderencia=0.65, limite_unilateral=4, multiplicador_dp=2.5)
+PARAMS_PADRAO = dict(k_mando=None, filtro_aderencia=0.65, limite_unilateral=4, multiplicador_dp=2.5, usar_estilo=True)
 
 
 def _favoritismo_row(row, is_home):
@@ -92,6 +92,12 @@ def prever_jogo(row, df, params=None, min_jogos_historico=10, min_jogos_estilo=N
     """Prevê Gols Pró/Contra do time da CASA em `row`, usando só jogos
     anteriores à data de `row` (walk-forward). Retorna None quando não há
     dado suficiente (nunca inventa/preenche com placeholder).
+
+    `params["usar_estilo"]` (default `True`, ver `PARAMS_PADRAO`): quando
+    `False`, roda o teste de ablação — calcula estilo normalmente (pra
+    manter EXATAMENTE o mesmo conjunto de jogos avaliados entre as duas
+    condições, condição justa de comparação), mas ignora o resultado no
+    peso/filtro (`pesos.calcular_pesos_historico(usar_estilo=False)`).
     """
     params = {**PARAMS_PADRAO, **(params or {})}
     ts_corte = row["timestamp"]
@@ -117,7 +123,9 @@ def prever_jogo(row, df, params=None, min_jogos_historico=10, min_jogos_estilo=N
         return None
 
     data_jogo = _data_partida(row).date()
-    com_pesos = calcular_pesos_historico(historico_adaptado, estilo_alvo, favoritismo_alvo, data_jogo)
+    com_pesos = calcular_pesos_historico(
+        historico_adaptado, estilo_alvo, favoritismo_alvo, data_jogo, usar_estilo=params["usar_estilo"]
+    )
     if params["k_mando"] is not None:
         com_pesos = ajuste_mando(com_pesos, mando_alvo="Casa", k=params["k_mando"])
 

@@ -61,12 +61,18 @@ def peso_final(aderencia_estilo_, aderencia_favoritismo_, peso_recencia_):
     return aderencia_estilo_ * aderencia_favoritismo_ * peso_recencia_
 
 
-def calcular_pesos_historico(historico, estilo_alvo, favoritismo_alvo, data_jogo):
+def calcular_pesos_historico(historico, estilo_alvo, favoritismo_alvo, data_jogo, usar_estilo=True):
     """Calcula aderência/peso para cada jogo histórico em relação ao jogo-alvo.
 
     `historico`: lista de dicts, um por jogo histórico, cada um com pelo
     menos as chaves `data` (date), `notas_estilo_adv` (5 notas do adversário
     daquele jogo, mesma ordem de `estilo_alvo`) e `favoritismo` (0-1).
+
+    `usar_estilo`: quando `False`, força `aderencia_estilo=1.0` em todo
+    jogo (não calcula a diferença de 5 dimensões) — isola a contribuição
+    do estilo do resto do modelo (`peso_final` vira só
+    `aderência_favoritismo × peso_recência`). Usado pelo teste de ablação
+    em `retrospectiva.py` pra medir se o estilo está de fato ajudando.
 
     Retorna uma NOVA lista (não modifica os dicts originais), cada um com
     `aderencia_estilo`, `aderencia_favoritismo`, `peso_recencia` e
@@ -75,7 +81,7 @@ def calcular_pesos_historico(historico, estilo_alvo, favoritismo_alvo, data_jogo
     resultado = []
     for jogo in historico:
         dias = (data_jogo - jogo["data"]).days
-        ae = aderencia_estilo(jogo["notas_estilo_adv"], estilo_alvo)
+        ae = aderencia_estilo(jogo["notas_estilo_adv"], estilo_alvo) if usar_estilo else 1.0
         af = aderencia_favoritismo(jogo["favoritismo"], favoritismo_alvo)
         pr = peso_recencia(dias)
         pf = peso_final(ae, af, pr)

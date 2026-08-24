@@ -83,6 +83,33 @@ def test_prever_jogo_nunca_olha_o_futuro(df_fabricado):
     assert len(df_sem_futuro) == 11  # exclui a própria linha 11
 
 
+def test_prever_jogo_usar_estilo_false_roda_e_mesmo_conjunto_de_jogos(df_fabricado):
+    ultima_linha = df_fabricado.iloc[11]
+    com_estilo = prever_jogo(
+        ultima_linha, df_fabricado, params=dict(filtro_aderencia=0.0, usar_estilo=True),
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    sem_estilo = prever_jogo(
+        ultima_linha, df_fabricado, params=dict(filtro_aderencia=0.0, usar_estilo=False),
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    assert com_estilo is not None and sem_estilo is not None
+    # mesmo jogo, mesmo histórico disponível -> mesma quantidade de jogos válidos
+    # (o teste de ablação isola o PESO/FILTRO do estilo, não a disponibilidade de dado)
+    assert com_estilo["n_jogos_validos"] == sem_estilo["n_jogos_validos"]
+
+
+def test_rodar_retrospectiva_com_usar_estilo_false_tambem_agrega(df_fabricado):
+    relatorio = rodar_retrospectiva(
+        df_fabricado, params=dict(filtro_aderencia=0.0, usar_estilo=False),
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    assert relatorio["n"] > 0
+    assert relatorio["mae_gols_total"] >= 0
+    assert 0 <= relatorio["acerto_over25"] <= 1
+    assert 0 <= relatorio["acerto_btts"] <= 1
+
+
 def test_rodar_retrospectiva_agrega_metricas_coerentes(df_fabricado):
     relatorio = rodar_retrospectiva(
         df_fabricado, params=dict(filtro_aderencia=0.0),
