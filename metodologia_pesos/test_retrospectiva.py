@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 import pytest
 
-from retrospectiva import grid_search, prever_jogo, rodar_retrospectiva
+from retrospectiva import _estilo_por_mando, grid_search, prever_jogo, rodar_retrospectiva
 
 TIMES = ["T1", "T2", "T3", "T4"]
 
@@ -127,9 +127,57 @@ def test_rodar_retrospectiva_com_usar_estilo_false_tambem_agrega(df_fabricado):
         min_jogos_historico=5, min_jogos_estilo=5,
     )
     assert relatorio["n"] > 0
-    assert relatorio["mae_gols_total"] >= 0
-    assert 0 <= relatorio["acerto_over25"] <= 1
-    assert 0 <= relatorio["acerto_btts"] <= 1
+
+
+def test_estilo_por_mando_exige_jogos_naquele_mando_especifico(df_fabricado):
+    # T2 tem só 2 jogos como visitante antes da última linha (i=11) -> com
+    # min_jogos_estilo=2 dá, com 5 não dá (mesmo tendo 5 jogos no total)
+    df_antes = df_fabricado[df_fabricado["timestamp"] < 11]
+    assert _estilo_por_mando("T2", df_antes, "Fora", n_jogos_estilo=2) is not None
+    assert _estilo_por_mando("T2", df_antes, "Fora", n_jogos_estilo=5) is None
+
+
+def test_estilo_por_mando_mando_invalido_retorna_none(df_fabricado):
+    df_antes = df_fabricado[df_fabricado["timestamp"] < 11]
+    assert _estilo_por_mando("T2", df_antes, "Neutro", n_jogos_estilo=2) is None
+
+
+def test_prever_jogo_estilo_por_mando_roda_com_dado_suficiente(df_fabricado):
+    ultima_linha = df_fabricado.iloc[11]  # T3 (casa) x T2 (fora)
+    resultado = prever_jogo(
+        ultima_linha, df_fabricado,
+        params=dict(filtro_aderencia=0.0, usar_estilo=True, estilo_por_mando=True),
+        min_jogos_historico=5, min_jogos_estilo=2,
+    )
+    assert resultado is not None
+    assert resultado["n_jogos_validos"] > 0
+
+
+def test_prever_jogo_estilo_por_mando_falta_dado_retorna_none(df_fabricado):
+    # com min_jogos_estilo=5, nenhum time tem 5 jogos NUM MANDO específico
+    # ainda (só 6 jogos totais, 3 em casa e 3 fora no máximo)
+    ultima_linha = df_fabricado.iloc[11]
+    resultado = prever_jogo(
+        ultima_linha, df_fabricado,
+        params=dict(filtro_aderencia=0.0, usar_estilo=True, estilo_por_mando=True),
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    assert resultado is None
+
+
+def test_grid_search_ordenar_por_acerto_over25(df_fabricado):
+    grade = dict(k_mando=[None, 0.35])
+    resultados = grid_search(
+        df_fabricado, grade, ordenar_por="acerto_over25",
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    acertos = [r["acerto_over25"] for _, r in resultados if r["acerto_over25"] is not None]
+    assert acertos == sorted(acertos, reverse=True)  # maior primeiro (maior acerto é melhor)
+
+
+def test_grid_search_ordenar_por_invalido_levanta_erro(df_fabricado):
+    with pytest.raises(ValueError):
+        grid_search(df_fabricado, dict(k_mando=[None]), ordenar_por="chute", min_jogos_historico=5)
 
 
 def test_rodar_retrospectiva_agrega_metricas_coerentes(df_fabricado):

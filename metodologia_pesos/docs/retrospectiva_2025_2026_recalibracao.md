@@ -86,6 +86,27 @@ ser ruim é o único que se replicou com força nas duas rodadas.
 - **`filtro_aderencia=0.65`**: mantido, é o único parâmetro com evidência
   replicada e consistente (0.8 é ruim, resto é parecido).
 
+## Addendum — mesmo grid, reordenado por Over/Under 2.5 (prioridade do Lucas)
+
+Reordenando as mesmas 48 combinações por `acerto_over25` em vez de MAE:
+
+- **Série A**: topo é `k=None/1.0, estilo=False, filtro=0.8` (51.78%),
+  colado com `k=0.35, estilo=False, filtro=0.65` (51.77%) e depois
+  `k=0.5, estilo=False` (50.79%). Todos os top-10 ficam entre 50.4-51.8%.
+- **Série B**: topo é `k=0.5, estilo=False, filtro=0.8` (57.43%), com o
+  valor atual (`k=0.35, estilo=True, filtro=0.65`) na 7ª posição (56.71%)
+  — só 0.7pp atrás do topo.
+
+**Não recomendo trocar pra essas combinações "vencedoras" diretamente.**
+Com 48 combinações testadas na mesma amostra, escolher a célula literal
+de maior valor é um problema clássico de comparação múltipla — boa parte
+dessas diferenças de <1-2pp entre os top-10 é ruído, não sinal real.
+Reforça o mesmo ponto do corpo do relatório: nenhum valor de `k_mando`
+está "resolvido" ainda. Vale como mapa de onde NÃO ficar (filtro=0.8 sem
+o ajuste certo de estilo tende a aparecer nos extremos de ambas as
+direções, o que por si só é sinal de instabilidade) mais do que como
+indicação de pra onde ir.
+
 ## Limitações
 
 Mesmo 2025 completo, ainda é 1 temporada e meia por liga — bom avanço em

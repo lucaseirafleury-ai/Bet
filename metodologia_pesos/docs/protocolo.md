@@ -38,6 +38,8 @@ sessões — complete/corrija o que estiver incompleto ou desatualizado.**
 | `k` (encolhimento de mando) — Copa | 0.35 | ainda "no olho" — Copa é torneio neutro, sem mando; parâmetro pouco relevante lá |
 | `limite_unilateral` (corte outlier) | 4 | testado (3/4/5) na Série A e B, sem diferença mensurável no mercado de gols — ver retrospectivas |
 | `multiplicador_dp` (corte outlier) | 2.5 | testado (2/2.5/3) na Série A e B, diferença dentro do ruído — ver retrospectivas |
+| `estilo_por_mando` (estilo casa≠fora) — **Série A** | **`True` (ligado)**, 24/08/2026 | testado — melhora Over/Under 2.5 e BTTS. Ver "Estilo por mando" abaixo |
+| `estilo_por_mando` (estilo casa≠fora) — **Série B** | **`False` (desligado)**, 24/08/2026 | testado — piora Over/Under 2.5 aqui, mesmo melhorando MAE/BTTS. Ver abaixo |
 | Filtro de validade (aderência estilo/favoritismo) | ≥65% nos dois | testado (0/0.5/0.65/0.8) em 2 rodadas (154-156 jogos e depois 492-508) — único achado que se REPLICOU com força: 0.8 é ruim, resto é parecido. Mantido em 65% |
 
 **⚠️ Recalibração com amostra ampliada (24/08/2026, mesmo dia) — ver
@@ -96,6 +98,34 @@ ligas) — ver `docs/retrospectiva_2025_2026_recalibracao.md`. Ainda pequeno
 demais pra justificar desligar o estilo, mas a direção do efeito ficou
 mais confiável (era ruído puro antes; agora é um viés fraco e replicado).
 
+## Estilo por mando — casa ≠ fora (24/08/2026)
+
+Antes de desistir do estilo, testei a hipótese do Lucas: muitos times
+jogam diferente em casa vs fora — misturar os últimos 5 jogos (qualquer
+mando) pode estar diluindo um sinal real. Implementado
+`_estilo_por_mando()` em `retrospectiva.py` (parâmetro
+`estilo_por_mando=True`): calcula o estilo de cada time só com os
+últimos 5 jogos NAQUELE mando específico (o alvo de hoje e cada
+adversário do histórico, respeitando o mando que tinham em cada
+confronto). Métrica priorizada pelo Lucas: **acerto de Over/Under 2.5**
+(não MAE). Ver `docs/retrospectiva_estilo_por_mando_2026-08-24.md`.
+
+**Resultado: ajuda na Série A, atrapalha na Série B** (mesmo padrão de
+divergência entre ligas já visto no `k_mando`):
+- **Série A**: estilo por mando é a MELHOR das 3 opções (sem estilo /
+  estilo misto / estilo por mando) tanto em Over/Under 2.5 (50.62% vs
+  50.20% sem estilo vs 49.61% misto) quanto em BTTS. **Decisão: ligar
+  `estilo_por_mando=True` na Série A.**
+- **Série B**: estilo por mando é a PIOR opção em Over/Under 2.5 (55.02%
+  vs 56.71% do estilo misto atual, que continua sendo o melhor aqui) —
+  apesar de vencer em MAE de gols e BTTS. **Decisão: manter
+  `estilo_por_mando=False` (estilo misto) na Série B.**
+
+Custo: estilo por mando exige mais dado (5 jogos NAQUELE mando
+específico) — avalia ~5-7% menos jogos. As amostras comparadas não são
+idênticas entre os 3 cenários por causa disso (ver limitações no
+relatório) — tratar como sinal real mas não definitivo.
+
 ## Notas de estilo — agora automáticas (últimos 5 jogos)
 
 Desde a consolidação em `estilo.py`, as 5 notas de estilo por time
@@ -148,10 +178,18 @@ um cache sobrescrito a cada sessão, não mais editado à mão.
       subiu 2025 completo) — 3.3x mais jogos avaliados. O achado "zerar
       k na Série A" NÃO se sustentou; virou platô raso sem vencedor claro
       nas duas ligas. Ver `docs/retrospectiva_2025_2026_recalibracao.md`.
-- [ ] Não tratar `k_mando` como resolvido em nenhuma liga — se quiser
-      decidir um valor único (em vez de manter os atuais "razoáveis
-      dentro do platô"), definir com Lucas se prioriza MAE de gols ou
-      acerto de Over/Under 2.5 (apontam em direções opostas).
+- [x] Lucas definiu: **prioridade é acerto de Over/Under**, não MAE de
+      gols (24/08/2026) — `grid_search` ganhou `ordenar_por` pra refletir
+      isso. Ainda não re-rodei o grid completo de `k_mando` já ordenando
+      por Over/Under 2.5 (só a comparação de estilo por mando usou essa
+      prioridade até agora) — próximo passo natural.
+- [x] Testado "estilo por mando" (casa≠fora) antes de descartar estilo de
+      vez (24/08/2026, pedido do Lucas) — ajuda a Série A, atrapalha a
+      Série B. `estilo_por_mando=True` ligado na Série A, `False` mantido
+      na Série B. Ver "Estilo por mando" acima.
+- [ ] Rodar o grid search completo de `k_mando`/`limite_unilateral`/
+      `multiplicador_dp` ordenado por `acerto_over25` (não só MAE) nas
+      duas ligas — o grid de 24/08 ainda ordenava por MAE por padrão.
 - [ ] Rodar o grid search de `k_mando`/outlier também pros outros 11
       mercados (hoje só gols foi calibrado com grid; os outros só têm MAE
       baseline + ablação de estilo).

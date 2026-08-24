@@ -36,7 +36,12 @@ STAT_KEY_MAP = {
     "gols_1t_pro": "htf", "gols_1t_contra": "hta",
 }
 
-PARAMS_PADRAO = dict(k_mando=None, filtro_aderencia=0.65, limite_unilateral=4, multiplicador_dp=2.5, usar_estilo=True)
+PARAMS_PADRAO = dict(
+    k_mando=None, filtro_aderencia=0.65, limite_unilateral=4, multiplicador_dp=2.5,
+    usar_estilo=True, estilo_por_mando=False,
+)
+
+_MANDO_OPOSTO = {"Casa": "Fora", "Fora": "Casa"}
 
 # mapeia campo -> colunas do CSV que dão o valor REAL do mercado no jogo
 # sendo avaliado (perspectiva do time da CASA, que é quem prever_jogo prevê)
@@ -83,21 +88,56 @@ def _estilo_vetor(notas):
     return [notas["bb"], notas["pa"], notas["tr"], notas["pos"], notas["bp"]]
 
 
-def _adaptar_historico(hist, df_antes, estilo_cache, n_jogos_estilo):
+def _estilo_por_mando(team, df_antes, mando, n_jogos_estilo):
+    """Estilo do time calculado SÓ com os últimos `n_jogos_estilo` jogos no
+    mesmo mando (só jogos em casa, ou só jogos fora) — hipótese: muitos
+    times jogam diferente em casa vs fora, misturar os dois (como
+    `calcular_notas_estilo` normal faz) pode diluir esse sinal.
+
+    Retorna None se o time não tem jogos suficientes NAQUELE mando
+    específico antes do corte (não inventa dado — é uma exigência mais
+    forte que a versão sem split, então espera-se mais jogos pulados).
+    """
+    if mando == "Casa":
+        sub_df = df_antes[df_antes["home_team_name"] == team]
+    elif mando == "Fora":
+        sub_df = df_antes[df_antes["away_team_name"] == team]
+    else:
+        return None
+    jogos = get_historico(team, sub_df, n=n_jogos_estilo)
+    if len(jogos) < n_jogos_estilo:
+        return None
+    return calcular_notas_estilo(jogos)
+
+
+def _adaptar_historico(hist, df_antes, estilo_cache, n_jogos_estilo, estilo_por_mando=False):
     """Converte a saída de `get_historico` (chaves gf/ga/cf/...) no formato
     que `pesos.calcular_pesos_historico` espera (data, mando,
     notas_estilo_adv, favoritismo, + campos de estatística renomeados).
 
     Descarta jogos cujo adversário ainda não tem `n_jogos_estilo` partidas
     anteriores suficientes para calcular estilo (não inventa dado).
+
+    `estilo_por_mando`: quando `True`, a nota do adversário é calculada só
+    com os jogos dele no mando OPOSTO ao de `rec["mando"]` — porque se o
+    time da linha jogou em casa naquele jogo histórico (`rec["mando"] ==
+    "Casa"`), o adversário jogou fora, então usamos o estilo do adversário
+    JOGANDO FORA (mais fiel ao que ele realmente fez naquele confronto).
     """
     adaptado = []
     for rec in hist:
         adv = rec["adv"]
-        if adv not in estilo_cache:
-            hist_adv = get_historico(adv, df_antes, n=n_jogos_estilo)
-            estilo_cache[adv] = calcular_notas_estilo(hist_adv) if len(hist_adv) >= n_jogos_estilo else None
-        notas_adv = estilo_cache[adv]
+        if estilo_por_mando:
+            mando_adv = _MANDO_OPOSTO.get(rec["mando"])
+            cache_key = (adv, mando_adv)
+            if cache_key not in estilo_cache:
+                estilo_cache[cache_key] = _estilo_por_mando(adv, df_antes, mando_adv, n_jogos_estilo) if mando_adv else None
+            notas_adv = estilo_cache[cache_key]
+        else:
+            if adv not in estilo_cache:
+                hist_adv = get_historico(adv, df_antes, n=n_jogos_estilo)
+                estilo_cache[adv] = calcular_notas_estilo(hist_adv) if len(hist_adv) >= n_jogos_estilo else None
+            notas_adv = estilo_cache[adv]
         if notas_adv is None or rec.get("fav") is None:
             continue
         item = dict(
@@ -122,6 +162,11 @@ def prever_jogo(row, df, params=None, min_jogos_historico=10, min_jogos_estilo=N
     manter EXATAMENTE o mesmo conjunto de jogos avaliados entre as duas
     condições, condição justa de comparação), mas ignora o resultado no
     peso/filtro (`pesos.calcular_pesos_historico(usar_estilo=False)`).
+
+    `params["estilo_por_mando"]` (default `False`): quando `True`, o
+    estilo de cada time (o alvo de hoje E cada adversário histórico) é
+    calculado só com os jogos NO MESMO MANDO que ele jogou/vai jogar
+    naquele confronto específico — ver `_estilo_por_mando`.
     """
     params = {**PARAMS_PADRAO, **(params or {})}
     ts_corte = row["timestamp"]
@@ -132,17 +177,26 @@ def prever_jogo(row, df, params=None, min_jogos_historico=10, min_jogos_estilo=N
     if len(hist_home) < min_jogos_historico:
         return None
 
-    hist_estilo_away = get_historico(away, df_antes, n=min_jogos_estilo)
-    if len(hist_estilo_away) < min_jogos_estilo:
-        return None
-    estilo_alvo = _estilo_vetor(calcular_notas_estilo(hist_estilo_away))
+    if params["estilo_por_mando"]:
+        # o time visitante joga FORA hoje -> usar o estilo dele jogando fora
+        notas_alvo = _estilo_por_mando(away, df_antes, "Fora", min_jogos_estilo)
+        if notas_alvo is None:
+            return None
+        estilo_alvo = _estilo_vetor(notas_alvo)
+    else:
+        hist_estilo_away = get_historico(away, df_antes, n=min_jogos_estilo)
+        if len(hist_estilo_away) < min_jogos_estilo:
+            return None
+        estilo_alvo = _estilo_vetor(calcular_notas_estilo(hist_estilo_away))
 
     favoritismo_alvo = _favoritismo_row(row, is_home=True)
     if favoritismo_alvo is None:
         return None
 
     estilo_cache = {}
-    historico_adaptado = _adaptar_historico(hist_home, df_antes, estilo_cache, min_jogos_estilo)
+    historico_adaptado = _adaptar_historico(
+        hist_home, df_antes, estilo_cache, min_jogos_estilo, estilo_por_mando=params["estilo_por_mando"]
+    )
     if not historico_adaptado:
         return None
 
@@ -235,11 +289,17 @@ def rodar_retrospectiva(df, params=None, min_jogos_historico=10, min_jogos_estil
     )
 
 
-def grid_search(df, grade_parametros, **kwargs):
+def grid_search(df, grade_parametros, ordenar_por="mae_gols_total", **kwargs):
     """Roda `rodar_retrospectiva` para cada combinação de
     `grade_parametros` (dict {nome: [valores]}) e retorna
-    `[(params, relatorio), ...]` ordenado do menor pro maior
-    `mae_gols_total` (combinações sem jogos avaliados ficam no fim).
+    `[(params, relatorio), ...]` ordenado do MELHOR pro PIOR segundo
+    `ordenar_por` (combinações sem jogos avaliados ficam no fim).
+
+    `ordenar_por`: `"mae_gols_total"` (menor é melhor, default) ou
+    `"acerto_over25"`/`"acerto_btts"` (maior é melhor) — use o segundo
+    quando o que importa é acertar a linha de aposta, não o placar exato
+    (MAE e acerto de Over/Under podem apontar em direções opostas — ver
+    `docs/retrospectiva_2025_2026_recalibracao.md`).
 
     Custo: uma passada completa de `rodar_retrospectiva` por combinação —
     use `max_jogos_avaliados` (via kwargs) para limitar o custo em
@@ -251,5 +311,11 @@ def grid_search(df, grade_parametros, **kwargs):
         params = dict(zip(nomes, combo))
         relatorio = rodar_retrospectiva(df, params=params, **kwargs)
         resultados.append((params, relatorio))
-    resultados.sort(key=lambda par: (par[1]["mae_gols_total"] is None, par[1]["mae_gols_total"]))
+
+    if ordenar_por == "mae_gols_total":
+        resultados.sort(key=lambda par: (par[1]["mae_gols_total"] is None, par[1]["mae_gols_total"]))
+    elif ordenar_por in ("acerto_over25", "acerto_btts"):
+        resultados.sort(key=lambda par: (par[1][ordenar_por] is None, -(par[1][ordenar_por] or 0)))
+    else:
+        raise ValueError(f"ordenar_por inválido: {ordenar_por!r}")
     return resultados
