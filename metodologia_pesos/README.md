@@ -31,10 +31,32 @@ test_excel_writer.py → teste de integração: monta uma planilha real com
                        histórico fabricado e confere que os valores saem
                        numéricos e corretos, sem depender de LibreOffice/
                        Excel avaliar fórmula nenhuma.
+estilo.py             → calcula as 5 notas de estilo (1-5) automaticamente a
+                       partir dos últimos N jogos de um time (padrão 5),
+                       usando parâmetros pré-definidos e documentados —
+                       substitui a atribuição manual/qualitativa. Duas
+                       dimensões (Posse, Bloco Baixo) usam dado direto do
+                       CSV; as outras três (Pressão Alta, Transição, Bola
+                       Parada) usam proxies estatísticos mais fracos,
+                       documentados em cada função. `atualizar_banco_estilo`
+                       recalcula e SOBRESCREVE o cache JSON (estilos_*.json)
+                       a cada chamada.
+test_estilo.py        → testes unitários do cálculo de estilo (21 casos).
+retrospectiva.py       → validação walk-forward: para cada jogo do
+                       histórico, monta o cenário só com dados anteriores a
+                       ele (sem look-ahead), roda o motor de pesos e compara
+                       a previsão com o placar real. Usado pra calibrar os
+                       parâmetros livres (k do mando, corte de outlier) sem
+                       depender do Tips_telegram.xlsx. Inclui `grid_search`
+                       pra comparar combinações de parâmetros pelo erro
+                       médio (MAE) de gols e acerto de Over/Under 2.5 e BTTS.
+test_retrospectiva.py  → teste de integração com dataset fabricado (não
+                       depende dos CSVs reais, que só chegam com o upload).
 planilha_lib.py      → mecânica de planilha (CSV, clonagem de fórmula,
                        build_workbook) — migrada de
                        ~/.claude/skills/synced/copa-planilha-dia/scripts/.
-data/estilos_selecoes.json → banco de estilo tático por seleção (Copa).
+data/estilos_selecoes.json → cache de estilo tático por seleção/time,
+                       sobrescrito a cada sessão por `atualizar_banco_estilo`.
 templates/Copa_Template_Simplificado.xlsx → template-base das planilhas.
 docs/                → protocolo e critérios de aposta persistentes
                        (antes viviam em pasta efêmera /mnt/user-data/outputs/).
@@ -68,13 +90,32 @@ mesmo se aberto só com `recalc.py`/LibreOffice — elimina os avisos de
 `#VALUE!`/fallback do LET que o protocolo antigo tinha que repetir a cada
 entrega.
 
-## O que ainda falta (ver plano da sessão que criou isto)
+### Estilo automático + validação retrospectiva
 
-- **Calibração estatística dos parâmetros** (decaimento de recência, `k`
-  do mando, corte de outlier) contra resultado real — depende de acesso a
-  `Tips_telegram.xlsx` (hoje só existe localmente no Windows do Lucas, fora
-  desta sessão).
-- **Banco de estilo da Série A** (`data/estilos_seriea.json`) — ainda não
-  existe, precisa ser criado/preenchido incrementalmente como os outros.
-- **Skill `serie-a-planilha-dia`** apontando para este motor em vez da
-  fórmula em prosa.
+```python
+from estilo import atualizar_banco_estilo
+from retrospectiva import rodar_retrospectiva, grid_search
+
+# recalcula e sobrescreve o cache de estilo de vários times, últimos 5 jogos:
+times = {t: get_historico(t, df, n=5) for t in nomes_dos_times}
+atualizar_banco_estilo(times, estilo_db_path="data/estilos_seriea.json", n=5)
+
+# valida o modelo contra os placares reais já presentes nos CSVs (walk-forward):
+relatorio = rodar_retrospectiva(df, min_jogos_historico=10)
+print(relatorio["n"], relatorio["mae_gols_total"], relatorio["acerto_over25"], relatorio["acerto_btts"])
+
+# compara combinações de parâmetros pra achar a que mais acerta nesse histórico:
+grade = dict(k_mando=[None, 0.2, 0.35, 0.5], limite_unilateral=[3, 4, 5], multiplicador_dp=[2, 2.5, 3])
+melhores = grid_search(df, grade, min_jogos_historico=10)
+print(melhores[0])  # (params, relatorio) com o menor mae_gols_total
+```
+
+## O que ainda falta
+
+- **Rodar a retrospectiva com os CSVs reais** do Lucas (Série A/B) — o
+  pipeline está pronto e testado com dataset fabricado, mas a validação/
+  calibração de verdade só acontece com o upload dos CSVs do FootyStats.
+- Os proxies de Pressão Alta/Transição/Bola Parada em `estilo.py` são
+  heurísticas limitadas ao que o CSV padrão do FootyStats traz — podem ser
+  refinadas depois com dado mais rico (PPDA, passes no terço final etc.) ou
+  recalibradas com o próprio `grid_search` da retrospectiva.

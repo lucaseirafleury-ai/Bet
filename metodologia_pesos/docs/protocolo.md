@@ -39,8 +39,24 @@ sessões — complete/corrija o que estiver incompleto ou desatualizado.**
 | Filtro de validade (aderência estilo/favoritismo) | ≥65% nos dois | fórmula original do template (Times!O2 etc.) |
 
 **Nenhum desses parâmetros foi calibrado estatisticamente contra resultado
-real ainda** — é o principal item da etapa de calibração (ver
-`metodologia_pesos/README.md`, seção "o que ainda falta").
+real ainda** — o pipeline de calibração (`retrospectiva.py`) já está pronto
+e testado, falta só rodar contra os CSVs reais que Lucas vai subir (ver
+`metodologia_pesos/README.md`, seção "o que ainda falta"). A validação usa
+os próprios placares dos CSVs do FootyStats (walk-forward), não depende
+mais do `Tips_telegram.xlsx`.
+
+## Notas de estilo — agora automáticas (últimos 5 jogos)
+
+Desde a consolidação em `estilo.py`, as 5 notas de estilo por time
+(Bloco Baixo, Pressão Alta, Transição, Posse, Bola Parada) deixaram de ser
+julgamento qualitativo e passaram a ser calculadas a partir dos últimos 5
+jogos de cada time, com parâmetros pré-definidos e documentados no próprio
+arquivo. Duas dimensões (Posse, Bloco Baixo) usam dado direto do CSV do
+FootyStats; as outras três (Pressão Alta, Transição, Bola Parada) usam
+proxies estatísticos mais fracos (não há métrica direta de pressão/
+transição/bola parada no CSV padrão) — sinalizar essa diferença de
+confiança sempre que relevante. O banco JSON (`data/estilos_*.json`) virou
+um cache sobrescrito a cada sessão, não mais editado à mão.
 
 ## Ligas cobertas hoje
 
@@ -57,5 +73,7 @@ real ainda** — é o principal item da etapa de calibração (ver
       sessões anteriores que não foram recuperadas nesta consolidação).
 - [ ] Confirmar se as regras "não usar odds de memória" / "máx 47% da
       banca" valem igual pra Série A ou se há ajuste por liga.
-- [ ] Definir de onde vem `Tips_telegram.xlsx` de forma acessível a
-      qualquer sessão (hoje só existe localmente no Windows do Lucas).
+- [ ] Rodar `retrospectiva.rodar_retrospectiva`/`grid_search` com os CSVs
+      reais da Série A/B assim que Lucas subir, e atualizar a tabela de
+      parâmetros acima com "validado por retrospectiva" + os valores
+      recomendados.
