@@ -30,35 +30,50 @@ sessões — complete/corrija o que estiver incompleto ou desatualizado.**
 
 ## Parâmetros do motor de pesos (ver `metodologia_pesos/pesos.py`)
 
-| Parâmetro | Valor atual | Origem |
-|---|---|---|
-| Decaimento de recência | 100%/85%/70%/50%/30%/15%/0% em ≤10/20/30/45/90/180/>180 dias | fórmula original do template (Times!AI) — ainda não retestado |
-| `k` (encolhimento de mando) — **Série A** | **Sem valor "validado"** — mantido sem ajuste (k=1.0) por ser razoável dentro do platô, não porque vença claramente | ver "Recalibração com amostra ampliada" abaixo — a versão anterior desta linha (k=1.0 "vencedor claro") não se sustentou com mais dado |
-| `k` (encolhimento de mando) — **Série B** | **Sem valor "validado"** — mantido em 0.35 por ser razoável dentro do platô, não porque vença claramente | idem — ver abaixo |
-| `k` (encolhimento de mando) — Copa | 0.35 | ainda "no olho" — Copa é torneio neutro, sem mando; parâmetro pouco relevante lá |
-| `limite_unilateral` (corte outlier) | 4 | testado (3/4/5) na Série A e B, sem diferença mensurável no mercado de gols — ver retrospectivas |
-| `multiplicador_dp` (corte outlier) | 2.5 | testado (2/2.5/3) na Série A e B, diferença dentro do ruído — ver retrospectivas |
-| `estilo_por_mando` (estilo casa≠fora) — **Série A** | **`True` (ligado)**, 24/08/2026 | testado — melhora Over/Under 2.5 e BTTS. Ver "Estilo por mando" abaixo |
-| `estilo_por_mando` (estilo casa≠fora) — **Série B** | **`False` (desligado)**, 24/08/2026 | testado — piora Over/Under 2.5 aqui, mesmo melhorando MAE/BTTS. Ver abaixo |
-| Filtro de validade (aderência estilo/favoritismo) | ≥65% nos dois | testado (0/0.5/0.65/0.8) em 2 rodadas (154-156 jogos e depois 492-508) — único achado que se REPLICOU com força: 0.8 é ruim, resto é parecido. Mantido em 65% |
+| Parâmetro | Série A | Série B | Origem |
+|---|---|---|---|
+| Decaimento de recência | 100%/85%/70%/50%/30%/15%/0% em ≤10/20/30/45/90/180/>180 dias (as duas ligas) | | fórmula original do template — ainda não retestado |
+| `k` (encolhimento de mando) | Sem ajuste (`None`) | **0.5** | **validado por holdout 2025→2026** — ver "Validação fora-da-amostra" abaixo |
+| `usar_estilo` | `True` | **`False`** | idem |
+| `filtro_aderencia` | 0.65 | **0.8** | idem — na Série B contraria o achado anterior baseado em MAE; aqui a evidência é de holdout real em Over/Under 2.5 |
+| `estilo_por_mando` (estilo casa≠fora) | `True` (ligado) | `False` (desligado) | testado em amostra única (não holdout ainda) — ver "Estilo por mando" abaixo |
+| `limite_unilateral` (corte outlier) | 4 | 4 | sem diferença mensurável, não testado em holdout |
+| `multiplicador_dp` (corte outlier) | 2.5 | 2.5 | idem |
+| `k` (Copa) | 0.35 | | ainda "no olho" — torneio neutro, parâmetro pouco relevante |
 
-**⚠️ Recalibração com amostra ampliada (24/08/2026, mesmo dia) — ver
-`docs/retrospectiva_2025_2026_recalibracao.md`.** A primeira rodada de
-calibração (contra só 154-156 jogos de 2026 parcial) tinha concluído que
-"zerar o mando na Série A vence nas 3 métricas de forma clara". Depois de
-Lucas subir a temporada 2025 completa (380 jogos/liga), a mesma
-recalibração rodou contra 492-508 jogos (3.3x mais dado) — **e essa
-conclusão não se sustentou**: com mais dado, a diferença entre k=0.5/0.7/
-None fica dentro de 1-2% (ruído), nas duas ligas, e MAE de gols aponta
-numa direção enquanto acerto de Over/Under 2.5 aponta na oposta. Ou seja,
-a conclusão "confiante" da rodada anterior era, em boa parte, artefato de
-amostra pequena. **Lição prática**: tratar qualquer achado baseado em
-\<200 jogos como preliminar até re-testar com mais dado — o que já
-aconteceu aqui uma vez.
+**⚠️ Validação fora-da-amostra (24/08/2026) — ver
+`docs/retrospectiva_holdout_2026-08-24.md`, é a evidência mais forte que
+temos até agora, supera as rodadas anteriores.** Metodologia: escolher
+parâmetros olhando só pra 2025 (treino) e medir o resultado real numa
+temporada que a escolha nunca viu, 2026 (holdout) — resolve o problema de
+comparação múltipla das rodadas anteriores (pegar o "vencedor" de um
+grid grande na MESMA amostra onde foi medido não prova nada).
+
+**Achado principal: as duas ligas se comportam de forma oposta.**
+- **Série A**: o melhor resultado no TREINO (52.7% de acerto Over/Under
+  2.5) virou o PIOR no HOLDOUT (44.0%, pior que cara-ou-coroa). Não há
+  correlação confiável entre "ganhar no treino" e "generalizar" — com o
+  volume de dado atual (~300 jogos de treino), ajuste fino de parâmetro
+  nesta liga é mais perto de adivinhação do que calibração. **Por isso os
+  valores da Série A continuam "neutros"/sem ajuste — não porque sejam
+  comprovadamente ótimos, mas porque nada testado se provou melhor de
+  forma confiável.**
+- **Série B**: os 8 melhores candidatos do treino generalizam bem no
+  holdout (todos entre 54.7-59.2%, vários até melhoram). O melhor
+  resultado do HOLDOUT (`k=0.5, sem estilo, filtro=0.8` → 59.2%) é
+  próximo do topo do treino — sinal real, não sorte de amostra. **Por
+  isso a Série B teve os 3 parâmetros acima efetivamente alterados.**
+
+Isso não significa que a Série B "resolveu" o problema pra sempre — é a
+melhor estimativa disponível com 1 temporada de treino, não uma prova
+definitiva. E não significa que a Série A é "pior" — pode ser só menos
+previsível mesmo (mais zebra), ou precisar de mais dado ainda.
 
 O `k_mando`/ablação de estilo foram recalibrados olhando só o mercado de
 gols — os outros 11 mercados (ver seção de ablação abaixo) têm MAE
-calculado mas não passaram por esse mesmo grid search ainda.
+calculado mas não passaram por esse mesmo processo de treino/holdout.
+`estilo_por_mando` também não foi re-testado em holdout ainda (fica pro
+próximo passo).
 
 ## Teste de ablação do estilo (24/08/2026)
 
@@ -146,12 +161,13 @@ um cache sobrescrito a cada sessão, não mais editado à mão.
   (2.3/jogo), liga mais faltosa (5.37 cartões/jogo), tem props de jogador.
   Dados reais em `data/footystats_serieb/` (2026 parcial) +
   `data/footystats_serieb_2025/` (temporada completa) — 492 jogos
-  avaliáveis combinados. `k=0.35` mantido, sem ser "vencedor claro" (ver
-  recalibração acima).
+  avaliáveis combinados. `k=0.5, usar_estilo=False, filtro=0.8`,
+  validado por holdout 2025→2026 (ver "Validação fora-da-amostra" acima).
 - **Série A**: dados reais em `data/footystats_seriea/` (2026 parcial) +
   `data/footystats_seriea_2025/` (temporada completa) — 508 jogos
-  avaliáveis combinados. `k` sem ajuste mantido, sem ser "vencedor claro"
-  (ver recalibração acima).
+  avaliáveis combinados. Mantida em valores neutros (sem ajuste de mando,
+  `filtro=0.65`) — o holdout mostrou que ajuste fino aqui não generaliza
+  ainda (ver acima).
 
 ## TODO (preencher com Lucas)
 
@@ -187,12 +203,21 @@ um cache sobrescrito a cada sessão, não mais editado à mão.
       vez (24/08/2026, pedido do Lucas) — ajuda a Série A, atrapalha a
       Série B. `estilo_por_mando=True` ligado na Série A, `False` mantido
       na Série B. Ver "Estilo por mando" acima.
-- [ ] Rodar o grid search completo de `k_mando`/`limite_unilateral`/
-      `multiplicador_dp` ordenado por `acerto_over25` (não só MAE) nas
-      duas ligas — o grid de 24/08 ainda ordenava por MAE por padrão.
+- [x] Rodar validação fora-da-amostra (treino 2025 / holdout 2026) pra
+      resolver o problema de comparação múltipla (24/08/2026) —
+      `timestamp_minimo` em `rodar_retrospectiva`. Achado: Série A não
+      generaliza (melhor do treino virou pior do holdout), Série B
+      generaliza bem. Parâmetros da Série B atualizados com base nisso
+      (`k=0.5, usar_estilo=False, filtro=0.8`); Série A mantida neutra.
+      Ver `docs/retrospectiva_holdout_2026-08-24.md`.
+- [ ] Re-testar `estilo_por_mando` com o mesmo desenho de holdout
+      (treino 2025 / teste 2026) — foi decidido numa comparação única,
+      sem holdout, mesmo risco de comparação múltipla que já derrubou o
+      achado antigo de `k_mando`.
 - [ ] Rodar o grid search de `k_mando`/outlier também pros outros 11
-      mercados (hoje só gols foi calibrado com grid; os outros só têm MAE
-      baseline + ablação de estilo).
-- [ ] Quando surgir mais uma temporada/rodada de dado, repetir de novo —
-      o padrão "achado muda com mais dado" já se confirmou uma vez, vale
-      manter a guarda alta antes de fixar qualquer parâmetro de vez.
+      mercados (hoje só gols foi calibrado, e só com holdout na Série B).
+- [ ] Quando surgir mais uma temporada/rodada de dado (2024? mais de
+      2026?), repetir o treino/holdout de novo — principalmente pra
+      Série A, que precisa de mais dado antes de qualquer ajuste fino
+      valer a pena, e pra confirmar se o achado da Série B se mantém
+      numa 3ª temporada (1 holdout não é prova definitiva).
