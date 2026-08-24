@@ -34,23 +34,31 @@ sessões — complete/corrija o que estiver incompleto ou desatualizado.**
 |---|---|---|
 | Decaimento de recência | 100%/85%/70%/50%/30%/15%/0% em ≤10/20/30/45/90/180/>180 dias | fórmula original do template (Times!AI) — ainda não retestado |
 | `k` (encolhimento de mando) — **Série A** | **Nenhum ajuste (k=1.0)**, revisado 24/08/2026 | validado por retrospectiva — ver abaixo. Era 0.35 "no olho" |
-| `k` (encolhimento de mando) — Série B/Copa | 0.35 | ainda "no olho" — Série B não testada separadamente ainda |
-| `limite_unilateral` (corte outlier) | 4 | testado (3/4/5) na Série A, sem diferença mensurável no mercado de gols — ver retrospectiva |
-| `multiplicador_dp` (corte outlier) | 2.5 | testado (2/2.5/3) na Série A, diferença dentro do ruído — ver retrospectiva |
+| `k` (encolhimento de mando) — **Série B** | **Mantido em 0.35**, confirmado 24/08/2026 | validado por retrospectiva — melhor ou quase melhor nos mercados derivados (ver abaixo) |
+| `k` (encolhimento de mando) — Copa | 0.35 | ainda "no olho" — Copa é torneio neutro, sem mando; parâmetro pouco relevante lá |
+| `limite_unilateral` (corte outlier) | 4 | testado (3/4/5) na Série A e B, sem diferença mensurável no mercado de gols — ver retrospectivas |
+| `multiplicador_dp` (corte outlier) | 2.5 | testado (2/2.5/3) na Série A e B, diferença dentro do ruído — ver retrospectivas |
 | Filtro de validade (aderência estilo/favoritismo) | ≥65% nos dois | fórmula original do template (Times!O2 etc.) — ainda não retestado |
 
-**Primeira rodada de calibração feita em 24/08/2026** contra 154 jogos da
-Série A 2026 (rodada 24/38, temporada ainda em andamento) — ver
-`metodologia_pesos/docs/retrospectiva_2026-08-24_seriea.md` para o
-relatório completo. Achado principal: **o ajuste de mando piorou o modelo
-nesta base** (quanto mais forte o encolhimento, pior o MAE de gols e o
-acerto de Over/Under 2.5 e BTTS, de forma consistente) — por isso o `k` da
-Série A foi zerado acima. É uma amostra parcial de uma única liga/
-temporada e só valida o mercado de gols (não cartões/escanteios/chutes) —
-tratar como preliminar, não como validação definitiva. Falta rodar a
-mesma retrospectiva pra Série B assim que os CSVs chegarem, e não assumir
-que o mesmo resultado vale lá (a Série B tem mando de campo mais forte,
-~23%, segundo `serie-b-planilha-dia/SKILL.md`).
+**Primeira rodada de calibração feita em 24/08/2026** contra a Série A
+(154 jogos, rodada 24/38) e a Série B (156 jogos, rodada 24/38) — ambas
+temporadas ainda em andamento. Relatórios completos:
+`docs/retrospectiva_2026-08-24_seriea.md` e
+`docs/retrospectiva_2026-08-24_serieb.md`.
+
+**As duas ligas se comportaram DIFERENTE — por isso os parâmetros agora
+divergem por liga:**
+- **Série A**: o ajuste de mando piorou o modelo de forma consistente nas
+  3 métricas (MAE de gols, acerto de Over/Under 2.5, acerto de BTTS) —
+  por isso o `k` foi zerado.
+- **Série B**: sinal misto — o `k` que minimiza o erro médio de gols
+  (0.7) não é o que mais acerta Over/Under 2.5 e BTTS (0.35, o valor já
+  em uso, vence ou quase vence nesses dois). Como os mercados derivados
+  são mais próximos do que Lucas realmente aposta do que o erro médio de
+  gols, mantivemos `k=0.35` na Série B sem mudança.
+
+Tratar as duas como recomendação preliminar (amostra de temporada
+parcial, só mercado de gols validado — não cartões/escanteios/chutes).
 
 ## Notas de estilo — agora automáticas (últimos 5 jogos)
 
@@ -70,10 +78,11 @@ um cache sobrescrito a cada sessão, não mais editado à mão.
 - **Copa 2026**: torneio neutro, sem mando de campo.
 - **Série B 2026**: mando de campo conta, média de gols mais baixa
   (2.3/jogo), liga mais faltosa (5.37 cartões/jogo), tem props de jogador.
+  Dados reais em `data/footystats_serieb/`, calibração feita 24/08/2026
+  (ver acima) — `k=0.35` mantido.
 - **Série A**: dados reais em `data/footystats_seriea/` (league/teams/
   teams2/players/matches, subidos 24/08/2026, rodada 24/38 em andamento).
-  Único dos três com uma primeira calibração retrospectiva feita (ver
-  acima) — `k` de mando revisado pra Série A especificamente.
+  Calibração feita 24/08/2026 (ver acima) — `k` de mando zerado.
 
 ## TODO (preencher com Lucas)
 
@@ -84,13 +93,15 @@ um cache sobrescrito a cada sessão, não mais editado à mão.
       banca" valem igual pra Série A ou se há ajuste por liga.
 - [x] Rodar `retrospectiva.rodar_retrospectiva`/`grid_search` com os CSVs
       reais da Série A (24/08/2026) — ver relatório e resultado acima.
-- [ ] Rodar a mesma retrospectiva pra Série B assim que os CSVs chegarem
-      (não assumir que o `k=1.0` da Série A vale lá também).
+- [x] Rodar a mesma retrospectiva pra Série B (24/08/2026) — sinal misto,
+      `k=0.35` mantido (ver relatório acima). Confirmado: não dava pra
+      assumir que o achado da Série A valeria lá.
 - [ ] Estender `retrospectiva.py` pra validar os outros 10 indicadores
       Pró/Contra (cartões, escanteios, chutes, chutes no gol, gols 1T) —
-      hoje só gols foi validado.
-- [ ] Confirmar a decisão de zerar o `k` de mando da Série A com o Lucas
+      hoje só gols foi validado, nas duas ligas.
+- [ ] Confirmar com Lucas a decisão de zerar o `k` de mando da Série A
       antes de aplicar de vez nas planilhas reais (é recomendação
       preliminar, amostra de temporada parcial).
-- [ ] Re-rodar a retrospectiva da Série A quando a temporada estiver mais
-      avançada (mais jogos = amostra melhor).
+- [ ] Re-rodar as duas retrospectivas quando as temporadas estiverem mais
+      avançadas (mais jogos = amostra melhor, principalmente pra
+      desempatar o sinal misto da Série B).
