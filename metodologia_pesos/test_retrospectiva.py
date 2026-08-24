@@ -175,6 +175,25 @@ def test_grid_search_ordenar_por_acerto_over25(df_fabricado):
     assert acertos == sorted(acertos, reverse=True)  # maior primeiro (maior acerto é melhor)
 
 
+def test_rodar_retrospectiva_timestamp_minimo_so_avalia_jogos_recentes(df_fabricado):
+    # sem corte: avalia todos os jogos com histórico suficiente
+    sem_corte = rodar_retrospectiva(
+        df_fabricado, params=dict(filtro_aderencia=0.0),
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    # com corte (timestamp>=6): só considera AVALIAR as linhas 6..11 (6 jogos),
+    # mas o histórico usado pra prever cada uma continua vindo das linhas anteriores
+    com_corte = rodar_retrospectiva(
+        df_fabricado, params=dict(filtro_aderencia=0.0),
+        min_jogos_historico=5, min_jogos_estilo=5, timestamp_minimo=6,
+    )
+    assert com_corte["n"] + com_corte["n_pulados"] == 6
+    assert com_corte["n"] <= sem_corte["n"]
+    # todos os jogos avaliados são de linhas com timestamp >= 6 (data da linha 6 em diante)
+    data_corte = datetime.strptime(df_fabricado.iloc[6]["date_GMT"].split(" - ")[0], "%b %d %Y").date()
+    assert all(j["data"] >= data_corte for j in com_corte["jogos"])
+
+
 def test_grid_search_ordenar_por_invalido_levanta_erro(df_fabricado):
     with pytest.raises(ValueError):
         grid_search(df_fabricado, dict(k_mando=[None]), ordenar_por="chute", min_jogos_historico=5)

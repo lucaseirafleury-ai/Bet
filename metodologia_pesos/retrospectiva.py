@@ -243,12 +243,24 @@ def prever_jogo(row, df, params=None, min_jogos_historico=10, min_jogos_estilo=N
 
 
 def rodar_retrospectiva(df, params=None, min_jogos_historico=10, min_jogos_estilo=N_JOGOS_PADRAO,
-                         n_historico=15, max_jogos_avaliados=None):
+                         n_historico=15, max_jogos_avaliados=None, timestamp_minimo=None):
     """Roda `prever_jogo` para cada partida do histórico (em ordem
     cronológica) e agrega as métricas. Partidas sem dado suficiente são
     puladas silenciosamente (contam em `n_pulados`, não em `n`).
+
+    `timestamp_minimo`: quando informado, só AVALIA jogos com
+    `timestamp >= timestamp_minimo` — mas o histórico usado pra prever
+    cada um continua vindo de `df` inteiro (jogos antes do corte, mesmo
+    que anteriores a `timestamp_minimo`). Serve pra fazer validação
+    fora-da-amostra: escolher parâmetros olhando só pra uma temporada
+    (ex.: 2025) e depois medir a performance real numa temporada que o
+    processo de escolha nunca viu (ex.: 2026) — sem isso, escolher o
+    "melhor" de um grid grande na mesma amostra onde ele foi medido é
+    viés de comparação múltipla, não validação de verdade.
     """
     df_ordenado = df.sort_values("timestamp")
+    if timestamp_minimo is not None:
+        df_ordenado = df_ordenado[df_ordenado["timestamp"] >= timestamp_minimo]
     avaliados = []
     n_pulados = 0
     for _, row in df_ordenado.iterrows():
