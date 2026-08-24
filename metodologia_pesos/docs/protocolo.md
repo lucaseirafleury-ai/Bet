@@ -58,7 +58,10 @@ divergem por liga:**
   gols, mantivemos `k=0.35` na Série B sem mudança.
 
 Tratar as duas como recomendação preliminar (amostra de temporada
-parcial, só mercado de gols validado — não cartões/escanteios/chutes).
+parcial). O `k_mando` foi calibrado só olhando o mercado de gols — os
+outros 11 mercados (ver seção de ablação abaixo) têm MAE calculado mas
+não passaram por esse mesmo grid search de `k_mando`/outlier ainda, só
+pela ablação de estilo.
 
 ## Teste de ablação do estilo (24/08/2026)
 
@@ -78,8 +81,18 @@ atuais (3 das 5 dimensões são proxies mais fracos, ver seção abaixo) não
 estão discriminando bem o suficiente pra fazer diferença nesta amostra.
 **Decisão**: manter `filtro_aderencia=0.65` (sem motivo pra trocar) e
 manter o estilo ativado (não prejudica no filtro usual, só em 80%) — mas
-não tratar como pilar comprovado do modelo até os proxies melhorarem ou o
-teste for refeito nos outros mercados (cartões/escanteios).
+não tratar como pilar comprovado do modelo até os proxies melhorarem.
+
+**Atualização 24/08/2026 (mesmo dia) — testado nos outros 11 mercados
+também**: estendi `retrospectiva.py` pra calcular os 12 indicadores
+Pró/Contra completos (não só gols) e refiz a ablação em todos eles,
+inclusive escanteios (onde o protocolo original mais ligava estilo a
+resultado, "Princípio 5"). **Resultado: escanteios não é diferente** — em
+todos os 12 mercados, nas duas ligas, a diferença com/sem estilo fica
+abaixo de meio ponto percentual de MAE relativo. Não existe mercado onde
+o estilo (do jeito que é calculado hoje) se destaque como relevante — ver
+`docs/retrospectiva_mercados_2026-08-24.md`. Confirma que o problema é o
+que os proxies medem, não o peso que recebem.
 
 ## Notas de estilo — agora automáticas (últimos 5 jogos)
 
@@ -119,11 +132,13 @@ um cache sobrescrito a cada sessão, não mais editado à mão.
       assumir que o achado da Série A valeria lá.
 - [x] Teste de ablação do estilo (24/08/2026) — filtro de 65% mantido,
       estilo é indiferente nesse nível, atrapalha em 80% (ver acima).
-- [ ] Estender `retrospectiva.py` pra validar os outros 10 indicadores
-      Pró/Contra (cartões, escanteios, chutes, chutes no gol, gols 1T) —
-      hoje só gols foi validado, nas duas ligas. Vale reavaliar o teste de
-      ablação do estilo nesses mercados também (pode importar mais em
-      escanteios, ligado ao "Princípio 5" do protocolo antigo).
+- [x] Estender `retrospectiva.py` pra validar os outros 10 indicadores
+      Pró/Contra (24/08/2026) — `rodar_retrospectiva` já retorna MAE por
+      mercado automaticamente. Reavaliei a ablação do estilo em todos: sem
+      diferença em nenhum, nem escanteios (ver acima e relatório).
+      MAE relativo por mercado sugere mais confiança em chutes/escanteios/
+      cartões do que em gols e principalmente "Gols 1ºT" (MAE > 100% da
+      média — pouco melhor que chutar a média da liga nesse mercado).
 - [ ] Confirmar com Lucas a decisão de zerar o `k` de mando da Série A
       antes de aplicar de vez nas planilhas reais (é recomendação
       preliminar, amostra de temporada parcial).

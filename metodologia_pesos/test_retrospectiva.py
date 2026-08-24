@@ -75,6 +75,28 @@ def test_prever_jogo_funciona_com_historico_e_estilo_suficientes(df_fabricado):
     assert resultado["n_jogos_validos"] > 0
 
 
+def test_prever_jogo_calcula_os_12_mercados_pro_contra(df_fabricado):
+    ultima_linha = df_fabricado.iloc[11]
+    resultado = prever_jogo(
+        ultima_linha, df_fabricado, params=dict(filtro_aderencia=0.0),
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    assert resultado is not None
+    esperados = {
+        "gols_pro", "gols_contra", "cartoes_pro", "cartoes_contra",
+        "escanteios_pro", "escanteios_contra", "chutes_pro", "chutes_contra",
+        "chutes_gol_pro", "chutes_gol_contra", "gols_1t_pro", "gols_1t_contra",
+    }
+    assert esperados <= set(resultado["mercados"].keys())
+    for campo, m in resultado["mercados"].items():
+        assert m["pred"] >= 0
+        assert m["real"] >= 0
+        assert m["erro"] == pytest.approx(abs(m["pred"] - m["real"]))
+    # consistência com os campos "de gols" já existentes
+    assert resultado["mercados"]["gols_pro"]["real"] == resultado["gf_real"]
+    assert resultado["mercados"]["gols_pro"]["pred"] == resultado["gf_pred"]
+
+
 def test_prever_jogo_nunca_olha_o_futuro(df_fabricado):
     # se eu embaralhar o timestamp da última linha pra trás no tempo, ela some do "passado"
     # disponível — prova indireta de que o corte é por timestamp, não por posição na lista
@@ -123,12 +145,32 @@ def test_rodar_retrospectiva_agrega_metricas_coerentes(df_fabricado):
     assert len(relatorio["jogos"]) == relatorio["n"]
 
 
+def test_rodar_retrospectiva_agrega_mae_por_mercado(df_fabricado):
+    relatorio = rodar_retrospectiva(
+        df_fabricado, params=dict(filtro_aderencia=0.0),
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    assert "gols_pro" in relatorio["mercados"]
+    assert "escanteios_pro" in relatorio["mercados"]
+    assert "cartoes_contra" in relatorio["mercados"]
+    for campo, agg in relatorio["mercados"].items():
+        assert agg["n"] > 0
+        assert agg["mae"] >= 0
+        assert agg["media_real"] >= 0
+        if agg["media_real"] > 0:
+            assert agg["mae_relativo"] == pytest.approx(agg["mae"] / agg["media_real"])
+    # gols_pro/gols_contra estão presentes em todo jogo avaliado (são obrigatórios pra
+    # inclusão) -> soma dos dois MAEs bate exatamente com mae_gols_total
+    mae_gols_pro_contra = relatorio["mercados"]["gols_pro"]["mae"] + relatorio["mercados"]["gols_contra"]["mae"]
+    assert mae_gols_pro_contra == pytest.approx(relatorio["mae_gols_total"])
+
+
 def test_rodar_retrospectiva_sem_dado_suficiente_retorna_vazio(df_fabricado):
     relatorio = rodar_retrospectiva(
         df_fabricado, min_jogos_historico=999, min_jogos_estilo=5,
     )
     assert relatorio == dict(n=0, n_pulados=len(df_fabricado), mae_gols_total=None,
-                              acerto_over25=None, acerto_btts=None, jogos=[])
+                              acerto_over25=None, acerto_btts=None, mercados={}, jogos=[])
 
 
 def test_grid_search_ordena_por_erro_e_cobre_todas_combinacoes(df_fabricado):

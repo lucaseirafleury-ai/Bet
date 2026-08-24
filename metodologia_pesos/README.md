@@ -45,11 +45,16 @@ test_estilo.py        → testes unitários do cálculo de estilo (21 casos).
 retrospectiva.py       → validação walk-forward: para cada jogo do
                        histórico, monta o cenário só com dados anteriores a
                        ele (sem look-ahead), roda o motor de pesos e compara
-                       a previsão com o placar real. Usado pra calibrar os
-                       parâmetros livres (k do mando, corte de outlier) sem
-                       depender do Tips_telegram.xlsx. Inclui `grid_search`
-                       pra comparar combinações de parâmetros pelo erro
-                       médio (MAE) de gols e acerto de Over/Under 2.5 e BTTS.
+                       a previsão com o placar real — nos 12 mercados
+                       Pró/Contra (gols, cartões, escanteios, chutes,
+                       chutes no gol, gols 1ºT), não só gols. Usado pra
+                       calibrar os parâmetros livres (k do mando, corte de
+                       outlier, `usar_estilo` pra ablação) sem depender do
+                       Tips_telegram.xlsx. Inclui `grid_search` pra comparar
+                       combinações de parâmetros; `rodar_retrospectiva`
+                       retorna `mae_gols_total`/`acerto_over25`/`acerto_btts`
+                       (mercado de gols) + `mercados` (MAE absoluto e
+                       relativo dos 12 mercados).
 test_retrospectiva.py  → teste de integração com dataset fabricado (não
                        depende dos CSVs reais, que só chegam com o upload).
 planilha_lib.py      → mecânica de planilha (CSV, clonagem de fórmula,
@@ -103,6 +108,12 @@ atualizar_banco_estilo(times, estilo_db_path="data/estilos_seriea.json", n=5)
 # valida o modelo contra os placares reais já presentes nos CSVs (walk-forward):
 relatorio = rodar_retrospectiva(df, min_jogos_historico=10)
 print(relatorio["n"], relatorio["mae_gols_total"], relatorio["acerto_over25"], relatorio["acerto_btts"])
+for mercado, m in relatorio["mercados"].items():
+    print(mercado, m["mae"], m["mae_relativo"])  # MAE de todos os 12 mercados Pró/Contra
+
+# teste de ablação: o estilo está ajudando? (usar_estilo=False força aderência_estilo=1.0)
+com_estilo = rodar_retrospectiva(df, params=dict(usar_estilo=True), min_jogos_historico=10)
+sem_estilo = rodar_retrospectiva(df, params=dict(usar_estilo=False), min_jogos_historico=10)
 
 # compara combinações de parâmetros pra achar a que mais acerta nesse histórico:
 grade = dict(k_mando=[None, 0.2, 0.35, 0.5], limite_unilateral=[3, 4, 5], multiplicador_dp=[2, 2.5, 3])
@@ -110,12 +121,30 @@ melhores = grid_search(df, grade, min_jogos_historico=10)
 print(melhores[0])  # (params, relatorio) com o menor mae_gols_total
 ```
 
+## O que já foi feito (24/08/2026, ver `docs/`)
+
+- Retrospectiva real rodada contra os CSVs da Série A e B (154/156 jogos
+  avaliados cada, rodada 24/38). `k_mando` calibrado por liga (Série A:
+  sem ajuste; Série B: mantido 0.35 — as ligas se comportam diferente).
+- Teste de ablação do estilo, nos 12 mercados: o filtro/peso de estilo é
+  indiferente em todos eles no filtro atual (65%) — nenhum mercado (nem
+  escanteios) mostrou o estilo contribuindo de forma mensurável.
+- MAE relativo por mercado mapeado: chutes/escanteios são os melhor
+  previstos proporcionalmente; Gols 1ºT é o pior (MAE > 100% da média).
+
+Relatórios completos: `docs/retrospectiva_2026-08-24_seriea.md`,
+`docs/retrospectiva_2026-08-24_serieb.md`,
+`docs/retrospectiva_estilo_2026-08-24.md`,
+`docs/retrospectiva_mercados_2026-08-24.md`.
+
 ## O que ainda falta
 
-- **Rodar a retrospectiva com os CSVs reais** do Lucas (Série A/B) — o
-  pipeline está pronto e testado com dataset fabricado, mas a validação/
-  calibração de verdade só acontece com o upload dos CSVs do FootyStats.
-- Os proxies de Pressão Alta/Transição/Bola Parada em `estilo.py` são
-  heurísticas limitadas ao que o CSV padrão do FootyStats traz — podem ser
-  refinadas depois com dado mais rico (PPDA, passes no terço final etc.) ou
-  recalibradas com o próprio `grid_search` da retrospectiva.
+- Os proxies de Pressão Alta/Transição/Bola Parada em `estilo.py` não
+  estão se mostrando úteis em nenhum mercado testado — candidatos a
+  redesenho (dado mais rico) antes de reavaliar a contribuição do estilo.
+- `k_mando`/`limite_unilateral`/`multiplicador_dp` só foram calibrados
+  olhando o mercado de gols — os outros 11 mercados têm MAE calculado mas
+  não passaram pelo mesmo grid search ainda.
+- Aplicar os parâmetros validados nas planilhas reais (skills de
+  Copa/Série A/B) — ainda pendente de confirmação com o Lucas.
+- Re-rodar tudo quando as temporadas avançarem mais (amostra maior).

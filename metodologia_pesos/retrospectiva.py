@@ -38,6 +38,30 @@ STAT_KEY_MAP = {
 
 PARAMS_PADRAO = dict(k_mando=None, filtro_aderencia=0.65, limite_unilateral=4, multiplicador_dp=2.5, usar_estilo=True)
 
+# mapeia campo -> colunas do CSV que dão o valor REAL do mercado no jogo
+# sendo avaliado (perspectiva do time da CASA, que é quem prever_jogo prevê)
+_COLUNAS_VALOR_REAL = {
+    "gols_pro": ("home_team_goal_count",), "gols_contra": ("away_team_goal_count",),
+    "cartoes_pro": ("home_team_yellow_cards", "home_team_red_cards"),
+    "cartoes_contra": ("away_team_yellow_cards", "away_team_red_cards"),
+    "escanteios_pro": ("home_team_corner_count",), "escanteios_contra": ("away_team_corner_count",),
+    "chutes_pro": ("home_team_shots",), "chutes_contra": ("away_team_shots",),
+    "chutes_gol_pro": ("home_team_shots_on_target",), "chutes_gol_contra": ("away_team_shots_on_target",),
+    "gols_1t_pro": ("home_team_goal_count_half_time",), "gols_1t_contra": ("away_team_goal_count_half_time",),
+}
+
+
+def _valor_real(row, campo):
+    """Valor real (placar/estatística) de `campo` no jogo `row`. Soma as
+    colunas quando o mercado precisa de mais de uma (ex.: cartões =
+    amarelos + vermelhos). Retorna None se a coluna não existir/for NaN
+    (não inventa dado)."""
+    try:
+        valor = sum(float(row[c]) for c in _COLUNAS_VALOR_REAL[campo])
+        return valor if valor == valor else None  # descarta NaN (NaN != NaN)
+    except (KeyError, ValueError, TypeError):
+        return None
+
 
 def _favoritismo_row(row, is_home):
     """Favoritismo normalizado (mesma fórmula de `get_historico`), a partir
@@ -137,17 +161,21 @@ def prever_jogo(row, df, params=None, min_jogos_historico=10, min_jogos_estilo=N
         return None
     pesos_lista = [j["peso_final"] for j in validos]
 
-    ind_pro = indicador_pro_contra(
-        [j["gols_pro"] for j in validos], pesos_lista, params["limite_unilateral"], params["multiplicador_dp"]
-    )
-    ind_contra = indicador_pro_contra(
-        [j["gols_contra"] for j in validos], pesos_lista, params["limite_unilateral"], params["multiplicador_dp"]
-    )
-    if ind_pro["media_final"] is None or ind_contra["media_final"] is None:
-        return None
+    mercados = {}
+    for campo in STAT_KEY_MAP:
+        ind = indicador_pro_contra(
+            [j[campo] for j in validos], pesos_lista, params["limite_unilateral"], params["multiplicador_dp"]
+        )
+        real = _valor_real(row, campo)
+        if ind["media_final"] is None or real is None:
+            continue
+        mercados[campo] = dict(pred=ind["media_final"], real=real, erro=abs(ind["media_final"] - real))
 
-    gf_real, ga_real = float(row["home_team_goal_count"]), float(row["away_team_goal_count"])
-    gf_pred, ga_pred = ind_pro["media_final"], ind_contra["media_final"]
+    if "gols_pro" not in mercados or "gols_contra" not in mercados:
+        return None  # gols é o mercado obrigatório (mantém compatibilidade com os relatórios anteriores)
+
+    gf_real, ga_real = mercados["gols_pro"]["real"], mercados["gols_contra"]["real"]
+    gf_pred, ga_pred = mercados["gols_pro"]["pred"], mercados["gols_contra"]["pred"]
     return dict(
         jogo=f"{home} x {away}", data=data_jogo,
         gf_real=gf_real, ga_real=ga_real, gf_pred=gf_pred, ga_pred=ga_pred,
@@ -156,6 +184,7 @@ def prever_jogo(row, df, params=None, min_jogos_historico=10, min_jogos_estilo=N
         over25_real=(gf_real + ga_real) > 2.5, over25_pred=(gf_pred + ga_pred) > 2.5,
         btts_real=(gf_real > 0 and ga_real > 0), btts_pred=(gf_pred > 0.5 and ga_pred > 0.5),
         n_jogos_validos=len(validos),
+        mercados=mercados,
     )
 
 
@@ -178,15 +207,30 @@ def rodar_retrospectiva(df, params=None, min_jogos_historico=10, min_jogos_estil
             avaliados.append(resultado)
 
     if not avaliados:
-        return dict(n=0, n_pulados=n_pulados, mae_gols_total=None, acerto_over25=None, acerto_btts=None, jogos=[])
+        return dict(n=0, n_pulados=n_pulados, mae_gols_total=None, acerto_over25=None, acerto_btts=None,
+                     mercados={}, jogos=[])
 
     n = len(avaliados)
     mae_gols_total = sum(j["erro_gf"] + j["erro_ga"] for j in avaliados) / n
     acerto_over25 = sum(1 for j in avaliados if j["over25_pred"] == j["over25_real"]) / n
     acerto_btts = sum(1 for j in avaliados if j["btts_pred"] == j["btts_real"]) / n
+
+    mercados_agg = {}
+    for campo in STAT_KEY_MAP:
+        pontos = [j["mercados"][campo] for j in avaliados if campo in j["mercados"]]
+        if not pontos:
+            continue
+        mae = sum(p["erro"] for p in pontos) / len(pontos)
+        media_real = sum(p["real"] for p in pontos) / len(pontos)
+        mercados_agg[campo] = dict(
+            n=len(pontos), mae=mae, media_real=media_real,
+            mae_relativo=(mae / media_real) if media_real else None,
+        )
+
     return dict(
         n=n, n_pulados=n_pulados,
         mae_gols_total=mae_gols_total, acerto_over25=acerto_over25, acerto_btts=acerto_btts,
+        mercados=mercados_agg,
         jogos=avaliados,
     )
 
