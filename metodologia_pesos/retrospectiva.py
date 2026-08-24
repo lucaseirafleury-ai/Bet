@@ -22,7 +22,15 @@ import itertools
 from datetime import datetime
 
 from estilo import N_JOGOS_PADRAO, calcular_notas_estilo
-from pesos import ajuste_mando, calcular_pesos_historico, indicador_pro_contra
+from pesos import (
+    ajuste_mando,
+    calcular_pesos_historico,
+    indicador_pro_contra,
+    probabilidade_btts,
+    probabilidade_implicita,
+    probabilidade_implicita_2vias,
+    probabilidade_over,
+)
 from planilha_lib import get_historico
 
 # mapeia campo esperado por pesos.indicador_pro_contra -> chave do dict de
@@ -239,6 +247,49 @@ def prever_jogo(row, df, params=None, min_jogos_historico=10, min_jogos_estilo=N
         btts_real=(gf_real > 0 and ga_real > 0), btts_pred=(gf_pred > 0.5 and ga_pred > 0.5),
         n_jogos_validos=len(validos),
         mercados=mercados,
+        **_probabilidades_e_odds(row, gf_pred, ga_pred),
+    )
+
+
+def _valor_odd(row, coluna):
+    """Lê uma coluna de odd do CSV; retorna None se ausente/NaN/inválida
+    (odd decimal tem que ser > 1) — nunca inventa odd."""
+    try:
+        odd = float(row[coluna])
+        return odd if odd > 1 and odd == odd else None  # odd==odd descarta NaN
+    except (KeyError, ValueError, TypeError):
+        return None
+
+
+def _probabilidades_e_odds(row, gf_pred, ga_pred):
+    """Probabilidade que o MODELO dá pros mercados Over 2.5 e BTTS, e a
+    probabilidade IMPLÍCITA nas odds reais do jogo (quando disponíveis no
+    CSV) — a comparação entre as duas é o que mede vantagem real (não só
+    acerto), usada por `simular_apostas`.
+
+    Over 2.5: o CSV só traz a odd do lado "over" (`odds_ft_over25`), não a
+    do "under" — a probabilidade implícita fica sem remover a margem da
+    casa (`probabilidade_implicita`, superestima um pouco).
+    BTTS: o CSV traz os dois lados (`odds_btts_yes`/`odds_btts_no`), dá pra
+    normalizar de verdade com `probabilidade_implicita_2vias`.
+    """
+    prob_modelo_over25 = probabilidade_over(gf_pred + ga_pred, linha=2.5)
+    prob_modelo_btts = probabilidade_btts(gf_pred, ga_pred)
+
+    odd_over25 = _valor_odd(row, "odds_ft_over25")
+    prob_mercado_over25 = probabilidade_implicita(odd_over25) if odd_over25 else None
+
+    odd_btts_sim = _valor_odd(row, "odds_btts_yes")
+    odd_btts_nao = _valor_odd(row, "odds_btts_no")
+    prob_mercado_btts = (
+        probabilidade_implicita_2vias(odd_btts_sim, odd_btts_nao)
+        if odd_btts_sim and odd_btts_nao else None
+    )
+
+    return dict(
+        prob_modelo_over25=prob_modelo_over25, odd_over25=odd_over25, prob_mercado_over25=prob_mercado_over25,
+        prob_modelo_btts=prob_modelo_btts, odd_btts_sim=odd_btts_sim, odd_btts_nao=odd_btts_nao,
+        prob_mercado_btts=prob_mercado_btts,
     )
 
 
@@ -331,3 +382,72 @@ def grid_search(df, grade_parametros, ordenar_por="mae_gols_total", **kwargs):
     else:
         raise ValueError(f"ordenar_por inválido: {ordenar_por!r}")
     return resultados
+
+
+_MERCADOS_SIMULAVEIS = {
+    "over25": dict(prob_modelo="prob_modelo_over25", prob_mercado="prob_mercado_over25",
+                    odd="odd_over25", real="over25_real"),
+    "btts": dict(prob_modelo="prob_modelo_btts", prob_mercado="prob_mercado_btts",
+                 odd="odd_btts_sim", real="btts_real"),
+}
+
+
+def simular_apostas(jogos, mercado="over25", limiar_edge=0.0, stake=1.0):
+    """Simula apostas de verdade (odd real, banca, ROI) — não só taxa de
+    acerto. Só aposta quando a probabilidade do MODELO supera a
+    probabilidade IMPLÍCITA na odd de mercado em pelo menos `limiar_edge`
+    (vantagem/edge mínima exigida) — é essa comparação que mede vantagem
+    competitiva de verdade, não o acerto isolado (uma taxa de acerto alta
+    não vale nada se a odd já embutia essa probabilidade ou mais).
+
+    `jogos`: lista vinda de `rodar_retrospectiva(...)["jogos"]` (cada item
+    já carrega `prob_modelo_*`/`prob_mercado_*`/`odd_*` calculados por
+    `prever_jogo`).
+
+    `mercado`: `"over25"` (usa a odd de Over 2.5, sem remover margem — só
+    temos a odd de um lado no CSV) ou `"btts"` (usa BTTS Sim, com margem
+    removida via odds dos dois lados).
+
+    IMPORTANTE — só cobre apostar no lado "over"/"sim": o CSV não traz a
+    odd do lado oposto (Under 2.5), então não dá pra simular apostar contra
+    o modelo nesse mercado. Jogos sem a odd necessária são pulados (não
+    inventa odd).
+
+    Retorna dict com `n_apostas`, `n_vitorias`, `taxa_acerto` (das apostas
+    FEITAS, não de todos os jogos avaliados), `lucro_total`, `roi`
+    (lucro/total apostado), `edge_medio` (das apostas feitas).
+    """
+    if mercado not in _MERCADOS_SIMULAVEIS:
+        raise ValueError(f"mercado inválido: {mercado!r} (use 'over25' ou 'btts')")
+    campos = _MERCADOS_SIMULAVEIS[mercado]
+
+    apostas = []
+    for jogo in jogos:
+        prob_modelo = jogo.get(campos["prob_modelo"])
+        prob_mercado = jogo.get(campos["prob_mercado"])
+        odd = jogo.get(campos["odd"])
+        if prob_modelo is None or prob_mercado is None or odd is None:
+            continue
+        edge = prob_modelo - prob_mercado
+        if edge < limiar_edge:
+            continue
+        venceu = bool(jogo[campos["real"]])
+        lucro = stake * (odd - 1) if venceu else -stake
+        apostas.append(dict(jogo=jogo["jogo"], data=jogo["data"], odd=odd, edge=edge, venceu=venceu, lucro=lucro))
+
+    if not apostas:
+        return dict(n_apostas=0, n_vitorias=0, taxa_acerto=None, lucro_total=0.0, roi=None, edge_medio=None, apostas=[])
+
+    n_apostas = len(apostas)
+    n_vitorias = sum(1 for a in apostas if a["venceu"])
+    lucro_total = sum(a["lucro"] for a in apostas)
+    total_apostado = stake * n_apostas
+    return dict(
+        n_apostas=n_apostas,
+        n_vitorias=n_vitorias,
+        taxa_acerto=n_vitorias / n_apostas,
+        lucro_total=lucro_total,
+        roi=lucro_total / total_apostado,
+        edge_medio=sum(a["edge"] for a in apostas) / n_apostas,
+        apostas=apostas,
+    )

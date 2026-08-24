@@ -198,3 +198,65 @@ def indicador_pro_contra(valores, pesos, limite_unilateral=4, multiplicador_dp=2
     n_validos = len([v for v in valores if v is not None])
     n_removidos = n_validos - len(v_filt)
     return dict(media_bruta=media_bruta, sd=sd, media_final=media_final, n_removidos=n_removidos)
+
+
+# ---------------------------------------------------------------------------
+# Conversão de gols esperados -> probabilidade (pra comparar com odd de
+# mercado e medir vantagem real, não só acerto de Over/Under).
+# ---------------------------------------------------------------------------
+
+def _poisson_pmf(k, lam):
+    return math.exp(-lam) * lam**k / math.factorial(k)
+
+
+def probabilidade_over(media_total_gols, linha=2.5, limite_somatoria=60):
+    """P(total de gols > linha), tratando o total como Poisson(λ=media_total_gols).
+
+    Soma de duas Poisson independentes (gols pró + gols contra) também é
+    Poisson com λ = soma dos dois λs — não precisa modelar a dependência
+    entre os times pra essa conta, só a soma dos gols esperados do jogo.
+
+    `linha`: 2.5, 1.5, 3.5 etc. (linhas .5 nunca empatam, mas a função
+    aceita qualquer valor — conta P(total > linha)). `limite_somatoria`:
+    corta a série infinita de Poisson num k grande o suficiente pra erro
+    numérico ser desprezível (60 gols é bem além de qualquer jogo real).
+    """
+    if media_total_gols < 0:
+        raise ValueError("media_total_gols não pode ser negativa")
+    k_max_under = math.floor(linha)  # maior inteiro que ainda conta como "under"
+    p_under_ou_igual = sum(_poisson_pmf(k, media_total_gols) for k in range(0, k_max_under + 1))
+    return max(0.0, min(1.0, 1 - p_under_ou_igual))
+
+
+def probabilidade_btts(gols_pro_esperado, gols_contra_esperado):
+    """P(ambos os times marcam), tratando os gols de cada lado como Poisson
+    independentes: `1 - P(pró=0) - P(contra=0) + P(pró=0 E contra=0)`."""
+    if gols_pro_esperado < 0 or gols_contra_esperado < 0:
+        raise ValueError("gols esperados não podem ser negativos")
+    p_pro_zero = math.exp(-gols_pro_esperado)
+    p_contra_zero = math.exp(-gols_contra_esperado)
+    return max(0.0, min(1.0, 1 - p_pro_zero - p_contra_zero + p_pro_zero * p_contra_zero))
+
+
+def probabilidade_implicita(odd):
+    """Probabilidade implícita bruta de uma odd decimal (`1/odd`), SEM
+    remover a margem da casa (overround) — superestima a probabilidade
+    real na proporção da margem embutida. Use `probabilidade_implicita_2vias`
+    quando tiver as odds dos dois lados de um mercado (ex.: BTTS sim/não),
+    que permite normalizar removendo a margem de verdade."""
+    if odd <= 1:
+        raise ValueError("odd decimal deve ser > 1")
+    return 1 / odd
+
+
+def probabilidade_implicita_2vias(odd_lado, odd_lado_oposto):
+    """Probabilidade implícita do `odd_lado`, normalizada pela margem da
+    casa usando as odds dos dois lados de um mercado binário (ex.: BTTS
+    Sim/Não). Mais correta que `probabilidade_implicita` porque remove o
+    overround em vez de superestimar os dois lados."""
+    p1 = probabilidade_implicita(odd_lado)
+    p2 = probabilidade_implicita(odd_lado_oposto)
+    soma = p1 + p2
+    if soma <= 0:
+        raise ValueError("soma das probabilidades implícitas deve ser positiva")
+    return p1 / soma

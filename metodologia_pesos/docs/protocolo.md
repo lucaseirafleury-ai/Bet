@@ -1,5 +1,51 @@
 # Protocolo de Apostas — Regras Persistentes
 
+**⚠️ Leitura obrigatória antes de qualquer outra coisa neste arquivo —
+seção "Acerto ≠ vantagem real (24/08/2026)" logo abaixo.** Ela muda o que
+"parâmetro validado" significa: os parâmetros de `k_mando`/`usar_estilo`/
+`filtro_aderencia` documentados neste arquivo foram otimizados por
+ACERTO (Over/Under, BTTS), e simular apostas contra odd real mostrou que
+isso não é a mesma coisa que vantagem competitiva — na Série B, inclusive,
+aponta na direção OPOSTA. Tratar os "parâmetros validados" abaixo como
+"validados pra acertar mais", não "validados pra ganhar dinheiro", até a
+recalibração por ROI ser feita (ver seção nova).
+
+## Acerto ≠ vantagem real (24/08/2026)
+
+Toda calibração até aqui (`k_mando`, `usar_estilo`, `filtro_aderencia`,
+`estilo_por_mando`) otimizou taxa de acerto de Over/Under 2.5 e BTTS.
+Isso NÃO mede vantagem competitiva — uma taxa de acerto de 55% não vale
+nada se a odd de mercado já embutia essa probabilidade ou mais. Vantagem
+real é a probabilidade do modelo ser maior que a probabilidade implícita
+na odd — só aí vale apostar. Ver
+`docs/retrospectiva_roi_2026-08-24.md` para o relatório completo.
+
+Implementado: `pesos.probabilidade_over`/`probabilidade_btts` (gols
+esperados → probabilidade via Poisson), `pesos.probabilidade_implicita`/
+`probabilidade_implicita_2vias` (odd real → probabilidade de mercado,
+removendo margem quando os 2 lados do mercado estão disponíveis), e
+`retrospectiva.simular_apostas` (só aposta quando o modelo supera o
+mercado por um `limiar_edge`, com odd e resultado reais — ROI, lucro,
+taxa de acerto DAS APOSTAS, não de todos os jogos).
+
+**Achado — inverte o que a calibração por acerto sugeria:**
+- **Série A** (parâmetros neutros, nunca "vencedores" de nenhum grid de
+  acerto): mostra vantagem real e CRESCENTE com a exigência de edge —
+  ROI de +9% (sem filtro de edge) até +35,8% (edge ≥8%), estatisticamente
+  significativo nos limiares mais altos (z=2,24 em Over 2.5, z=2,72 em
+  BTTS). Quanto mais o modelo discorda da odd, mais ele acerta — assinatura
+  de probabilidade bem calibrada.
+- **Série B** (`k=0.5, sem estilo, filtro=0.8` — o "vencedor" do holdout
+  por acerto): **não mostra vantagem nenhuma contra odd real**, e piora
+  conforme se exige mais edge em Over 2.5 (+6,8% → −5,7%). Provavelmente
+  aprendeu a concordar com o consenso do mercado (acerta replicando a odd,
+  não discordando dela) — acerto alto, edge baixo/negativo.
+
+**Isso muda a prioridade**: o próximo passo de maior alavancagem é
+recalibrar `k_mando`/`usar_estilo`/`filtro_aderencia` otimizando ROI
+simulado (não mais `acerto_over25`) — a infraestrutura de grid/holdout já
+existe, só falta trocar a métrica.
+
 Versão inicial, consolidada a partir do que estava espalhado nas skills
 `copa-planilha-dia`/`serie-b-planilha-dia` (que citavam um
 `briefing_*.md`/`PROTOCOLO_BETS_LUCAS.md` vivendo só em pasta efêmera de
@@ -181,6 +227,15 @@ um cache sobrescrito a cada sessão, não mais editado à mão.
 
 ## TODO (preencher com Lucas)
 
+- [x] Simular apostas de verdade contra odd real (24/08/2026) —
+      `simular_apostas`, achado principal: acerto e vantagem real (ROI)
+      não são a mesma coisa, Série B "vencedora" por acerto não tem edge
+      nenhum contra o mercado. Ver "Acerto ≠ vantagem real" acima.
+- [ ] Recalibrar `k_mando`/`usar_estilo`/`filtro_aderencia` otimizando
+      ROI simulado em vez de acerto (`grid_search` + `simular_apostas`) —
+      maior prioridade agora, é o que a seção acima recomenda.
+- [ ] Conseguir odd do lado "Under 2.5" (hoje só "Over") pra poder simular
+      apostar contra o modelo também, não só a favor.
 - [ ] Completar critérios de ROI por faixa de odd (só temos "Alta Certeza"
       e "Referência" documentados — havia mais faixas mencionadas em
       sessões anteriores que não foram recuperadas nesta consolidação).

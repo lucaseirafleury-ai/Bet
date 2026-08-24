@@ -17,6 +17,10 @@ from pesos import (
     media_ponderada,
     peso_final,
     peso_recencia,
+    probabilidade_btts,
+    probabilidade_implicita,
+    probabilidade_implicita_2vias,
+    probabilidade_over,
 )
 
 
@@ -208,3 +212,57 @@ def test_indicador_pro_contra_pipeline_e_reporta_removidos():
 def test_indicador_pro_contra_sem_dados_retorna_none():
     r = indicador_pro_contra([], [])
     assert r == dict(media_bruta=None, sd=None, media_final=None, n_removidos=0)
+
+
+def test_probabilidade_over_valor_conhecido():
+    # Poisson(2.5): P(total > 2.5) calculado à parte, valor de referência
+    assert probabilidade_over(2.5, linha=2.5) == pytest.approx(0.4561868841166705)
+    assert probabilidade_over(1.0, linha=1.5) == pytest.approx(0.26424111765711533)
+
+
+def test_probabilidade_over_zero_gols_esperados_e_zero():
+    assert probabilidade_over(0, linha=2.5) == 0.0
+
+
+def test_probabilidade_over_cresce_com_media_esperada():
+    baixa = probabilidade_over(1.5, linha=2.5)
+    alta = probabilidade_over(4.0, linha=2.5)
+    assert 0 <= baixa < alta <= 1
+
+
+def test_probabilidade_over_rejeita_media_negativa():
+    with pytest.raises(ValueError):
+        probabilidade_over(-1, linha=2.5)
+
+
+def test_probabilidade_btts_valor_conhecido():
+    assert probabilidade_btts(1.3, 1.1) == pytest.approx(0.4853150765573204)
+
+
+def test_probabilidade_btts_zero_se_um_lado_nao_marca():
+    assert probabilidade_btts(0, 1.5) == 0.0
+
+
+def test_probabilidade_btts_rejeita_negativo():
+    with pytest.raises(ValueError):
+        probabilidade_btts(-0.5, 1.0)
+
+
+def test_probabilidade_implicita_simples():
+    assert probabilidade_implicita(2.0) == pytest.approx(0.5)
+    assert probabilidade_implicita(1.5) == pytest.approx(2 / 3)
+
+
+def test_probabilidade_implicita_rejeita_odd_invalida():
+    with pytest.raises(ValueError):
+        probabilidade_implicita(1.0)
+    with pytest.raises(ValueError):
+        probabilidade_implicita(0.5)
+
+
+def test_probabilidade_implicita_2vias_remove_margem():
+    # odds com margem: 1/1.90 + 1/2.10 = 0.526+0.476 = 1.003 (>1, margem da casa)
+    p_sim = probabilidade_implicita_2vias(1.90, 2.10)
+    p_nao = probabilidade_implicita_2vias(2.10, 1.90)
+    assert p_sim + p_nao == pytest.approx(1.0)
+    assert p_sim > probabilidade_implicita(2.10)  # não é só 1/odd bruto, é normalizado

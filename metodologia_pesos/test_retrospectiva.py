@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 import pytest
 
-from retrospectiva import _estilo_por_mando, grid_search, prever_jogo, rodar_retrospectiva
+from retrospectiva import _estilo_por_mando, grid_search, prever_jogo, rodar_retrospectiva, simular_apostas
 
 TIMES = ["T1", "T2", "T3", "T4"]
 
@@ -43,6 +43,7 @@ def _linha(i, home, away):
         "home_team_fouls": 10, "away_team_fouls": 11,
         "home_team_goal_count_half_time": 0, "away_team_goal_count_half_time": 0,
         "odds_ft_home_team_win": 2.1, "odds_ft_draw": 3.3, "odds_ft_away_team_win": 3.4,
+        "odds_ft_over25": 1.8 + 0.05 * (i % 5), "odds_btts_yes": 1.9, "odds_btts_no": 1.85,
         "__src": "teste.csv",
     }
 
@@ -248,3 +249,104 @@ def test_grid_search_ordena_por_erro_e_cobre_todas_combinacoes(df_fabricado):
     assert maes == sorted(maes)  # ordenado crescente
     for params, _ in resultados:
         assert set(params.keys()) == {"k_mando", "limite_unilateral", "multiplicador_dp"}
+
+
+def test_prever_jogo_traz_probabilidades_e_odds_de_mercado(df_fabricado):
+    ultima_linha = df_fabricado.iloc[11]
+    resultado = prever_jogo(
+        ultima_linha, df_fabricado, params=dict(filtro_aderencia=0.0),
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    assert resultado is not None
+    assert 0 <= resultado["prob_modelo_over25"] <= 1
+    assert 0 <= resultado["prob_modelo_btts"] <= 1
+    assert resultado["odd_over25"] == pytest.approx(ultima_linha["odds_ft_over25"])
+    assert resultado["prob_mercado_over25"] == pytest.approx(1 / ultima_linha["odds_ft_over25"])
+    assert resultado["odd_btts_sim"] == pytest.approx(1.9)
+    # BTTS usa a margem removida (2 vias), não é só 1/odd bruto
+    assert resultado["prob_mercado_btts"] == pytest.approx(
+        (1 / 1.9) / (1 / 1.9 + 1 / 1.85)
+    )
+
+
+def test_prever_jogo_sem_coluna_de_odd_retorna_none_nesse_campo(df_fabricado):
+    df_sem_odds = df_fabricado.drop(columns=["odds_ft_over25", "odds_btts_yes", "odds_btts_no"])
+    ultima_linha = df_sem_odds.iloc[11]
+    resultado = prever_jogo(
+        ultima_linha, df_sem_odds, params=dict(filtro_aderencia=0.0),
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    assert resultado is not None
+    assert resultado["odd_over25"] is None
+    assert resultado["prob_mercado_over25"] is None
+    assert resultado["odd_btts_sim"] is None
+    assert resultado["prob_mercado_btts"] is None
+    # a probabilidade do MODELO não depende de odd nenhuma, continua presente
+    assert resultado["prob_modelo_over25"] is not None
+
+
+def _jogo_simulado(odd, prob_modelo, prob_mercado, venceu, mercado="over25"):
+    campo_odd = "odd_over25" if mercado == "over25" else "odd_btts_sim"
+    campo_pm = "prob_modelo_over25" if mercado == "over25" else "prob_modelo_btts"
+    campo_pmk = "prob_mercado_over25" if mercado == "over25" else "prob_mercado_btts"
+    campo_real = "over25_real" if mercado == "over25" else "btts_real"
+    return {
+        "jogo": "Time A x Time B", "data": None,
+        campo_odd: odd, campo_pm: prob_modelo, campo_pmk: prob_mercado, campo_real: venceu,
+    }
+
+
+def test_simular_apostas_calcula_lucro_e_roi_corretamente():
+    jogos = [
+        # edge positivo, aposta vence: odd 2.0, stake 1 -> lucro +1.0
+        _jogo_simulado(odd=2.0, prob_modelo=0.60, prob_mercado=0.50, venceu=True),
+        # edge positivo, aposta perde: -1.0
+        _jogo_simulado(odd=1.8, prob_modelo=0.65, prob_mercado=0.55, venceu=False),
+    ]
+    r = simular_apostas(jogos, mercado="over25", limiar_edge=0.0, stake=1.0)
+    assert r["n_apostas"] == 2
+    assert r["n_vitorias"] == 1
+    assert r["taxa_acerto"] == pytest.approx(0.5)
+    assert r["lucro_total"] == pytest.approx(1.0 - 1.0)
+    assert r["roi"] == pytest.approx(0.0 / 2.0)
+    assert r["edge_medio"] == pytest.approx(((0.60 - 0.50) + (0.65 - 0.55)) / 2)
+
+
+def test_simular_apostas_respeita_limiar_de_edge():
+    jogos = [
+        _jogo_simulado(odd=2.0, prob_modelo=0.51, prob_mercado=0.50, venceu=True),  # edge 0.01
+        _jogo_simulado(odd=2.0, prob_modelo=0.60, prob_mercado=0.50, venceu=True),  # edge 0.10
+    ]
+    r = simular_apostas(jogos, mercado="over25", limiar_edge=0.05, stake=1.0)
+    assert r["n_apostas"] == 1  # só o segundo jogo passa do limiar de 5%
+
+
+def test_simular_apostas_pula_jogos_sem_odd():
+    jogos = [
+        {"jogo": "X", "data": None, "odd_over25": None, "prob_modelo_over25": 0.6,
+         "prob_mercado_over25": None, "over25_real": True},
+    ]
+    r = simular_apostas(jogos, mercado="over25")
+    assert r["n_apostas"] == 0
+    assert r["lucro_total"] == 0.0
+    assert r["roi"] is None
+
+
+def test_simular_apostas_sem_nenhuma_aposta_valida():
+    r = simular_apostas([], mercado="over25")
+    assert r["n_apostas"] == 0
+    assert r["taxa_acerto"] is None
+    assert r["roi"] is None
+    assert r["apostas"] == []
+
+
+def test_simular_apostas_mercado_invalido_levanta_erro():
+    with pytest.raises(ValueError):
+        simular_apostas([], mercado="escanteios")
+
+
+def test_simular_apostas_btts_usa_campos_corretos():
+    jogos = [_jogo_simulado(odd=1.9, prob_modelo=0.55, prob_mercado=0.50, venceu=True, mercado="btts")]
+    r = simular_apostas(jogos, mercado="btts", limiar_edge=0.0, stake=2.0)
+    assert r["n_apostas"] == 1
+    assert r["lucro_total"] == pytest.approx(2.0 * (1.9 - 1))

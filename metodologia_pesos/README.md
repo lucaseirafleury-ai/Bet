@@ -54,7 +54,14 @@ retrospectiva.py       → validação walk-forward: para cada jogo do
                        combinações de parâmetros; `rodar_retrospectiva`
                        retorna `mae_gols_total`/`acerto_over25`/`acerto_btts`
                        (mercado de gols) + `mercados` (MAE absoluto e
-                       relativo dos 12 mercados).
+                       relativo dos 12 mercados). Cada jogo avaliado já
+                       carrega `prob_modelo_over25`/`prob_modelo_btts`
+                       (via `pesos.probabilidade_over`/`probabilidade_btts`)
+                       e `prob_mercado_*`/`odd_*` — `simular_apostas`
+                       aposta só quando o modelo supera a odd real por um
+                       `limiar_edge`, retornando ROI/lucro de verdade (não
+                       só acerto — ver "O que já foi feito" abaixo, os
+                       dois NÃO são a mesma coisa).
 test_retrospectiva.py  → teste de integração com dataset fabricado (não
                        depende dos CSVs reais, que só chegam com o upload).
 planilha_lib.py      → mecânica de planilha (CSV, clonagem de fórmula,
@@ -121,24 +128,43 @@ melhores = grid_search(df, grade, min_jogos_historico=10)
 print(melhores[0])  # (params, relatorio) com o menor mae_gols_total
 ```
 
-## O que já foi feito (24/08/2026, ver `docs/`)
+### Vantagem real (ROI contra odd de mercado) — não confundir com acerto
 
-- Retrospectiva real rodada contra os CSVs da Série A e B (154/156 jogos
-  avaliados cada, rodada 24/38). `k_mando` calibrado por liga (Série A:
-  sem ajuste; Série B: mantido 0.35 — as ligas se comportam diferente).
-- Teste de ablação do estilo, nos 12 mercados: o filtro/peso de estilo é
-  indiferente em todos eles no filtro atual (65%) — nenhum mercado (nem
-  escanteios) mostrou o estilo contribuindo de forma mensurável.
-- MAE relativo por mercado mapeado: chutes/escanteios são os melhor
-  previstos proporcionalmente; Gols 1ºT é o pior (MAE > 100% da média).
+```python
+from retrospectiva import simular_apostas
 
-Relatórios completos: `docs/retrospectiva_2026-08-24_seriea.md`,
-`docs/retrospectiva_2026-08-24_serieb.md`,
-`docs/retrospectiva_estilo_2026-08-24.md`,
-`docs/retrospectiva_mercados_2026-08-24.md`.
+# relatorio já vem com prob_modelo_*/odd_*/prob_mercado_* em cada jogo (rodar_retrospectiva acima)
+r = simular_apostas(relatorio["jogos"], mercado="over25", limiar_edge=0.05, stake=1.0)
+print(r["n_apostas"], r["taxa_acerto"], r["lucro_total"], r["roi"])
+# só aposta quando prob_modelo - prob_mercado >= limiar_edge — mede vantagem
+# de verdade, não só se o modelo "acertou" (ver docs/retrospectiva_roi_2026-08-24.md:
+# os dois NÃO são a mesma coisa, uma config pode acertar mais e ter MENOS edge real)
+```
+
+## O que já foi feito (24/08/2026, ver `docs/protocolo.md` pro estado atual)
+
+Resumo rápido, cronológico — o `docs/protocolo.md` tem a versão sempre
+atualizada, esta lista aqui não é mantida em detalhe:
+
+1. Motor de pesos + estilo automático viram código testado (não mais
+   fórmula Excel/julgamento manual).
+2. Primeira retrospectiva real (154-156 jogos, 2026 parcial) — achados
+   que pareciam claros.
+3. Amostra ampliada com 2025 completo (3,3× mais jogos) — parte dos
+   achados da rodada 2 não se sustentou.
+4. Validação fora-da-amostra (treino 2025 / holdout 2026) — resolve o
+   problema de comparação múltipla; Série B generaliza bem, Série A não.
+5. **Simulação de aposta contra odd real (ROI, não só acerto)** — mostra
+   que acerto e vantagem competitiva NÃO são a mesma coisa: a config
+   "vencedora" da Série B por acerto não tem edge nenhum contra o
+   mercado; a Série A (parâmetros neutros) mostra edge real e crescente.
+   **Achado mais importante da sessão até agora** — ver
+   `docs/retrospectiva_roi_2026-08-24.md`.
 
 ## O que ainda falta
 
+- **Recalibrar `k_mando`/`usar_estilo`/`filtro_aderencia` otimizando ROI
+  simulado, não acerto** — maior prioridade agora (ver item 5 acima).
 - Os proxies de Pressão Alta/Transição/Bola Parada em `estilo.py` não
   estão se mostrando úteis em nenhum mercado testado — candidatos a
   redesenho (dado mais rico) antes de reavaliar a contribuição do estilo.
