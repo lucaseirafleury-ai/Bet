@@ -32,18 +32,25 @@ sessões — complete/corrija o que estiver incompleto ou desatualizado.**
 
 | Parâmetro | Valor atual | Origem |
 |---|---|---|
-| Decaimento de recência | 100%/85%/70%/50%/30%/15%/0% em ≤10/20/30/45/90/180/>180 dias | fórmula original do template (Times!AI) |
-| `k` (encolhimento de mando) | 0.35 | escolhido "no olho", validado por inspeção de resultado em `SerieA_16jul_6.xlsx` |
-| `limite_unilateral` (corte outlier) | 4 | escolhido "no olho" |
-| `multiplicador_dp` (corte outlier) | 2.5 | escolhido "no olho" |
-| Filtro de validade (aderência estilo/favoritismo) | ≥65% nos dois | fórmula original do template (Times!O2 etc.) |
+| Decaimento de recência | 100%/85%/70%/50%/30%/15%/0% em ≤10/20/30/45/90/180/>180 dias | fórmula original do template (Times!AI) — ainda não retestado |
+| `k` (encolhimento de mando) — **Série A** | **Nenhum ajuste (k=1.0)**, revisado 24/08/2026 | validado por retrospectiva — ver abaixo. Era 0.35 "no olho" |
+| `k` (encolhimento de mando) — Série B/Copa | 0.35 | ainda "no olho" — Série B não testada separadamente ainda |
+| `limite_unilateral` (corte outlier) | 4 | testado (3/4/5) na Série A, sem diferença mensurável no mercado de gols — ver retrospectiva |
+| `multiplicador_dp` (corte outlier) | 2.5 | testado (2/2.5/3) na Série A, diferença dentro do ruído — ver retrospectiva |
+| Filtro de validade (aderência estilo/favoritismo) | ≥65% nos dois | fórmula original do template (Times!O2 etc.) — ainda não retestado |
 
-**Nenhum desses parâmetros foi calibrado estatisticamente contra resultado
-real ainda** — o pipeline de calibração (`retrospectiva.py`) já está pronto
-e testado, falta só rodar contra os CSVs reais que Lucas vai subir (ver
-`metodologia_pesos/README.md`, seção "o que ainda falta"). A validação usa
-os próprios placares dos CSVs do FootyStats (walk-forward), não depende
-mais do `Tips_telegram.xlsx`.
+**Primeira rodada de calibração feita em 24/08/2026** contra 154 jogos da
+Série A 2026 (rodada 24/38, temporada ainda em andamento) — ver
+`metodologia_pesos/docs/retrospectiva_2026-08-24_seriea.md` para o
+relatório completo. Achado principal: **o ajuste de mando piorou o modelo
+nesta base** (quanto mais forte o encolhimento, pior o MAE de gols e o
+acerto de Over/Under 2.5 e BTTS, de forma consistente) — por isso o `k` da
+Série A foi zerado acima. É uma amostra parcial de uma única liga/
+temporada e só valida o mercado de gols (não cartões/escanteios/chutes) —
+tratar como preliminar, não como validação definitiva. Falta rodar a
+mesma retrospectiva pra Série B assim que os CSVs chegarem, e não assumir
+que o mesmo resultado vale lá (a Série B tem mando de campo mais forte,
+~23%, segundo `serie-b-planilha-dia/SKILL.md`).
 
 ## Notas de estilo — agora automáticas (últimos 5 jogos)
 
@@ -63,8 +70,10 @@ um cache sobrescrito a cada sessão, não mais editado à mão.
 - **Copa 2026**: torneio neutro, sem mando de campo.
 - **Série B 2026**: mando de campo conta, média de gols mais baixa
   (2.3/jogo), liga mais faltosa (5.37 cartões/jogo), tem props de jogador.
-- **Série A**: reaproveita a mesma fórmula/parâmetros da Série B (não
-  validada separadamente ainda) — banco de estilo próprio ainda não existe.
+- **Série A**: dados reais em `data/footystats_seriea/` (league/teams/
+  teams2/players/matches, subidos 24/08/2026, rodada 24/38 em andamento).
+  Único dos três com uma primeira calibração retrospectiva feita (ver
+  acima) — `k` de mando revisado pra Série A especificamente.
 
 ## TODO (preencher com Lucas)
 
@@ -73,7 +82,15 @@ um cache sobrescrito a cada sessão, não mais editado à mão.
       sessões anteriores que não foram recuperadas nesta consolidação).
 - [ ] Confirmar se as regras "não usar odds de memória" / "máx 47% da
       banca" valem igual pra Série A ou se há ajuste por liga.
-- [ ] Rodar `retrospectiva.rodar_retrospectiva`/`grid_search` com os CSVs
-      reais da Série A/B assim que Lucas subir, e atualizar a tabela de
-      parâmetros acima com "validado por retrospectiva" + os valores
-      recomendados.
+- [x] Rodar `retrospectiva.rodar_retrospectiva`/`grid_search` com os CSVs
+      reais da Série A (24/08/2026) — ver relatório e resultado acima.
+- [ ] Rodar a mesma retrospectiva pra Série B assim que os CSVs chegarem
+      (não assumir que o `k=1.0` da Série A vale lá também).
+- [ ] Estender `retrospectiva.py` pra validar os outros 10 indicadores
+      Pró/Contra (cartões, escanteios, chutes, chutes no gol, gols 1T) —
+      hoje só gols foi validado.
+- [ ] Confirmar a decisão de zerar o `k` de mando da Série A com o Lucas
+      antes de aplicar de vez nas planilhas reais (é recomendação
+      preliminar, amostra de temporada parcial).
+- [ ] Re-rodar a retrospectiva da Série A quando a temporada estiver mais
+      avançada (mais jogos = amostra melhor).
