@@ -1,0 +1,210 @@
+{
+ "Paraguay": {
+  "estilo_text": "Físico, disciplinado, bloco baixo, contra-ataque",
+  "bb": 4,
+  "pa": 2,
+  "tr": 3,
+  "pos": 2,
+  "bp": 3
+ },
+ "Sweden": {
+  "estilo_text": "Organizado, meio-bloco, físico nórdico",
+  "bb": 3,
+  "pa": 2,
+  "tr": 3,
+  "pos": 2,
+  "bp": 4
+ },
+ "Norway": {
+  "estilo_text": "Direto, físico, Haaland de referência, contra-ataque",
+  "bb": 2,
+  "pa": 3,
+  "tr": 4,
+  "pos": 2,
+  "bp": 4
+ },
+ "Iraq": {
+  "estilo_text": "Modesto, bloco baixo, pouca posse",
+  "bb": 4,
+  "pa": 1,
+  "tr": 2,
+  "pos": 1,
+  "bp": 2
+ },
+ "Senegal": {
+  "estilo_text": "Atlético, transição rápida, físico",
+  "bb": 3,
+  "pa": 3,
+  "tr": 4,
+  "pos": 2,
+  "bp": 3
+ },
+ "Northern Ireland": {
+  "estilo_text": "Underdog, bloco baixo, físico",
+  "bb": 5,
+  "pa": 1,
+  "tr": 2,
+  "pos": 1,
+  "bp": 3
+ },
+ "Ivory Coast": {
+  "estilo_text": "Atlético, transição, individualidades",
+  "bb": 3,
+  "pa": 2,
+  "tr": 4,
+  "pos": 2,
+  "bp": 3
+ },
+ "Colombia": {
+  "estilo_text": "Técnica, transição, flair ofensivo",
+  "bb": 2,
+  "pa": 3,
+  "tr": 4,
+  "pos": 3,
+  "bp": 2
+ },
+ "Brazil": {
+  "estilo_text": "Técnica, transição, individualidades",
+  "bb": 2,
+  "pa": 3,
+  "tr": 4,
+  "pos": 3,
+  "bp": 2
+ },
+ "Azerbaijan": {
+  "estilo_text": "Fraco, bloco baixo total",
+  "bb": 5,
+  "pa": 1,
+  "tr": 1,
+  "pos": 1,
+  "bp": 2
+ },
+ "Ukraine": {
+  "estilo_text": "Organizado, meio-bloco, físico",
+  "bb": 3,
+  "pa": 2,
+  "tr": 3,
+  "pos": 2,
+  "bp": 3
+ },
+ "Iceland": {
+  "estilo_text": "Bloco baixo, físico, bola parada",
+  "bb": 5,
+  "pa": 1,
+  "tr": 2,
+  "pos": 1,
+  "bp": 5
+ },
+ "Canada": {
+  "estilo_text": "Anfitrião, energia, pressão em casa",
+  "bb": 2,
+  "pa": 4,
+  "tr": 4,
+  "pos": 2,
+  "bp": 3
+ },
+ "Netherlands": {
+  "estilo_text": "Posse dominante, pressão alta, técnica",
+  "bb": 1,
+  "pa": 5,
+  "tr": 3,
+  "pos": 5,
+  "bp": 2
+ },
+ "Haiti": {
+  "estilo_text": "Estreante, bloco baixo, direto",
+  "bb": 5,
+  "pa": 1,
+  "tr": 2,
+  "pos": 1,
+  "bp": 2
+ },
+ "Scotland": {
+  "estilo_text": "Organizado, físico, bola parada",
+  "bb": 4,
+  "pa": 2,
+  "tr": 2,
+  "pos": 2,
+  "bp": 4
+ },
+ "Madagascar": {
+  "estilo_text": "Modesto, bloco baixo total",
+  "bb": 5,
+  "pa": 1,
+  "tr": 1,
+  "pos": 1,
+  "bp": 2
+ },
+ "Burundi": {
+  "estilo_text": "Muito fraco, bloco baixo total",
+  "bb": 5,
+  "pa": 1,
+  "tr": 1,
+  "pos": 1,
+  "bp": 1
+ },
+ "Ecuador": {
+  "estilo_text": "Atlético, transição, físico",
+  "bb": 3,
+  "pa": 2,
+  "tr": 3,
+  "pos": 2,
+  "bp": 3
+ },
+ "Uganda": {
+  "estilo_text": "Modesto, bloco baixo",
+  "bb": 5,
+  "pa": 1,
+  "tr": 2,
+  "pos": 1,
+  "bp": 2
+ },
+ "Mozambique": {
+  "estilo_text": "Modesto, bloco baixo",
+  "bb": 5,
+  "pa": 1,
+  "tr": 1,
+  "pos": 1,
+  "bp": 2
+ },
+ "Étoile du Congo": {
+  "estilo_text": "Modesto, bloco baixo",
+  "bb": 5,
+  "pa": 1,
+  "tr": 2,
+  "pos": 1,
+  "bp": 2
+ },
+ "Bahrain": {
+  "estilo_text": "Modesto, bloco baixo, defensivo",
+  "bb": 5,
+  "pa": 1,
+  "tr": 1,
+  "pos": 1,
+  "bp": 2
+ },
+ "Zambia": {
+  "estilo_text": "Físico, meio-bloco, contra-ataque",
+  "bb": 4,
+  "pa": 2,
+  "tr": 3,
+  "pos": 2,
+  "bp": 3
+ },
+ "France": {
+  "estilo_text": "Elite ofensiva, posse+transicao rapida, Mbappe/Dembele",
+  "bb": 1,
+  "pa": 4,
+  "tr": 5,
+  "pos": 3,
+  "bp": 3
+ },
+ "Morocco": {
+  "estilo_text": "Organizado, bloco medio-baixo, contra-ataque via Hakimi",
+  "bb": 4,
+  "pa": 2,
+  "tr": 4,
+  "pos": 2,
+  "bp": 3
+ }
+}
