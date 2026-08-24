@@ -141,6 +141,7 @@ function htmlSinalItem(i, { mostrarJogo }) {
       ${jogoHtml}
       <div class="sinal-resumo-row" onclick="toggleSinal('${chave}')">
         <span class="delta-tag">${seta} ${i.resumo}</span>
+        ${i.probabilidade != null ? `<span class="odd-min-tag">${i.probabilidade.toFixed(1)}%</span>` : ""}
         ${i.odd_minima != null ? `<span class="odd-min-tag">odd mín. ${i.odd_minima.toFixed(2)}</span>` : ""}
         <span id="sinal-chevron-${chave}" class="chevron-link">${expandido ? "▲ ocultar" : "▼ detalhes"}</span>
       </div>

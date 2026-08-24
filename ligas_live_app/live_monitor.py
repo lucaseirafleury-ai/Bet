@@ -510,8 +510,9 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
             f"min {minuto} — {melhor_regra['mercado_curto']}.{reforco} Recalculado já considerando que o jogo "
             f"tem {melhor_stats['valor_atual_real']} {nome_alvo_valor} até agora: {melhor_stats['n']} jogos de "
             f"referência com esse mesmo valor (impacto +{melhor_stats['impacto_pp']:.1f} p.p. sobre a base nesse "
-            f"estado de jogo). Odd mínima de referência: {melhor_stats['odd_minima']:.2f} (estimada da amostra "
-            f"histórica, não do modelo ao vivo deste painel)."
+            f"estado de jogo). Probabilidade estimada: {melhor_stats['p_condicao']*100:.1f}%. Odd mínima de "
+            f"referência: {melhor_stats['odd_minima']:.2f} (estimada da amostra histórica, não do modelo ao "
+            f"vivo deste painel)."
         )
         insight = _insight_base(
             relatorio, minuto, f"sinal_{alvo}_{direcao}", "Jogo", melhor_stats["impacto_pp"], mensagem
@@ -521,6 +522,7 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
         # static/app.js — e o gate de contradição acima em partidas futuras.
         insight["resumo"] = melhor_regra["mercado_curto"]
         insight["odd_minima"] = melhor_stats["odd_minima"]
+        insight["probabilidade"] = round(melhor_stats["p_condicao"] * 100, 1)
         insight["alvo"] = alvo
         insight["direcao"] = direcao
         insights.append(insight)
