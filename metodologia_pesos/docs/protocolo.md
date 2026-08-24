@@ -36,7 +36,7 @@ sessões — complete/corrija o que estiver incompleto ou desatualizado.**
 | `k` (encolhimento de mando) | Sem ajuste (`None`) | **0.5** | **validado por holdout 2025→2026** — ver "Validação fora-da-amostra" abaixo |
 | `usar_estilo` | `True` | **`False`** | idem |
 | `filtro_aderencia` | 0.65 | **0.8** | idem — na Série B contraria o achado anterior baseado em MAE; aqui a evidência é de holdout real em Over/Under 2.5 |
-| `estilo_por_mando` (estilo casa≠fora) | `True` (ligado) | `False` (desligado) | testado em amostra única (não holdout ainda) — ver "Estilo por mando" abaixo |
+| `estilo_por_mando` (estilo casa≠fora) | `False` (revertido — era `True`) | `False` (desligado, confirmado) | validado por holdout 2025→2026 (24/08/2026) — achado anterior não se sustentou. Ver "Estilo por mando" abaixo |
 | `limite_unilateral` (corte outlier) | 4 | 4 | sem diferença mensurável, não testado em holdout |
 | `multiplicador_dp` (corte outlier) | 2.5 | 2.5 | idem |
 | `k` (Copa) | 0.35 | | ainda "no olho" — torneio neutro, parâmetro pouco relevante |
@@ -72,8 +72,9 @@ previsível mesmo (mais zebra), ou precisar de mais dado ainda.
 O `k_mando`/ablação de estilo foram recalibrados olhando só o mercado de
 gols — os outros 11 mercados (ver seção de ablação abaixo) têm MAE
 calculado mas não passaram por esse mesmo processo de treino/holdout.
-`estilo_por_mando` também não foi re-testado em holdout ainda (fica pro
-próximo passo).
+`estilo_por_mando` FOI retestado com o mesmo desenho (ver seção
+"Estilo por mando" abaixo, atualizada em 24/08/2026) — o achado anterior
+não se sustentou, mesmo padrão do `k_mando` da Série A.
 
 ## Teste de ablação do estilo (24/08/2026)
 
@@ -125,21 +126,30 @@ adversário do histórico, respeitando o mando que tinham em cada
 confronto). Métrica priorizada pelo Lucas: **acerto de Over/Under 2.5**
 (não MAE). Ver `docs/retrospectiva_estilo_por_mando_2026-08-24.md`.
 
-**Resultado: ajuda na Série A, atrapalha na Série B** (mesmo padrão de
-divergência entre ligas já visto no `k_mando`):
-- **Série A**: estilo por mando é a MELHOR das 3 opções (sem estilo /
-  estilo misto / estilo por mando) tanto em Over/Under 2.5 (50.62% vs
-  50.20% sem estilo vs 49.61% misto) quanto em BTTS. **Decisão: ligar
-  `estilo_por_mando=True` na Série A.**
-- **Série B**: estilo por mando é a PIOR opção em Over/Under 2.5 (55.02%
-  vs 56.71% do estilo misto atual, que continua sendo o melhor aqui) —
-  apesar de vencer em MAE de gols e BTTS. **Decisão: manter
-  `estilo_por_mando=False` (estilo misto) na Série B.**
+**Resultado inicial (comparação única, 24/08): ajuda na Série A,
+atrapalha na Série B.** Série A: estilo por mando era a melhor das 3
+opções em Over/Under 2.5 (50.62% vs 50.20% sem estilo vs 49.61% misto).
+Série B: era a pior (55.02% vs 56.71% do estilo misto).
 
-Custo: estilo por mando exige mais dado (5 jogos NAQUELE mando
-específico) — avalia ~5-7% menos jogos. As amostras comparadas não são
-idênticas entre os 3 cenários por causa disso (ver limitações no
-relatório) — tratar como sinal real mas não definitivo.
+**⚠️ Atualização com validação fora-da-amostra (24/08/2026, mesmo dia) —
+o achado da Série A NÃO se sustentou.** Mesmo problema que já tinha
+derrubado o `k_mando` original: essa comparação foi feita numa amostra
+única, sem holdout. Retestado com o mesmo desenho treino(2025)/
+holdout(2026) — ver `docs/retrospectiva_holdout_estilo_por_mando_2026-08-24.md`:
+- **Série A**: a diferença entre `estilo_por_mando=True` e `False` fica
+  dentro de 0.1-0.7pp em pares comparáveis no holdout — ruído, não sinal.
+  **Decisão revisada: `estilo_por_mando=False`** (revertido).
+- **Série B**: o achado se CONFIRMA — o melhor resultado geral do
+  holdout (59.16% de Over/Under 2.5) continua usando `False`, e a maioria
+  do top-10 favorece `False`. **Mantido `estilo_por_mando=False`.**
+
+**Estilo por mando fica desligado nas duas ligas agora** — nem `usar_estilo`
+nem `estilo_por_mando` mostraram efeito forte o bastante pra justificar
+tratamento diferenciado. O código (`_estilo_por_mando` em
+`retrospectiva.py`) fica mantido, testado mas não usado por ora.
+
+Custo (contexto): estilo por mando exige mais dado (5 jogos NAQUELE mando
+específico) — avalia ~5-7% menos jogos que o estilo misto.
 
 ## Notas de estilo — agora automáticas (últimos 5 jogos)
 
@@ -210,10 +220,11 @@ um cache sobrescrito a cada sessão, não mais editado à mão.
       generaliza bem. Parâmetros da Série B atualizados com base nisso
       (`k=0.5, usar_estilo=False, filtro=0.8`); Série A mantida neutra.
       Ver `docs/retrospectiva_holdout_2026-08-24.md`.
-- [ ] Re-testar `estilo_por_mando` com o mesmo desenho de holdout
-      (treino 2025 / teste 2026) — foi decidido numa comparação única,
-      sem holdout, mesmo risco de comparação múltipla que já derrubou o
-      achado antigo de `k_mando`.
+- [x] Re-testar `estilo_por_mando` com o mesmo desenho de holdout
+      (treino 2025 / teste 2026), 24/08/2026 — o achado da Série A NÃO se
+      sustentou (revertido pra `False`); o da Série B se confirmou
+      (mantido `False`). `estilo_por_mando` fica desligado nas duas ligas
+      agora. Ver `docs/retrospectiva_holdout_estilo_por_mando_2026-08-24.md`.
 - [ ] Rodar o grid search de `k_mando`/outlier também pros outros 11
       mercados (hoje só gols foi calibrado, e só com holdout na Série B).
 - [ ] Quando surgir mais uma temporada/rodada de dado (2024? mais de
