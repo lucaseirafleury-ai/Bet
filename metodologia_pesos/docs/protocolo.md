@@ -33,35 +33,30 @@ sessões — complete/corrija o que estiver incompleto ou desatualizado.**
 | Parâmetro | Valor atual | Origem |
 |---|---|---|
 | Decaimento de recência | 100%/85%/70%/50%/30%/15%/0% em ≤10/20/30/45/90/180/>180 dias | fórmula original do template (Times!AI) — ainda não retestado |
-| `k` (encolhimento de mando) — **Série A** | **Nenhum ajuste (k=1.0)**, revisado 24/08/2026 | validado por retrospectiva — ver abaixo. Era 0.35 "no olho" |
-| `k` (encolhimento de mando) — **Série B** | **Mantido em 0.35**, confirmado 24/08/2026 | validado por retrospectiva — melhor ou quase melhor nos mercados derivados (ver abaixo) |
+| `k` (encolhimento de mando) — **Série A** | **Sem valor "validado"** — mantido sem ajuste (k=1.0) por ser razoável dentro do platô, não porque vença claramente | ver "Recalibração com amostra ampliada" abaixo — a versão anterior desta linha (k=1.0 "vencedor claro") não se sustentou com mais dado |
+| `k` (encolhimento de mando) — **Série B** | **Sem valor "validado"** — mantido em 0.35 por ser razoável dentro do platô, não porque vença claramente | idem — ver abaixo |
 | `k` (encolhimento de mando) — Copa | 0.35 | ainda "no olho" — Copa é torneio neutro, sem mando; parâmetro pouco relevante lá |
 | `limite_unilateral` (corte outlier) | 4 | testado (3/4/5) na Série A e B, sem diferença mensurável no mercado de gols — ver retrospectivas |
 | `multiplicador_dp` (corte outlier) | 2.5 | testado (2/2.5/3) na Série A e B, diferença dentro do ruído — ver retrospectivas |
-| Filtro de validade (aderência estilo/favoritismo) | ≥65% nos dois | testado (0/0.5/0.65/0.8) 24/08/2026 — ver "Teste de ablação do estilo" abaixo. Mantido em 65% |
+| Filtro de validade (aderência estilo/favoritismo) | ≥65% nos dois | testado (0/0.5/0.65/0.8) em 2 rodadas (154-156 jogos e depois 492-508) — único achado que se REPLICOU com força: 0.8 é ruim, resto é parecido. Mantido em 65% |
 
-**Primeira rodada de calibração feita em 24/08/2026** contra a Série A
-(154 jogos, rodada 24/38) e a Série B (156 jogos, rodada 24/38) — ambas
-temporadas ainda em andamento. Relatórios completos:
-`docs/retrospectiva_2026-08-24_seriea.md` e
-`docs/retrospectiva_2026-08-24_serieb.md`.
+**⚠️ Recalibração com amostra ampliada (24/08/2026, mesmo dia) — ver
+`docs/retrospectiva_2025_2026_recalibracao.md`.** A primeira rodada de
+calibração (contra só 154-156 jogos de 2026 parcial) tinha concluído que
+"zerar o mando na Série A vence nas 3 métricas de forma clara". Depois de
+Lucas subir a temporada 2025 completa (380 jogos/liga), a mesma
+recalibração rodou contra 492-508 jogos (3.3x mais dado) — **e essa
+conclusão não se sustentou**: com mais dado, a diferença entre k=0.5/0.7/
+None fica dentro de 1-2% (ruído), nas duas ligas, e MAE de gols aponta
+numa direção enquanto acerto de Over/Under 2.5 aponta na oposta. Ou seja,
+a conclusão "confiante" da rodada anterior era, em boa parte, artefato de
+amostra pequena. **Lição prática**: tratar qualquer achado baseado em
+\<200 jogos como preliminar até re-testar com mais dado — o que já
+aconteceu aqui uma vez.
 
-**As duas ligas se comportaram DIFERENTE — por isso os parâmetros agora
-divergem por liga:**
-- **Série A**: o ajuste de mando piorou o modelo de forma consistente nas
-  3 métricas (MAE de gols, acerto de Over/Under 2.5, acerto de BTTS) —
-  por isso o `k` foi zerado.
-- **Série B**: sinal misto — o `k` que minimiza o erro médio de gols
-  (0.7) não é o que mais acerta Over/Under 2.5 e BTTS (0.35, o valor já
-  em uso, vence ou quase vence nesses dois). Como os mercados derivados
-  são mais próximos do que Lucas realmente aposta do que o erro médio de
-  gols, mantivemos `k=0.35` na Série B sem mudança.
-
-Tratar as duas como recomendação preliminar (amostra de temporada
-parcial). O `k_mando` foi calibrado só olhando o mercado de gols — os
-outros 11 mercados (ver seção de ablação abaixo) têm MAE calculado mas
-não passaram por esse mesmo grid search de `k_mando`/outlier ainda, só
-pela ablação de estilo.
+O `k_mando`/ablação de estilo foram recalibrados olhando só o mercado de
+gols — os outros 11 mercados (ver seção de ablação abaixo) têm MAE
+calculado mas não passaram por esse mesmo grid search ainda.
 
 ## Teste de ablação do estilo (24/08/2026)
 
@@ -94,6 +89,13 @@ o estilo (do jeito que é calculado hoje) se destaque como relevante — ver
 `docs/retrospectiva_mercados_2026-08-24.md`. Confirma que o problema é o
 que os proxies medem, não o peso que recebem.
 
+**Atualização com amostra ampliada (2025+2026)**: com 3.3x mais dado, o
+sinal deixou de ser "indiferente" (diferença <0.1%) e passou a "levemente
+negativo, mas consistente" (SEM estilo é ~0.1-0.4% melhor, nas duas
+ligas) — ver `docs/retrospectiva_2025_2026_recalibracao.md`. Ainda pequeno
+demais pra justificar desligar o estilo, mas a direção do efeito ficou
+mais confiável (era ruído puro antes; agora é um viés fraco e replicado).
+
 ## Notas de estilo — agora automáticas (últimos 5 jogos)
 
 Desde a consolidação em `estilo.py`, as 5 notas de estilo por time
@@ -112,11 +114,14 @@ um cache sobrescrito a cada sessão, não mais editado à mão.
 - **Copa 2026**: torneio neutro, sem mando de campo.
 - **Série B 2026**: mando de campo conta, média de gols mais baixa
   (2.3/jogo), liga mais faltosa (5.37 cartões/jogo), tem props de jogador.
-  Dados reais em `data/footystats_serieb/`, calibração feita 24/08/2026
-  (ver acima) — `k=0.35` mantido.
-- **Série A**: dados reais em `data/footystats_seriea/` (league/teams/
-  teams2/players/matches, subidos 24/08/2026, rodada 24/38 em andamento).
-  Calibração feita 24/08/2026 (ver acima) — `k` de mando zerado.
+  Dados reais em `data/footystats_serieb/` (2026 parcial) +
+  `data/footystats_serieb_2025/` (temporada completa) — 492 jogos
+  avaliáveis combinados. `k=0.35` mantido, sem ser "vencedor claro" (ver
+  recalibração acima).
+- **Série A**: dados reais em `data/footystats_seriea/` (2026 parcial) +
+  `data/footystats_seriea_2025/` (temporada completa) — 508 jogos
+  avaliáveis combinados. `k` sem ajuste mantido, sem ser "vencedor claro"
+  (ver recalibração acima).
 
 ## TODO (preencher com Lucas)
 
@@ -139,9 +144,17 @@ um cache sobrescrito a cada sessão, não mais editado à mão.
       MAE relativo por mercado sugere mais confiança em chutes/escanteios/
       cartões do que em gols e principalmente "Gols 1ºT" (MAE > 100% da
       média — pouco melhor que chutar a média da liga nesse mercado).
-- [ ] Confirmar com Lucas a decisão de zerar o `k` de mando da Série A
-      antes de aplicar de vez nas planilhas reais (é recomendação
-      preliminar, amostra de temporada parcial).
-- [ ] Re-rodar as duas retrospectivas quando as temporadas estiverem mais
-      avançadas (mais jogos = amostra melhor, principalmente pra
-      desempatar o sinal misto da Série B).
+- [x] Re-rodar as duas retrospectivas com mais dado (24/08/2026, Lucas
+      subiu 2025 completo) — 3.3x mais jogos avaliados. O achado "zerar
+      k na Série A" NÃO se sustentou; virou platô raso sem vencedor claro
+      nas duas ligas. Ver `docs/retrospectiva_2025_2026_recalibracao.md`.
+- [ ] Não tratar `k_mando` como resolvido em nenhuma liga — se quiser
+      decidir um valor único (em vez de manter os atuais "razoáveis
+      dentro do platô"), definir com Lucas se prioriza MAE de gols ou
+      acerto de Over/Under 2.5 (apontam em direções opostas).
+- [ ] Rodar o grid search de `k_mando`/outlier também pros outros 11
+      mercados (hoje só gols foi calibrado com grid; os outros só têm MAE
+      baseline + ablação de estilo).
+- [ ] Quando surgir mais uma temporada/rodada de dado, repetir de novo —
+      o padrão "achado muda com mais dado" já se confirmou uma vez, vale
+      manter a guarda alta antes de fixar qualquer parâmetro de vez.
