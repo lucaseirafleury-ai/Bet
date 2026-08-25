@@ -15,6 +15,7 @@ from pesos import (
     desvio_padrao_ponderado,
     indicador_pro_contra,
     media_ponderada,
+    odd_e_prob_under_aproximada,
     peso_final,
     peso_recencia,
     probabilidade_btts,
@@ -267,6 +268,28 @@ def test_probabilidade_implicita_2vias_remove_margem():
     p_nao = probabilidade_implicita_2vias(2.10, 1.90)
     assert p_sim + p_nao == pytest.approx(1.0)
     assert p_sim > probabilidade_implicita(2.10)  # não é só 1/odd bruto, é normalizado
+
+
+def test_odd_e_prob_under_aproximada_complementa_a_probabilidade_bruta():
+    prob_under, odd_under = odd_e_prob_under_aproximada(1.80)
+    assert prob_under == pytest.approx(1 - 1 / 1.80)
+    assert odd_under == pytest.approx(1 / prob_under)
+
+
+def test_odd_e_prob_under_aproximada_e_mais_generosa_que_o_mercado_real():
+    # 1.90/2.10 seria um par real com margem (soma das implícitas > 1);
+    # a aproximação (que não desconta margem nenhuma do lado Under) dá
+    # uma odd de Under um pouco ACIMA da odd real do par — otimista, não
+    # conservadora (documentado na docstring da função).
+    _, odd_under_aproximada = odd_e_prob_under_aproximada(1.90)
+    odd_under_real = 2.10
+    assert odd_under_aproximada > odd_under_real
+
+
+def test_odd_e_prob_under_aproximada_rejeita_odd_invalida():
+    assert odd_e_prob_under_aproximada(None) == (None, None)
+    assert odd_e_prob_under_aproximada(1.0) == (None, None)
+    assert odd_e_prob_under_aproximada(0.5) == (None, None)
 
 
 def test_probabilidade_resultado_soma_um():

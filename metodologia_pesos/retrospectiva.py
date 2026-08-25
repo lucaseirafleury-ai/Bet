@@ -27,6 +27,7 @@ from pesos import (
     ajuste_mando,
     calcular_pesos_historico,
     indicador_pro_contra,
+    odd_e_prob_under_aproximada,
     probabilidade_btts,
     probabilidade_implicita,
     probabilidade_implicita_2vias,
@@ -250,6 +251,10 @@ def prever_jogo(row, df, params=None, min_jogos_historico=10, min_jogos_estilo=N
         over25_real=(gf_real + ga_real) > 2.5, over25_pred=(gf_pred + ga_pred) > 2.5,
         over35_real=(gf_real + ga_real) > 3.5, over35_pred=(gf_pred + ga_pred) > 3.5,
         over45_real=(gf_real + ga_real) > 4.5, over45_pred=(gf_pred + ga_pred) > 4.5,
+        under15_real=(gf_real + ga_real) < 1.5, under15_pred=(gf_pred + ga_pred) < 1.5,
+        under25_real=(gf_real + ga_real) < 2.5, under25_pred=(gf_pred + ga_pred) < 2.5,
+        under35_real=(gf_real + ga_real) < 3.5, under35_pred=(gf_pred + ga_pred) < 3.5,
+        under45_real=(gf_real + ga_real) < 4.5, under45_pred=(gf_pred + ga_pred) < 4.5,
         btts_real=(gf_real > 0 and ga_real > 0), btts_pred=(gf_pred > 0.5 and ga_pred > 0.5),
         n_jogos_validos=len(validos),
         mercados=mercados,
@@ -332,6 +337,9 @@ def _probabilidades_e_odds(row, gf_pred, ga_pred, gf_real=None, ga_real=None):
     Over (todas as linhas): o CSV só traz a odd do lado "over", não a do
     "under" — a probabilidade implícita fica sem remover a margem da casa
     (`probabilidade_implicita`, superestima um pouco).
+    Under (todas as linhas): odd/probabilidade APROXIMADAS a partir da odd
+    de Over, via `odd_e_prob_under_aproximada` — não é odd real de
+    mercado, tende a ficar um pouco otimista (ver docstring da função).
     BTTS: o CSV traz os dois lados (`odds_btts_yes`/`odds_btts_no`), dá pra
     normalizar de verdade com `probabilidade_implicita_2vias`.
     Favorito DC: ver `_probabilidades_favorito_dc`.
@@ -339,9 +347,16 @@ def _probabilidades_e_odds(row, gf_pred, ga_pred, gf_real=None, ga_real=None):
     resultado = {}
     for nome, (linha, coluna_odd) in _LINHAS_OVER.items():
         odd = _valor_odd(row, coluna_odd)
-        resultado[f"prob_modelo_{nome}"] = probabilidade_over(gf_pred + ga_pred, linha=linha)
+        prob_modelo_over = probabilidade_over(gf_pred + ga_pred, linha=linha)
+        resultado[f"prob_modelo_{nome}"] = prob_modelo_over
         resultado[f"odd_{nome}"] = odd
         resultado[f"prob_mercado_{nome}"] = probabilidade_implicita(odd) if odd else None
+
+        nome_under = f"under{nome[len('over'):]}"
+        prob_mercado_under, odd_under = odd_e_prob_under_aproximada(odd) if odd else (None, None)
+        resultado[f"prob_modelo_{nome_under}"] = 1 - prob_modelo_over
+        resultado[f"odd_{nome_under}"] = odd_under
+        resultado[f"prob_mercado_{nome_under}"] = prob_mercado_under
 
     prob_modelo_btts = probabilidade_btts(gf_pred, ga_pred)
     odd_btts_sim = _valor_odd(row, "odds_btts_yes")
@@ -479,6 +494,14 @@ _MERCADOS_SIMULAVEIS = {
                    odd=f"odd_{nome}", real=f"{nome}_real")
         for nome in _LINHAS_OVER
     },
+    **{
+        f"under{nome[len('over'):]}": dict(
+            prob_modelo=f"prob_modelo_under{nome[len('over'):]}",
+            prob_mercado=f"prob_mercado_under{nome[len('over'):]}",
+            odd=f"odd_under{nome[len('over'):]}", real=f"under{nome[len('over'):]}_real",
+        )
+        for nome in _LINHAS_OVER
+    },
     "btts": dict(prob_modelo="prob_modelo_btts", prob_mercado="prob_mercado_btts",
                  odd="odd_btts_sim", real="btts_real"),
     "favorito_dc": dict(prob_modelo="prob_modelo_favorito_dc", prob_mercado="prob_mercado_favorito_dc",
@@ -498,15 +521,18 @@ def simular_apostas(jogos, mercado="over25", limiar_edge=0.0, stake=1.0):
     já carrega `prob_modelo_*`/`prob_mercado_*`/`odd_*` calculados por
     `prever_jogo`).
 
-    `mercado`: `"over15"`/`"over25"`/`"over35"`/`"over45"` (odd do lado
-    "over" apenas, sem remover margem — só temos a odd de um lado no CSV)
-    ou `"btts"` (usa BTTS Sim, com margem removida via odds dos dois
-    lados).
+    `mercado`: `"over15"`/`"over25"`/`"over35"`/`"over45"` (odd real do
+    lado "over", sem remover margem — só temos a odd de um lado no CSV),
+    `"under15"`/`"under25"`/`"under35"`/`"under45"` (odd APROXIMADA a
+    partir da odd de Over — ver `pesos.odd_e_prob_under_aproximada`, não é
+    odd real de mercado, tende a ficar um pouco otimista), ou `"btts"`
+    (usa BTTS Sim, com margem removida via odds dos dois lados).
 
-    IMPORTANTE — só cobre apostar no lado "over"/"sim": o CSV não traz a
-    odd do lado oposto (Under 2.5), então não dá pra simular apostar contra
-    o modelo nesse mercado. Jogos sem a odd necessária são pulados (não
-    inventa odd).
+    IMPORTANTE sobre Under: o CSV não traz a odd real desse lado — a odd
+    usada aqui é derivada da odd de Over (complemento bruto da
+    probabilidade implícita), não uma odd de mercado de verdade. Trate
+    qualquer resultado desses mercados com mais cautela ainda do que o
+    normal. Jogos sem a odd necessária são pulados (não inventa odd).
 
     Retorna dict com `n_apostas`, `n_vitorias`, `taxa_acerto` (das apostas
     FEITAS, não de todos os jogos avaliados), `lucro_total`, `roi`

@@ -262,6 +262,34 @@ def probabilidade_implicita_2vias(odd_lado, odd_lado_oposto):
     return p1 / soma
 
 
+def odd_e_prob_under_aproximada(odd_over):
+    """Aproxima a probabilidade implícita e a odd decimal do lado "Under"
+    a partir da odd real do lado "Over" (o CSV só traz o lado Over pras
+    linhas de gols — não tem odd real de Under).
+
+    Usa o complemento bruto da probabilidade implícita do Over
+    (`1 - 1/odd_over`), sem remover a margem da casa dos dois lados —
+    não temos a odd real de Under pra normalizar de verdade como em
+    `probabilidade_implicita_2vias`. Isso faz a odd de Under aproximada
+    ficar um pouco ACIMA da odd que uma casa provavelmente ofereceria de
+    verdade (a margem inteira "sobra" pro lado Over computado, nenhuma é
+    descontada do lado Under) — ao contrário da aproximação de Dupla
+    Chance do favorito (que é conservadora, pra menos), esta tende a ser
+    OTIMISTA, pra mais. Qualquer edge encontrado usando esta odd merece
+    ainda mais cautela que o normal.
+
+    Retorna `(prob_under, odd_under)`, ou `(None, None)` se `odd_over`
+    for inválida (`None` ou <= 1).
+    """
+    if odd_over is None or odd_over <= 1:
+        return None, None
+    prob_over_bruta = probabilidade_implicita(odd_over)
+    prob_under = 1 - prob_over_bruta
+    if prob_under <= 0:
+        return None, None
+    return prob_under, 1 / prob_under
+
+
 def probabilidade_resultado(gols_pro_esperado, gols_contra_esperado, limite_gols=10):
     """P(vitória do mandante), P(empate), P(vitória do visitante) — gols de
     cada lado como Poisson independentes (mesma premissa de

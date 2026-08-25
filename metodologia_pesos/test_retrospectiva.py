@@ -290,6 +290,30 @@ def test_prever_jogo_traz_probabilidades_e_odds_de_mercado(df_fabricado):
     assert resultado["prob_modelo_over15"] > resultado["prob_modelo_over25"] > resultado["prob_modelo_over45"]
 
 
+def test_prever_jogo_traz_under_aproximado_de_todas_as_linhas(df_fabricado):
+    ultima_linha = df_fabricado.iloc[11]
+    resultado = prever_jogo(
+        ultima_linha, df_fabricado, params=dict(filtro_aderencia=0.0),
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    assert resultado is not None
+    for nome, coluna in (
+        ("under15", "odds_ft_over15"), ("under25", "odds_ft_over25"),
+        ("under35", "odds_ft_over35"), ("under45", "odds_ft_over45"),
+    ):
+        nome_over = "over" + nome[len("under"):]
+        # probabilidade do MODELO é o complemento exato (mesma distribuição Poisson)
+        assert resultado[f"prob_modelo_{nome}"] == pytest.approx(1 - resultado[f"prob_modelo_{nome_over}"])
+        # real/pred são o oposto booleano do lado over
+        assert resultado[f"{nome}_real"] == (not resultado[f"{nome_over}_real"])
+        assert resultado[f"{nome}_pred"] == (not resultado[f"{nome_over}_pred"])
+        # odd/prob de mercado são aproximadas a partir da odd real de Over
+        odd_over = ultima_linha[coluna]
+        prob_under_esperada = 1 - 1 / odd_over
+        assert resultado[f"prob_mercado_{nome}"] == pytest.approx(prob_under_esperada)
+        assert resultado[f"odd_{nome}"] == pytest.approx(1 / prob_under_esperada)
+
+
 def test_prever_jogo_sem_coluna_de_odd_retorna_none_nesse_campo(df_fabricado):
     df_sem_odds = df_fabricado.drop(columns=["odds_ft_over25", "odds_btts_yes", "odds_btts_no"])
     ultima_linha = df_sem_odds.iloc[11]
@@ -300,6 +324,8 @@ def test_prever_jogo_sem_coluna_de_odd_retorna_none_nesse_campo(df_fabricado):
     assert resultado is not None
     assert resultado["odd_over25"] is None
     assert resultado["prob_mercado_over25"] is None
+    assert resultado["odd_under25"] is None
+    assert resultado["prob_mercado_under25"] is None
     assert resultado["odd_btts_sim"] is None
     assert resultado["prob_mercado_btts"] is None
     # a probabilidade do MODELO não depende de odd nenhuma, continua presente
@@ -400,7 +426,7 @@ def test_simular_apostas_mercado_invalido_levanta_erro():
         simular_apostas([], mercado="escanteios")
 
 
-@pytest.mark.parametrize("mercado", ["over15", "over35", "over45"])
+@pytest.mark.parametrize("mercado", ["over15", "over35", "over45", "under15", "under25", "under35", "under45"])
 def test_simular_apostas_funciona_nas_outras_linhas_de_over(mercado):
     jogos = [
         _jogo_simulado(odd=2.0, prob_modelo=0.60, prob_mercado=0.50, venceu=True, mercado=mercado),
