@@ -262,6 +262,21 @@ def probabilidade_implicita_2vias(odd_lado, odd_lado_oposto):
     return p1 / soma
 
 
+def probabilidades_implicitas_nvias(*odds):
+    """Generaliza `probabilidade_implicita_2vias` pra mercados de N lados
+    (ex.: 1x2 — casa/empate/fora) — normaliza as probabilidades implícitas
+    de TODAS as odds do mercado pela soma delas, removendo o overround de
+    verdade (em vez de superestimar cada lado isoladamente).
+
+    Retorna uma tupla com uma probabilidade normalizada por odd, na mesma
+    ordem em que as odds foram passadas."""
+    implicitas = [probabilidade_implicita(odd) for odd in odds]
+    soma = sum(implicitas)
+    if soma <= 0:
+        raise ValueError("soma das probabilidades implícitas deve ser positiva")
+    return tuple(p / soma for p in implicitas)
+
+
 def odd_e_prob_under_aproximada(odd_over, margem_total=0.0):
     """Aproxima a probabilidade implícita e a odd decimal do lado "Under"
     a partir da odd real do lado "Over" (o CSV só traz o lado Over pras

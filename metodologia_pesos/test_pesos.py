@@ -23,6 +23,7 @@ from pesos import (
     probabilidade_implicita_2vias,
     probabilidade_over,
     probabilidade_resultado,
+    probabilidades_implicitas_nvias,
 )
 
 
@@ -308,6 +309,28 @@ def test_odd_e_prob_under_aproximada_rejeita_odd_invalida():
     assert odd_e_prob_under_aproximada(None) == (None, None)
     assert odd_e_prob_under_aproximada(1.0) == (None, None)
     assert odd_e_prob_under_aproximada(0.5) == (None, None)
+
+
+def test_probabilidades_implicitas_nvias_soma_um():
+    p_casa, p_empate, p_fora = probabilidades_implicitas_nvias(2.1, 3.3, 3.4)
+    assert p_casa + p_empate + p_fora == pytest.approx(1.0)
+
+
+def test_probabilidades_implicitas_nvias_remove_margem():
+    # margem real: 1/2.1 + 1/3.3 + 1/3.4 > 1
+    bruta_casa = probabilidade_implicita(2.1)
+    p_casa, _, _ = probabilidades_implicitas_nvias(2.1, 3.3, 3.4)
+    assert p_casa < bruta_casa  # normalizado é menor que o bruto (que superestima)
+
+
+def test_probabilidades_implicitas_nvias_2vias_bate_com_2vias():
+    p1, p2 = probabilidades_implicitas_nvias(1.90, 2.10)
+    assert p1 == pytest.approx(probabilidade_implicita_2vias(1.90, 2.10))
+
+
+def test_probabilidades_implicitas_nvias_rejeita_odd_invalida():
+    with pytest.raises(ValueError):
+        probabilidades_implicitas_nvias(2.1, 1.0, 3.4)
 
 
 def test_probabilidade_resultado_soma_um():

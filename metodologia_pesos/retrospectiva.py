@@ -33,6 +33,7 @@ from pesos import (
     probabilidade_implicita_2vias,
     probabilidade_over,
     probabilidade_resultado,
+    probabilidades_implicitas_nvias,
 )
 from planilha_lib import get_historico
 
@@ -339,6 +340,67 @@ def _probabilidades_favorito_dc(row, gf_pred, ga_pred, gf_real, ga_real):
     )
 
 
+def _probabilidades_1x2_e_dc(row, gf_pred, ga_pred, gf_real, ga_real):
+    """1x2 (casa/empate/fora) e Dupla Chance de mandante/visitante — modelo
+    vs. mercado. Diferente de `_probabilidades_favorito_dc` (que sempre
+    olha pro lado favorito na odd), aqui `mandante_dc`/`visitante_dc` são
+    sempre o mesmo lado fixo (casa ou fora), independente de quem é
+    favorito.
+
+    1x2 tem as 3 odds reais no CSV — a probabilidade de MERCADO de cada
+    lado usa `probabilidades_implicitas_nvias` (remove a margem de
+    verdade, normalizando os 3 lados), mais precisa que a aproximação
+    bruta usada em Over/Under (que só tem 1 lado real disponível). As
+    odds de Dupla Chance combinam duas pernas com a probabilidade BRUTA
+    (sem remover margem, mesma convenção conservadora de
+    `_probabilidades_favorito_dc`) — subestima um pouco a odd real.
+    """
+    odd_casa = _valor_odd(row, "odds_ft_home_team_win")
+    odd_empate = _valor_odd(row, "odds_ft_draw")
+    odd_fora = _valor_odd(row, "odds_ft_away_team_win")
+
+    campos = ("casa", "empate", "fora", "mandante_dc", "visitante_dc")
+    if not (odd_casa and odd_empate and odd_fora):
+        vazio = {}
+        for campo in campos:
+            vazio[f"prob_modelo_{campo}"] = None
+            vazio[f"odd_{campo}"] = None
+            vazio[f"prob_mercado_{campo}"] = None
+            vazio[f"{campo}_real"] = None
+        return vazio
+
+    p_casa_mercado, p_empate_mercado, p_fora_mercado = probabilidades_implicitas_nvias(odd_casa, odd_empate, odd_fora)
+    p_casa_bruta = probabilidade_implicita(odd_casa)
+    p_empate_bruta = probabilidade_implicita(odd_empate)
+    p_fora_bruta = probabilidade_implicita(odd_fora)
+
+    resultado_modelo = probabilidade_resultado(gf_pred, ga_pred)
+
+    resultado = dict(
+        prob_modelo_casa=resultado_modelo["vitoria"], odd_casa=odd_casa, prob_mercado_casa=p_casa_mercado,
+        prob_modelo_empate=resultado_modelo["empate"], odd_empate=odd_empate, prob_mercado_empate=p_empate_mercado,
+        prob_modelo_fora=resultado_modelo["derrota"], odd_fora=odd_fora, prob_mercado_fora=p_fora_mercado,
+        prob_modelo_mandante_dc=resultado_modelo["vitoria"] + resultado_modelo["empate"],
+        odd_mandante_dc=1 / (p_casa_bruta + p_empate_bruta),
+        prob_mercado_mandante_dc=p_casa_mercado + p_empate_mercado,
+        prob_modelo_visitante_dc=resultado_modelo["derrota"] + resultado_modelo["empate"],
+        odd_visitante_dc=1 / (p_fora_bruta + p_empate_bruta),
+        prob_mercado_visitante_dc=p_fora_mercado + p_empate_mercado,
+    )
+
+    if gf_real is not None and ga_real is not None:
+        resultado["casa_real"] = gf_real > ga_real
+        resultado["empate_real"] = gf_real == ga_real
+        resultado["fora_real"] = ga_real > gf_real
+        resultado["mandante_dc_real"] = gf_real >= ga_real
+        resultado["visitante_dc_real"] = ga_real >= gf_real
+    else:
+        for campo in ("casa", "empate", "fora", "mandante_dc", "visitante_dc"):
+            resultado[f"{campo}_real"] = None
+
+    return resultado
+
+
 def _probabilidades_e_odds(row, gf_pred, ga_pred, gf_real=None, ga_real=None, margem_under=0.0):
     """Probabilidade que o MODELO dá pros mercados de Over gols (1.5/2.5/
     3.5/4.5), BTTS e Dupla Chance do favorito, e a probabilidade IMPLÍCITA
@@ -358,6 +420,8 @@ def _probabilidades_e_odds(row, gf_pred, ga_pred, gf_real=None, ga_real=None, ma
     BTTS: o CSV traz os dois lados (`odds_btts_yes`/`odds_btts_no`), dá pra
     normalizar de verdade com `probabilidade_implicita_2vias`.
     Favorito DC: ver `_probabilidades_favorito_dc`.
+    1x2 (casa/empate/fora) e Dupla Chance de mandante/visitante (lado
+    fixo, não o favorito): ver `_probabilidades_1x2_e_dc`.
     """
     resultado = {}
     for nome, (linha, coluna_odd) in _LINHAS_OVER.items():
@@ -385,6 +449,7 @@ def _probabilidades_e_odds(row, gf_pred, ga_pred, gf_real=None, ga_real=None, ma
         prob_mercado_btts=prob_mercado_btts,
     )
     resultado.update(_probabilidades_favorito_dc(row, gf_pred, ga_pred, gf_real, ga_real))
+    resultado.update(_probabilidades_1x2_e_dc(row, gf_pred, ga_pred, gf_real, ga_real))
     return resultado
 
 
@@ -521,6 +586,11 @@ _MERCADOS_SIMULAVEIS = {
                  odd="odd_btts_sim", real="btts_real"),
     "favorito_dc": dict(prob_modelo="prob_modelo_favorito_dc", prob_mercado="prob_mercado_favorito_dc",
                          odd="odd_favorito_dc", real="favorito_dc_real"),
+    **{
+        nome: dict(prob_modelo=f"prob_modelo_{nome}", prob_mercado=f"prob_mercado_{nome}",
+                   odd=f"odd_{nome}", real=f"{nome}_real")
+        for nome in ("casa", "empate", "fora", "mandante_dc", "visitante_dc")
+    },
 }
 
 

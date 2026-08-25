@@ -10,6 +10,7 @@ import pytest
 
 from retrospectiva import (
     _estilo_por_mando,
+    _probabilidades_1x2_e_dc,
     _probabilidades_favorito_dc,
     grid_search,
     prever_jogo,
@@ -412,6 +413,60 @@ def test_probabilidades_favorito_dc_time_visitante_favorito():
     assert resultado["odd_favorito_dc"] > 1
 
 
+def test_prever_jogo_traz_1x2_e_dupla_chance(df_fabricado):
+    ultima_linha = df_fabricado.iloc[11]
+    resultado = prever_jogo(
+        ultima_linha, df_fabricado, params=dict(filtro_aderencia=0.0),
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    assert resultado is not None
+    # probabilidades do modelo somam 1 (vitória + empate + derrota)
+    soma = resultado["prob_modelo_casa"] + resultado["prob_modelo_empate"] + resultado["prob_modelo_fora"]
+    assert soma == pytest.approx(1.0)
+    # probabilidade de MERCADO também soma 1 (normalizada, margem removida)
+    soma_mercado = (
+        resultado["prob_mercado_casa"] + resultado["prob_mercado_empate"] + resultado["prob_mercado_fora"]
+    )
+    assert soma_mercado == pytest.approx(1.0)
+    # odds reais batem com o CSV
+    assert resultado["odd_casa"] == pytest.approx(ultima_linha["odds_ft_home_team_win"])
+    assert resultado["odd_empate"] == pytest.approx(ultima_linha["odds_ft_draw"])
+    assert resultado["odd_fora"] == pytest.approx(ultima_linha["odds_ft_away_team_win"])
+    # Dupla Chance é sempre mais provável que a vitória isolada correspondente
+    assert resultado["prob_modelo_mandante_dc"] > resultado["prob_modelo_casa"]
+    assert resultado["prob_modelo_visitante_dc"] > resultado["prob_modelo_fora"]
+    assert resultado["odd_mandante_dc"] < resultado["odd_casa"]
+    assert resultado["odd_visitante_dc"] < resultado["odd_fora"]
+    # resultado real é consistente entre os 5 mercados
+    gf_real, ga_real = resultado["gf_real"], resultado["ga_real"]
+    assert resultado["casa_real"] == (gf_real > ga_real)
+    assert resultado["empate_real"] == (gf_real == ga_real)
+    assert resultado["fora_real"] == (ga_real > gf_real)
+    assert resultado["mandante_dc_real"] == (gf_real >= ga_real)
+    assert resultado["visitante_dc_real"] == (ga_real >= gf_real)
+
+
+def test_probabilidades_1x2_e_dc_sem_1x2_retorna_none():
+    resultado = _probabilidades_1x2_e_dc({}, gf_pred=1.5, ga_pred=1.0, gf_real=2, ga_real=1)
+    for campo in ("casa", "empate", "fora", "mandante_dc", "visitante_dc"):
+        assert resultado[f"prob_modelo_{campo}"] is None
+        assert resultado[f"odd_{campo}"] is None
+        assert resultado[f"prob_mercado_{campo}"] is None
+        assert resultado[f"{campo}_real"] is None
+
+
+def test_probabilidades_1x2_e_dc_mandante_dc_independe_de_quem_e_favorito():
+    # visitante é o favorito na odd (1.8 < 4.0), mas mandante_dc continua sendo
+    # sempre "casa OU empate" - diferente de favorito_dc, que seguiria o visitante
+    linha = {"odds_ft_home_team_win": 4.0, "odds_ft_draw": 3.3, "odds_ft_away_team_win": 1.8}
+    resultado = _probabilidades_1x2_e_dc(linha, gf_pred=0.8, ga_pred=1.9, gf_real=0, ga_real=2)
+    assert resultado["mandante_dc_real"] is False  # casa perdeu e não empatou (0 < 2)
+    assert resultado["visitante_dc_real"] is True  # fora venceu (2 > 0)
+    assert resultado["prob_modelo_mandante_dc"] == pytest.approx(
+        resultado["prob_modelo_casa"] + resultado["prob_modelo_empate"]
+    )
+
+
 def _jogo_simulado(odd, prob_modelo, prob_mercado, venceu, mercado="over25"):
     campo_odd = "odd_btts_sim" if mercado == "btts" else f"odd_{mercado}"
     campo_pm = f"prob_modelo_{mercado}"
@@ -472,7 +527,10 @@ def test_simular_apostas_mercado_invalido_levanta_erro():
         simular_apostas([], mercado="escanteios")
 
 
-@pytest.mark.parametrize("mercado", ["over15", "over35", "over45", "under15", "under25", "under35", "under45"])
+@pytest.mark.parametrize("mercado", [
+    "over15", "over35", "over45", "under15", "under25", "under35", "under45",
+    "casa", "empate", "fora", "mandante_dc", "visitante_dc",
+])
 def test_simular_apostas_funciona_nas_outras_linhas_de_over(mercado):
     jogos = [
         _jogo_simulado(odd=2.0, prob_modelo=0.60, prob_mercado=0.50, venceu=True, mercado=mercado),
