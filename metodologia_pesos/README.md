@@ -218,6 +218,14 @@ atualizada, esta lista aqui não é mantida em detalhe:
    recomendado pra Over 2.5 na Série A** — substitui o critério anterior
    (neutro + edge≥8%). **Achado mais importante da sessão até agora** —
    ver `docs/retrospectiva_grid_completo_2026-08-25.md`.
+13. **Teto de odd máxima por mercado — não muda o critério campeão,
+   ajuda BTTS** — testado teto (Over1.5≤1,5/Over2.5≤3/Over3.5≤6/
+   Over4.5≤7/BTTS≤2) em cima do combo campeão: pra Over 2.5 o teto não
+   filtra nenhuma aposta (resultado idêntico com/sem, `n=221,
+   ROI+16,0%, z=+2,23`); pra BTTS o teto (≤2,0) melhora o z de forma
+   consistente, mas ainda não testado com os parâmetros de modelo
+   específicos de BTTS — pista pra próxima rodada. Ver
+   `docs/retrospectiva_odd_maxima_2026-08-25.md`.
 
 ## O que ainda falta
 

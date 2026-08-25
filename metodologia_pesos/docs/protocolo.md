@@ -175,6 +175,20 @@ Versão inicial, consolidada a partir do que estava espalhado nas skills
 sessão, não versionado). **Este arquivo existe pra parar de se perder entre
 sessões — complete/corrija o que estiver incompleto ou desatualizado.**
 
+## Teto de odd máxima por mercado (25/08/2026)
+
+Testado um teto de odd máxima na entrada (Over1.5≤1,5 / Over2.5≤3 /
+Over3.5≤6 / Over4.5≤7 / BTTS≤2) em cima do critério campeão acima.
+**Não muda o critério de Over 2.5**: o teto de 3,0 não filtra nenhuma
+aposta desse critério (com/sem teto dão exatamente `n=221, ROI+16,0%,
+z=+2,23`) — não precisa adicionar. Pra BTTS o teto (≤2,0) mostrou
+melhora real (z sobe de forma consistente), mas ainda não testado
+combinado com os parâmetros de modelo específicos de BTTS
+(`k=0.7, usar_estilo=True, filtro=0`) — pista promissora pra próxima
+rodada, não adotado ainda. Ver
+`docs/retrospectiva_odd_maxima_2026-08-25.md` pro detalhamento completo
+por mercado/liga/edge.
+
 ## Regras que nunca mudam
 
 1. **Não usar odds de memória** — sempre pesquisar odds reais (Betano e
