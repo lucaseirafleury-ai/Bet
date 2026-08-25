@@ -218,13 +218,13 @@ atualizada, esta lista aqui não é mantida em detalhe:
    recomendado pra Over 2.5 na Série A** — substitui o critério anterior
    (neutro + edge≥8%). **Achado mais importante da sessão até agora** —
    ver `docs/retrospectiva_grid_completo_2026-08-25.md`.
-13. **Teto de odd máxima por mercado — não muda o critério campeão,
-   ajuda BTTS** — testado teto (Over1.5≤1,5/Over2.5≤3/Over3.5≤6/
+13. **Teto de odd máxima por mercado — não muda o critério campeão de
+   Over 2.5** — testado teto (Over1.5≤1,5/Over2.5≤3/Over3.5≤6/
    Over4.5≤7/BTTS≤2) em cima do combo campeão: pra Over 2.5 o teto não
    filtra nenhuma aposta (resultado idêntico com/sem, `n=221,
-   ROI+16,0%, z=+2,23`); pra BTTS o teto (≤2,0) melhora o z de forma
-   consistente, mas ainda não testado com os parâmetros de modelo
-   específicos de BTTS — pista pra próxima rodada. Ver
+   ROI+16,0%, z=+2,23`). Parecia ajudar o BTTS também, mas isso usava
+   os parâmetros de modelo do combo de Over 2.5, não os de BTTS — ver
+   item 16 (com os parâmetros certos, o teto piora). Ver
    `docs/retrospectiva_odd_maxima_2026-08-25.md`.
 14. **Under com odd aproximada (a partir da odd de Over) — testado e
    DESCARTADO, não é edge real** — o CSV não tem odd real de Under, só
@@ -247,6 +247,18 @@ atualizada, esta lista aqui não é mantida em detalhe:
    ligas (z até −3,35). **Não usar nenhum critério de Under pra apostar
    dinheiro real** — agora por duas razões independentes, não só viés
    de fórmula. Ver `docs/retrospectiva_under_margem_2026-08-25.md`.
+16. **BTTS com parâmetros próprios + teto de odd — confirma z=+2,13,
+   mas teto piora (não ajuda como o item 13 sugeria)** — testado o
+   candidato de BTTS (`k=0.7, usar_estilo=True, filtro_aderencia=0`)
+   com o teto (≤2,0) usando SEUS PRÓPRIOS parâmetros de modelo: o teto
+   reduz o z de +2,13 pra +1,18 — descartar teto pra BTTS. **Sem teto,
+   confirma z=+2,13, ROI+21,5%, n=95** no período completo, mas com
+   consistência ano a ano bem mais fraca que o Over 2.5: **2 dos 4 anos
+   com queda real** (2023: −21,0%, 2025: −9,1%), não só "quase zero".
+   Pode ser adotado como SEGUNDO critério de aposta em paralelo ao Over
+   2.5 (soma ~27 apostas/ano), mas com risco visivelmente maior — Lucas
+   decide, ciente da diferença de consistência. Ver
+   `docs/retrospectiva_btts_final_2026-08-25.md`.
 
 ## O que ainda falta
 

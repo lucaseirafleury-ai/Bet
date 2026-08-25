@@ -181,13 +181,30 @@ Testado um teto de odd máxima na entrada (Over1.5≤1,5 / Over2.5≤3 /
 Over3.5≤6 / Over4.5≤7 / BTTS≤2) em cima do critério campeão acima.
 **Não muda o critério de Over 2.5**: o teto de 3,0 não filtra nenhuma
 aposta desse critério (com/sem teto dão exatamente `n=221, ROI+16,0%,
-z=+2,23`) — não precisa adicionar. Pra BTTS o teto (≤2,0) mostrou
-melhora real (z sobe de forma consistente), mas ainda não testado
-combinado com os parâmetros de modelo específicos de BTTS
-(`k=0.7, usar_estilo=True, filtro=0`) — pista promissora pra próxima
-rodada, não adotado ainda. Ver
+z=+2,23`) — não precisa adicionar. Pra BTTS o teto (≤2,0) parecia
+melhorar (z subia), mas isso usava os parâmetros de modelo do combo de
+Over 2.5, não os de BTTS — **testado depois com os parâmetros certos de
+BTTS e o teto PIORA** (ver seção seguinte). Ver
 `docs/retrospectiva_odd_maxima_2026-08-25.md` pro detalhamento completo
-por mercado/liga/edge.
+por mercado/liga/edge (mantido como registro histórico do teste, já
+corrigido pela seção abaixo).
+
+## BTTS com parâmetros próprios — segundo critério possível, mais arriscado que Over 2.5 (25/08/2026)
+
+Testado o candidato de BTTS (`k_mando=0.7, usar_estilo=True,
+filtro_aderencia=0, multiplicador_dp=1.5, limite_unilateral=2,
+limiar_edge=8%`) com seus PRÓPRIOS parâmetros de modelo (não os de Over
+2.5) e o teto de odd (≤2,0): **o teto PIORA o resultado** (z cai de
++2,13 pra +1,18) — descartar essa ideia pra BTTS.
+
+**Sem teto, o candidato confirma z=+2,13, ROI+21,5%, n=95** (período
+completo) — mas com consistência ano a ano bem mais fraca que o Over
+2.5: **2 dos 4 anos com queda real** (2023: −21,0%, 2025: −9,1%, não só
+"quase zero" como no Over 2.5). Pode ser adotado como SEGUNDO critério
+de aposta em paralelo ao Over 2.5 (soma ~27 apostas/ano de volume), mas
+com risco visivelmente maior — decisão de usar fica com Lucas, ciente
+dessa diferença de consistência. Ver
+`docs/retrospectiva_btts_final_2026-08-25.md`.
 
 ## Under com odd aproximada — NÃO USAR (25/08/2026)
 
