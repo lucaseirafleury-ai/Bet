@@ -90,6 +90,15 @@ APOSTA (não de acerto). Na prática:
   (z≈0,9-1,0, ROI +12-14%, n=53-54) em vez do neutro puro (z≈0). Ainda
   não é significativo (z<2) — promissor, não comprovado.
 
+**⚠️ Testado 25/08/2026 — Over 1.5/3.5/4.5 NÃO diversificam** (Lucas
+perguntou como reduzir a variância ano a ano do Over 2.5; cartões/
+escanteios não têm odd real no CSV, então a alternativa era mais linhas
+de gols). Simulação 2023-2026 nas duas linhas mostra ROI negativo em
+TODOS os limiares/anos — Over 3.5/4.5 especialmente ruins (ROI até
+−81%). O edge que existe fica concentrado só em Over 2.5/BTTS, não
+generaliza pras linhas vizinhas. **Não apostar Over 1.5/3.5/4.5.** Ver
+`docs/retrospectiva_over_1_5_3_5_4_5_2026-08-25.md`.
+
 Versão inicial, consolidada a partir do que estava espalhado nas skills
 `copa-planilha-dia`/`serie-b-planilha-dia` (que citavam um
 `briefing_*.md`/`PROTOCOLO_BETS_LUCAS.md` vivendo só em pasta efêmera de

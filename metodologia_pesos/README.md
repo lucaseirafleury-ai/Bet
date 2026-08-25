@@ -174,17 +174,29 @@ atualizada, esta lista aqui não é mantida em detalhe:
    pela primeira vez o grid achou algo pra Série B BTTS que bate o
    neutro (`k=0.2, estilo=True, filtro=0.65, edge=5%`, z≈0,9-1,0 — ainda
    não significativo, mas o sinal mais consistente que essa liga já
-   mostrou). **Achado mais importante da sessão até agora** — ver
+   mostrou). Ver
    `docs/retrospectiva_roi_calibracao_2023_2025_holdout_2026-08-25.md`.
+8. **Tentativa de diversificar em Over 1.5/3.5/4.5 não funcionou** —
+   cartões/escanteios não têm odd real no CSV (só percentual do próprio
+   FootyStats), então a alternativa era as outras linhas de gols que já
+   tinham odd real disponível. `simular_apostas` foi generalizado pra
+   qualquer linha (`retrospectiva.py`); resultado: ROI negativo em
+   TODOS os limiares/anos testados nas duas ligas, Over 3.5/4.5
+   especialmente ruins (até −81%). O edge fica concentrado só em
+   Over 2.5/BTTS, não generaliza. **Achado mais importante da sessão
+   até agora** — ver
+   `docs/retrospectiva_over_1_5_3_5_4_5_2026-08-25.md`.
 
 ## O que ainda falta
 
 - Confirmar o sinal de Série B BTTS (z≈0,9-1,0, ainda não passa do
   limiar de significância ~2) com mais holdout conforme a temporada de
   2026 avança.
-- Série B Over 2.5 segue sem qualquer edge defensável, mesmo com 3
-  temporadas de treino — considerar não apostar esse mercado nessa liga
-  por ora.
+- Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
+  sem qualquer edge defensável — não apostar por este critério.
+- Diversificação de mercado ainda não resolvida: cartões/escanteios não
+  têm odd real na fonte de dado atual; buscar outra fonte de odds
+  histórica seria o próximo passo, se existir de graça.
 - Os proxies de Pressão Alta/Transição/Bola Parada em `estilo.py` não
   estão se mostrando úteis em nenhum mercado testado — candidatos a
   redesenho (dado mais rico) antes de reavaliar a contribuição do estilo.
