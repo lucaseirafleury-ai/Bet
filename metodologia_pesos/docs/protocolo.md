@@ -18,6 +18,13 @@ n_historico=10, limiar_edge=5%`** — z=2,65, n=207, ROI+17,9%, sem
 nenhum ano negativo — ver seção "BTTS com parâmetros próprios" mais
 abaixo.
 
+**Nível de confiança extra**: quando um jogo aciona os DOIS critérios
+acima ao mesmo tempo (113 jogos, ~32/ano), z=+3,40, ROI+22,7%, sem
+nenhum ano nem perto de negativo — o resultado mais forte da sessão,
+mas com ressalva de comparação múltipla empilhada (3 camadas de
+seleção) — ver seção "Dupla confirmação" mais abaixo antes de tratar
+como prova definitiva.
+
 Não apostar na Série B por nenhum critério ainda — ver a seção nova pro
 raciocínio completo.
 
@@ -221,6 +228,27 @@ nenhum ano negativo** (2023 +18,3%, 2024 +19,0%, 2025 +1,9%, 2026
 **Este é agora o segundo critério de aposta recomendado, em paralelo
 ao Over 2.5** — substitui o candidato anterior. Volume combinado:
 Over 2.5 (~63/ano) + BTTS (~59/ano) ≈ 122 apostas/ano.
+
+## Dupla confirmação (Over 2.5 + BTTS no mesmo jogo) — resultado mais forte, com ressalva (25/08/2026)
+
+Quando os dois critérios acima disparam no MESMO jogo (113 jogos, ~32/ano),
+apostando as duas pernas separadamente (2 stakes por jogo, não é
+combo/parlay): **n=226, ROI+22,7%, z=+3,40 — SEM nenhum ano nem perto de
+negativo** (2023 +12,0%, 2024 +37,6%, 2025 +8,2% — o melhor resultado
+que 2025 teve em qualquer critério da sessão, 2026 +34,1%).
+
+**Ressalva importante**: isso empilha uma TERCEIRA camada de seleção em
+cima das duas já feitas (grid do Over 2.5 + grid do BTTS) — é esperado
+que a interseção de dois sinais positivos performe melhor, não é
+necessariamente uma vantagem nova e independente. As duas apostas do
+mesmo jogo também são correlacionadas (jogo de muito gol tende a
+favorecer os dois mercados juntos), o que provavelmente infla um pouco
+o z-score. Tratar como o critério de MAIOR confiança dentro do que já
+temos, não como prova estatística mais forte que os outros dois. Ver
+`docs/retrospectiva_dupla_confirmacao_2026-08-25.md` — inclui também a
+assertividade separada dos jogos que NÃO coincidem (ambos os critérios
+continuam positivos sozinhos: BTTS não-coincide ROI+9,9%, Over2.5
+não-coincide ROI+11,0% — não descartar apostar fora da interseção).
 
 ## Segmentação do Over 2.5 por favoritismo — curiosidade, não acionável (25/08/2026)
 

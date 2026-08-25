@@ -274,6 +274,20 @@ atualizada, esta lista aqui não é mantida em detalhe:
    curioso em U (extremos melhores que o meio-termo), mas não acionável
    — amostra pequena por tercil e risco alto de comparação múltipla.
    Ver `docs/retrospectiva_novos_eixos_2026-08-25.md`.
+18. **Dupla confirmação (Over 2.5 + BTTS no mesmo jogo) — resultado mais
+   forte da sessão, com ressalva de comparação múltipla** — segmentando
+   os 113 jogos onde os dois critérios acima coincidem (apostando as
+   duas pernas separadamente, não é combo/parlay): **n=226, ROI+22,7%,
+   z=+3,40, SEM nenhum ano nem perto de negativo** (2025, o ano mais
+   fraco histórico, fica em +8,2% — o melhor resultado de 2025 em
+   qualquer critério da sessão). Maior z de todo o projeto. **Ressalva
+   importante**: empilha uma terceira camada de seleção (grid do Over
+   2.5 + grid do BTTS + interseção dos dois), e as duas apostas do mesmo
+   jogo são correlacionadas — tratar como sinal de maior confiança, não
+   como prova mais forte que os dois critérios-pai. Os jogos que NÃO
+   coincidem continuam positivos sozinhos em cada mercado (BTTS
+   +9,9%, Over2.5 +11,0%) — não é motivo pra parar de apostar fora da
+   interseção. Ver `docs/retrospectiva_dupla_confirmacao_2026-08-25.md`.
 
 ## O que ainda falta
 
