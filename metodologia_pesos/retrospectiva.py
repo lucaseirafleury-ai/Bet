@@ -19,6 +19,7 @@ nota por time, não uma nota por data).
 from __future__ import annotations
 
 import itertools
+import math
 from datetime import datetime
 
 from estilo import N_JOGOS_PADRAO, calcular_notas_estilo
@@ -30,6 +31,7 @@ from pesos import (
     probabilidade_implicita,
     probabilidade_implicita_2vias,
     probabilidade_over,
+    probabilidade_resultado,
 )
 from planilha_lib import get_historico
 
@@ -251,7 +253,7 @@ def prever_jogo(row, df, params=None, min_jogos_historico=10, min_jogos_estilo=N
         btts_real=(gf_real > 0 and ga_real > 0), btts_pred=(gf_pred > 0.5 and ga_pred > 0.5),
         n_jogos_validos=len(validos),
         mercados=mercados,
-        **_probabilidades_e_odds(row, gf_pred, ga_pred),
+        **_probabilidades_e_odds(row, gf_pred, ga_pred, gf_real, ga_real),
     )
 
 
@@ -269,17 +271,70 @@ _LINHAS_OVER = dict(over15=(1.5, "odds_ft_over15"), over25=(2.5, "odds_ft_over25
                      over35=(3.5, "odds_ft_over35"), over45=(4.5, "odds_ft_over45"))
 
 
-def _probabilidades_e_odds(row, gf_pred, ga_pred):
+def _probabilidades_favorito_dc(row, gf_pred, ga_pred, gf_real, ga_real):
+    """Probabilidade de Dupla Chance do FAVORITO (vitória ou empate do lado
+    com menor odd 1x2) — modelo vs. mercado, mesma lógica de vantagem real
+    das outras funções.
+
+    Favorito é definido pela odd real do jogo (menor odd entre casa/fora),
+    não pelo modelo — é o "favorito de mercado" que aparece na odd.
+
+    O CSV não traz uma odd de Dupla Chance de verdade — só as 3 odds do
+    1x2. A probabilidade de mercado usa as 3 odds normalizadas (remove a
+    margem de verdade, como em `probabilidade_implicita_2vias`); a ODD
+    usada pra simular aposta é a combinação bruta das duas pernas
+    (`1 / (implícita_favorito + implícita_empate)`, sem remover margem) —
+    subestima um pouco a odd real de Dupla Chance (que costuma ter margem
+    menor que a soma de duas pernas do 1x2), então o ROI simulado aqui
+    tende a ser conservador, não otimista.
+    """
+    odd_casa = _valor_odd(row, "odds_ft_home_team_win")
+    odd_empate = _valor_odd(row, "odds_ft_draw")
+    odd_fora = _valor_odd(row, "odds_ft_away_team_win")
+    if not (odd_casa and odd_empate and odd_fora):
+        return dict(mando_favorito=None, prob_modelo_favorito_dc=None,
+                    odd_favorito_dc=None, prob_mercado_favorito_dc=None, favorito_dc_real=None)
+
+    mando_favorito = "Casa" if odd_casa <= odd_fora else "Fora"
+    p_casa, p_empate, p_fora = 1 / odd_casa, 1 / odd_empate, 1 / odd_fora
+    soma = p_casa + p_empate + p_fora
+    if mando_favorito == "Casa":
+        prob_mercado = (p_casa + p_empate) / soma
+        odd_combinada = 1 / (p_casa + p_empate)
+    else:
+        prob_mercado = (p_fora + p_empate) / soma
+        odd_combinada = 1 / (p_fora + p_empate)
+
+    resultado_modelo = probabilidade_resultado(gf_pred, ga_pred)
+    prob_modelo = (
+        resultado_modelo["vitoria"] + resultado_modelo["empate"] if mando_favorito == "Casa"
+        else resultado_modelo["derrota"] + resultado_modelo["empate"]
+    )
+
+    favorito_dc_real = None
+    if gf_real is not None and ga_real is not None:
+        favorito_dc_real = (gf_real >= ga_real) if mando_favorito == "Casa" else (ga_real >= gf_real)
+
+    return dict(
+        mando_favorito=mando_favorito, prob_modelo_favorito_dc=prob_modelo,
+        odd_favorito_dc=odd_combinada, prob_mercado_favorito_dc=prob_mercado,
+        favorito_dc_real=favorito_dc_real,
+    )
+
+
+def _probabilidades_e_odds(row, gf_pred, ga_pred, gf_real=None, ga_real=None):
     """Probabilidade que o MODELO dá pros mercados de Over gols (1.5/2.5/
-    3.5/4.5) e BTTS, e a probabilidade IMPLÍCITA nas odds reais do jogo
-    (quando disponíveis no CSV) — a comparação entre as duas é o que mede
-    vantagem real (não só acerto), usada por `simular_apostas`.
+    3.5/4.5), BTTS e Dupla Chance do favorito, e a probabilidade IMPLÍCITA
+    nas odds reais do jogo (quando disponíveis no CSV) — a comparação entre
+    as duas é o que mede vantagem real (não só acerto), usada por
+    `simular_apostas`/`simular_apostas_combo`.
 
     Over (todas as linhas): o CSV só traz a odd do lado "over", não a do
     "under" — a probabilidade implícita fica sem remover a margem da casa
     (`probabilidade_implicita`, superestima um pouco).
     BTTS: o CSV traz os dois lados (`odds_btts_yes`/`odds_btts_no`), dá pra
     normalizar de verdade com `probabilidade_implicita_2vias`.
+    Favorito DC: ver `_probabilidades_favorito_dc`.
     """
     resultado = {}
     for nome, (linha, coluna_odd) in _LINHAS_OVER.items():
@@ -299,6 +354,7 @@ def _probabilidades_e_odds(row, gf_pred, ga_pred):
         prob_modelo_btts=prob_modelo_btts, odd_btts_sim=odd_btts_sim, odd_btts_nao=odd_btts_nao,
         prob_mercado_btts=prob_mercado_btts,
     )
+    resultado.update(_probabilidades_favorito_dc(row, gf_pred, ga_pred, gf_real, ga_real))
     return resultado
 
 
@@ -425,6 +481,8 @@ _MERCADOS_SIMULAVEIS = {
     },
     "btts": dict(prob_modelo="prob_modelo_btts", prob_mercado="prob_mercado_btts",
                  odd="odd_btts_sim", real="btts_real"),
+    "favorito_dc": dict(prob_modelo="prob_modelo_favorito_dc", prob_mercado="prob_mercado_favorito_dc",
+                         odd="odd_favorito_dc", real="favorito_dc_real"),
 }
 
 
@@ -471,6 +529,78 @@ def simular_apostas(jogos, mercado="over25", limiar_edge=0.0, stake=1.0):
         venceu = bool(jogo[campos["real"]])
         lucro = stake * (odd - 1) if venceu else -stake
         apostas.append(dict(jogo=jogo["jogo"], data=jogo["data"], odd=odd, edge=edge, venceu=venceu, lucro=lucro))
+
+    if not apostas:
+        return dict(n_apostas=0, n_vitorias=0, taxa_acerto=None, lucro_total=0.0, roi=None, edge_medio=None, apostas=[])
+
+    n_apostas = len(apostas)
+    n_vitorias = sum(1 for a in apostas if a["venceu"])
+    lucro_total = sum(a["lucro"] for a in apostas)
+    total_apostado = stake * n_apostas
+    return dict(
+        n_apostas=n_apostas,
+        n_vitorias=n_vitorias,
+        taxa_acerto=n_vitorias / n_apostas,
+        lucro_total=lucro_total,
+        roi=lucro_total / total_apostado,
+        edge_medio=sum(a["edge"] for a in apostas) / n_apostas,
+        apostas=apostas,
+    )
+
+
+def simular_apostas_combo(jogos, pernas, limiar_edge=0.0, stake=1.0):
+    """Simula uma aposta MÚLTIPLA (combinada) de 2+ mercados no mesmo jogo —
+    ex.: Over 2.5 + Dupla Chance do favorito, do jeito que uma "múltipla" de
+    boletim de aposta normal funciona: odd combinada = produto das odds de
+    cada perna, e a aposta só ganha se TODAS as pernas baterem.
+
+    `pernas`: lista de nomes de mercado (chaves de `_MERCADOS_SIMULAVEIS`),
+    ex. `["over25", "favorito_dc"]`.
+
+    A probabilidade do MODELO pra combinação é o produto das probabilidades
+    de cada perna (assume independência entre elas — simplificação: pernas
+    do mesmo jogo têm alguma correlação real, ex. jogo aberto favorece Over
+    E o favorito ao mesmo tempo; não modelada aqui). A probabilidade de
+    MERCADO usa o mesmo produto das probabilidades implícitas de cada
+    perna — mesma simplificação dos dois lados, pra manter a comparação de
+    edge consistente.
+
+    Jogos sem odd/probabilidade em QUALQUER uma das pernas são pulados (não
+    inventa dado faltante).
+    """
+    if len(pernas) < 2:
+        raise ValueError("simular_apostas_combo precisa de pelo menos 2 pernas")
+    for perna in pernas:
+        if perna not in _MERCADOS_SIMULAVEIS:
+            raise ValueError(f"mercado inválido: {perna!r} (use {sorted(_MERCADOS_SIMULAVEIS)!r})")
+
+    apostas = []
+    for jogo in jogos:
+        valores = []
+        for perna in pernas:
+            campos = _MERCADOS_SIMULAVEIS[perna]
+            prob_modelo = jogo.get(campos["prob_modelo"])
+            prob_mercado = jogo.get(campos["prob_mercado"])
+            odd = jogo.get(campos["odd"])
+            real = jogo.get(campos["real"])
+            if prob_modelo is None or prob_mercado is None or odd is None or real is None:
+                valores = None
+                break
+            valores.append((prob_modelo, prob_mercado, odd, bool(real)))
+        if valores is None:
+            continue
+
+        prob_modelo_combo = math.prod(v[0] for v in valores)
+        prob_mercado_combo = math.prod(v[1] for v in valores)
+        odd_combo = math.prod(v[2] for v in valores)
+        venceu = all(v[3] for v in valores)
+
+        edge = prob_modelo_combo - prob_mercado_combo
+        if edge < limiar_edge:
+            continue
+        lucro = stake * (odd_combo - 1) if venceu else -stake
+        apostas.append(dict(jogo=jogo["jogo"], data=jogo["data"], odd=odd_combo, edge=edge,
+                             venceu=venceu, lucro=lucro))
 
     if not apostas:
         return dict(n_apostas=0, n_vitorias=0, taxa_acerto=None, lucro_total=0.0, roi=None, edge_medio=None, apostas=[])

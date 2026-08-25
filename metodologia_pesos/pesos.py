@@ -260,3 +260,34 @@ def probabilidade_implicita_2vias(odd_lado, odd_lado_oposto):
     if soma <= 0:
         raise ValueError("soma das probabilidades implícitas deve ser positiva")
     return p1 / soma
+
+
+def probabilidade_resultado(gols_pro_esperado, gols_contra_esperado, limite_gols=10):
+    """P(vitória do mandante), P(empate), P(vitória do visitante) — gols de
+    cada lado como Poisson independentes (mesma premissa de
+    `probabilidade_btts`), somando a grade conjunta de placares possíveis
+    até `limite_gols` por time (10 já cobre >99.9% da massa de probabilidade
+    de qualquer confronto real).
+
+    Não modela correlação entre os times (ex.: jogo aberto favorece mais
+    gols dos dois lados ao mesmo tempo) — mesma limitação já documentada
+    pra `probabilidade_over`/`probabilidade_btts`.
+    """
+    if gols_pro_esperado < 0 or gols_contra_esperado < 0:
+        raise ValueError("gols esperados não podem ser negativos")
+    p_pro = [_poisson_pmf(k, gols_pro_esperado) for k in range(limite_gols + 1)]
+    p_contra = [_poisson_pmf(k, gols_contra_esperado) for k in range(limite_gols + 1)]
+    vitoria = empate = derrota = 0.0
+    for i, pi in enumerate(p_pro):
+        for j, pj in enumerate(p_contra):
+            conjunta = pi * pj
+            if i > j:
+                vitoria += conjunta
+            elif i == j:
+                empate += conjunta
+            else:
+                derrota += conjunta
+    soma = vitoria + empate + derrota
+    if soma <= 0:
+        return dict(vitoria=0.0, empate=0.0, derrota=0.0)
+    return dict(vitoria=vitoria / soma, empate=empate / soma, derrota=derrota / soma)

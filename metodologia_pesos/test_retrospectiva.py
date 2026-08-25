@@ -8,7 +8,15 @@ from datetime import datetime, timedelta
 import pandas as pd
 import pytest
 
-from retrospectiva import _estilo_por_mando, grid_search, prever_jogo, rodar_retrospectiva, simular_apostas
+from retrospectiva import (
+    _estilo_por_mando,
+    _probabilidades_favorito_dc,
+    grid_search,
+    prever_jogo,
+    rodar_retrospectiva,
+    simular_apostas,
+    simular_apostas_combo,
+)
 
 TIMES = ["T1", "T2", "T3", "T4"]
 
@@ -298,6 +306,40 @@ def test_prever_jogo_sem_coluna_de_odd_retorna_none_nesse_campo(df_fabricado):
     assert resultado["prob_modelo_over25"] is not None
 
 
+def test_prever_jogo_traz_favorito_dc(df_fabricado):
+    # fixture: odds_ft_home_team_win=2.1 < odds_ft_away_team_win=3.4 -> casa é favorita
+    ultima_linha = df_fabricado.iloc[11]
+    resultado = prever_jogo(
+        ultima_linha, df_fabricado, params=dict(filtro_aderencia=0.0),
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    assert resultado is not None
+    assert resultado["mando_favorito"] == "Casa"
+    assert 0 <= resultado["prob_modelo_favorito_dc"] <= 1
+    assert 0 <= resultado["prob_mercado_favorito_dc"] <= 1
+    assert resultado["odd_favorito_dc"] > 1
+    assert resultado["favorito_dc_real"] == (resultado["gf_real"] >= resultado["ga_real"])
+    # DC (vitória OU empate) sempre tem mais probabilidade que só a vitória do favorito
+    assert resultado["prob_mercado_favorito_dc"] > 1 / ultima_linha["odds_ft_home_team_win"]
+
+
+def test_probabilidades_favorito_dc_sem_1x2_retorna_none():
+    # sem as 3 odds do 1x2 no "row", não dá pra determinar favorito nem odd combinada
+    linha_sem_1x2 = {}
+    resultado = _probabilidades_favorito_dc(linha_sem_1x2, gf_pred=1.5, ga_pred=1.0, gf_real=2, ga_real=1)
+    assert resultado == dict(mando_favorito=None, prob_modelo_favorito_dc=None,
+                              odd_favorito_dc=None, prob_mercado_favorito_dc=None, favorito_dc_real=None)
+
+
+def test_probabilidades_favorito_dc_time_visitante_favorito():
+    linha = {"odds_ft_home_team_win": 4.0, "odds_ft_draw": 3.3, "odds_ft_away_team_win": 1.8}
+    resultado = _probabilidades_favorito_dc(linha, gf_pred=0.8, ga_pred=1.9, gf_real=0, ga_real=2)
+    assert resultado["mando_favorito"] == "Fora"
+    assert resultado["favorito_dc_real"] is True  # visitante venceu (2 > 0) -> DC do favorito bate
+    assert 0 < resultado["prob_mercado_favorito_dc"] < 1
+    assert resultado["odd_favorito_dc"] > 1
+
+
 def _jogo_simulado(odd, prob_modelo, prob_mercado, venceu, mercado="over25"):
     campo_odd = "odd_btts_sim" if mercado == "btts" else f"odd_{mercado}"
     campo_pm = f"prob_modelo_{mercado}"
@@ -426,3 +468,58 @@ def test_grid_search_ordenar_por_roi_btts_tambem_funciona(df_fabricado):
         min_jogos_historico=5, min_jogos_estilo=5,
     )
     assert len(resultados) == 2
+
+
+def _jogo_combo(over25_odd, over25_pm, over25_pmk, over25_real,
+                 fav_odd, fav_pm, fav_pmk, fav_real):
+    return {
+        "jogo": "Time A x Time B", "data": None,
+        "odd_over25": over25_odd, "prob_modelo_over25": over25_pm,
+        "prob_mercado_over25": over25_pmk, "over25_real": over25_real,
+        "odd_favorito_dc": fav_odd, "prob_modelo_favorito_dc": fav_pm,
+        "prob_mercado_favorito_dc": fav_pmk, "favorito_dc_real": fav_real,
+    }
+
+
+def test_simular_apostas_combo_multiplica_odds_e_probabilidades():
+    jogo = _jogo_combo(
+        over25_odd=2.0, over25_pm=0.55, over25_pmk=0.50, over25_real=True,
+        fav_odd=1.4, fav_pm=0.80, fav_pmk=0.72, fav_real=True,
+    )
+    r = simular_apostas_combo([jogo], pernas=["over25", "favorito_dc"], limiar_edge=0.0, stake=1.0)
+    assert r["n_apostas"] == 1
+    odd_esperada = 2.0 * 1.4
+    edge_esperado = (0.55 * 0.80) - (0.50 * 0.72)
+    assert r["apostas"][0]["odd"] == pytest.approx(odd_esperada)
+    assert r["apostas"][0]["edge"] == pytest.approx(edge_esperado)
+    assert r["lucro_total"] == pytest.approx(odd_esperada - 1)  # venceu as duas pernas
+
+
+def test_simular_apostas_combo_perde_se_uma_perna_falhar():
+    jogo = _jogo_combo(
+        over25_odd=2.0, over25_pm=0.55, over25_pmk=0.50, over25_real=False,  # essa perna perde
+        fav_odd=1.4, fav_pm=0.80, fav_pmk=0.72, fav_real=True,
+    )
+    r = simular_apostas_combo([jogo], pernas=["over25", "favorito_dc"], limiar_edge=0.0, stake=1.0)
+    assert r["n_apostas"] == 1
+    assert r["n_vitorias"] == 0
+    assert r["lucro_total"] == pytest.approx(-1.0)
+
+
+def test_simular_apostas_combo_pula_jogo_com_perna_incompleta():
+    jogo_incompleto = _jogo_combo(
+        over25_odd=2.0, over25_pm=0.55, over25_pmk=0.50, over25_real=True,
+        fav_odd=None, fav_pm=0.80, fav_pmk=0.72, fav_real=True,  # falta a odd dessa perna
+    )
+    r = simular_apostas_combo([jogo_incompleto], pernas=["over25", "favorito_dc"])
+    assert r["n_apostas"] == 0
+
+
+def test_simular_apostas_combo_menos_de_2_pernas_levanta_erro():
+    with pytest.raises(ValueError):
+        simular_apostas_combo([], pernas=["over25"])
+
+
+def test_simular_apostas_combo_mercado_invalido_levanta_erro():
+    with pytest.raises(ValueError):
+        simular_apostas_combo([], pernas=["over25", "escanteios"])

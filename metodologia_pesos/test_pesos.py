@@ -21,6 +21,7 @@ from pesos import (
     probabilidade_implicita,
     probabilidade_implicita_2vias,
     probabilidade_over,
+    probabilidade_resultado,
 )
 
 
@@ -266,3 +267,25 @@ def test_probabilidade_implicita_2vias_remove_margem():
     p_nao = probabilidade_implicita_2vias(2.10, 1.90)
     assert p_sim + p_nao == pytest.approx(1.0)
     assert p_sim > probabilidade_implicita(2.10)  # não é só 1/odd bruto, é normalizado
+
+
+def test_probabilidade_resultado_soma_um():
+    r = probabilidade_resultado(1.5, 1.2)
+    assert r["vitoria"] + r["empate"] + r["derrota"] == pytest.approx(1.0)
+
+
+def test_probabilidade_resultado_mandante_franco_favorito():
+    # mandante espera 3 gols, visitante espera 0.3 -> vitória do mandante deve dominar
+    r = probabilidade_resultado(3.0, 0.3)
+    assert r["vitoria"] > 0.8
+    assert r["vitoria"] > r["empate"] > r["derrota"]
+
+
+def test_probabilidade_resultado_simetrico_quando_gols_esperados_iguais():
+    r = probabilidade_resultado(1.4, 1.4)
+    assert r["vitoria"] == pytest.approx(r["derrota"], abs=1e-9)
+
+
+def test_probabilidade_resultado_rejeita_negativo():
+    with pytest.raises(ValueError):
+        probabilidade_resultado(-1.0, 1.0)
