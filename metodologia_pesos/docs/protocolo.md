@@ -189,6 +189,20 @@ rodada, não adotado ainda. Ver
 `docs/retrospectiva_odd_maxima_2026-08-25.md` pro detalhamento completo
 por mercado/liga/edge.
 
+## Under com odd aproximada — NÃO USAR (25/08/2026)
+
+Testamos Under 1.5/2.5/3.5/4.5 usando uma odd aproximada, construída a
+partir da odd real de Over (o CSV não traz odd real de Under). **O
+resultado deu ROI positivo em 24 de 24 combinações testadas** (4
+mercados × 2 ligas × 3 edges), com z-scores absurdos (até z=+6,18) —
+isso é a assinatura de viés sistemático da fórmula (a aproximação é
+propositalmente otimista, documentado antes do teste rodar), não uma
+descoberta de edge real. Nenhum mercado líquido como Over/Under gols
+deixaria essa ineficiência aberta em todas as linhas, nas duas ligas,
+por 4 anos seguidos. **Não usar nenhum critério de Under pra apostar
+dinheiro real** até conseguirmos uma fonte com odd REAL desse lado. Ver
+`docs/retrospectiva_under_aproximado_2026-08-25.md`.
+
 ## Regras que nunca mudam
 
 1. **Não usar odds de memória** — sempre pesquisar odds reais (Betano e

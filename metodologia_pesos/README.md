@@ -226,6 +226,17 @@ atualizada, esta lista aqui não é mantida em detalhe:
    consistente, mas ainda não testado com os parâmetros de modelo
    específicos de BTTS — pista pra próxima rodada. Ver
    `docs/retrospectiva_odd_maxima_2026-08-25.md`.
+14. **Under com odd aproximada (a partir da odd de Over) — testado e
+   DESCARTADO, não é edge real** — o CSV não tem odd real de Under, só
+   de Over; construímos uma aproximação (`pesos.odd_e_prob_under_aproximada`)
+   documentada desde antes do teste como tendencialmente otimista. O
+   resultado confirmou isso: **ROI positivo em 24 de 24 combinações**
+   testadas (4 linhas × 2 ligas × 3 edges), com z-scores implausíveis
+   (até z=+6,18) — assinatura clássica de viés sistemático da fórmula,
+   não de vantagem real (nenhum mercado líquido deixaria essa
+   "ineficiência" aberta em todas as linhas, nas duas ligas, por 4 anos).
+   **Não usar nenhum critério de Under pra apostar dinheiro real.** Ver
+   `docs/retrospectiva_under_aproximado_2026-08-25.md`.
 
 ## O que ainda falta
 
@@ -237,6 +248,10 @@ atualizada, esta lista aqui não é mantida em detalhe:
 - Diversificação de mercado ainda não resolvida: cartões/escanteios não
   têm odd real na fonte de dado atual; buscar outra fonte de odds
   histórica seria o próximo passo, se existir de graça.
+- Under (1.5/2.5/3.5/4.5) segue sem odd real na fonte de dado atual — a
+  aproximação testada foi descartada por viés (item 14 acima); só dá
+  pra testar Under de verdade com uma fonte que traga a odd real desse
+  lado.
 - Os proxies de Pressão Alta/Transição/Bola Parada em `estilo.py` não
   estão se mostrando úteis em nenhum mercado testado — candidatos a
   redesenho (dado mais rico) antes de reavaliar a contribuição do estilo.
