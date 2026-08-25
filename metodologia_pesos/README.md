@@ -196,8 +196,16 @@ atualizada, esta lista aqui não é mantida em detalhe:
    implementamos `probabilidade_resultado` + `simular_apostas_combo`
    (múltipla genérica) pra testar. Resultado: sempre negativo sozinho,
    pior ainda combinado com Over 2.5, e combinado com BTTS não passa de
-   z≈1 em nenhuma liga. **Achado mais importante da sessão até agora**
-   — ver `docs/retrospectiva_favorito_dc_2026-08-25.md`.
+   z≈1 em nenhuma liga. Ver `docs/retrospectiva_favorito_dc_2026-08-25.md`.
+11. **Corte de outlier mais apertado melhora Over 2.5 na Série A —
+   primeira melhoria real sobre o neutro** — variando
+   `multiplicador_dp`/`limite_unilateral` (nunca testados antes):
+   `multiplicador_dp=1.5, limite_unilateral=2` dá z=+1,50 (ROI+16,2%)
+   no período completo 2023-2026, contra z=−0,31 (ROI−2,3%) do padrão
+   — confirmado como platô (não célula isolada) e com estabilidade ano
+   a ano melhor. Ainda z<2, específico da Série A/Over 2.5. **Achado
+   mais importante da sessão até agora** — ver
+   `docs/retrospectiva_corte_outlier_2026-08-25.md`.
 
 ## O que ainda falta
 

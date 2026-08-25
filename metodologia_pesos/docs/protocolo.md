@@ -124,6 +124,20 @@ significância (z=0,59 Série A, z=1,06 Série B — e esse último inflado
 por 1 ano de amostra minúscula, n=8). **Não incorporar Favorito DC como
 critério de aposta.** Ver `docs/retrospectiva_favorito_dc_2026-08-25.md`.
 
+**⚠️ Testado 25/08/2026 — Corte de outlier mais apertado melhora
+Over 2.5 na Série A (primeira melhoria real sobre o neutro)** — Lucas
+pediu pra variar `multiplicador_dp`/`limite_unilateral` (nunca tinham
+sido testados). Comparando ROI/z-score do período completo 2023-2026
+(não só o holdout): `multiplicador_dp=1.5, limite_unilateral=2` dá
+Over 2.5 com z=+1,50 (ROI+16,2%, n=99) contra z=−0,31 (ROI−2,3%) do
+padrão (`2.5, 4`) — melhoria confirmada como platô (1,25 e 1,5 dão
+resultado parecido, não é célula isolada de sorte) e com estabilidade
+ano a ano melhor (só 1 ano negativo, era 2). Ainda z<2 (não
+"comprovado"), e Série B não mostrou o mesmo padrão. **Considerar
+`multiplicador_dp=1.5, limite_unilateral=2` pra Over 2.5 na Série A**
+em vez do padrão. Ver
+`docs/retrospectiva_corte_outlier_2026-08-25.md`.
+
 Versão inicial, consolidada a partir do que estava espalhado nas skills
 `copa-planilha-dia`/`serie-b-planilha-dia` (que citavam um
 `briefing_*.md`/`PROTOCOLO_BETS_LUCAS.md` vivendo só em pasta efêmera de
@@ -165,8 +179,8 @@ usar os parâmetros neutros com `limiar_edge` conforme a seção
 | `usar_estilo` | `True` | **`False`** | idem |
 | `filtro_aderencia` | 0.65 | **0.8** | idem — na Série B contraria o achado anterior baseado em MAE; aqui a evidência é de holdout real em Over/Under 2.5 |
 | `estilo_por_mando` (estilo casa≠fora) | `False` (revertido — era `True`) | `False` (desligado, confirmado) | validado por holdout 2025→2026 (24/08/2026) — achado anterior não se sustentou. Ver "Estilo por mando" abaixo |
-| `limite_unilateral` (corte outlier) | 4 | 4 | sem diferença mensurável, não testado em holdout |
-| `multiplicador_dp` (corte outlier) | 2.5 | 2.5 | idem |
+| `limite_unilateral` (corte outlier) | **2** (Over 2.5) / 4 (outros mercados) | 4 | ver "Corte de desvio padrão" abaixo — testado só pra Over 2.5 na Série A até agora |
+| `multiplicador_dp` (corte outlier) | **1.5** (Over 2.5) / 2.5 (outros mercados) | 2.5 | idem |
 | `k` (Copa) | 0.35 | | ainda "no olho" — torneio neutro, parâmetro pouco relevante |
 
 **⚠️ Validação fora-da-amostra (24/08/2026) — ver
