@@ -164,16 +164,27 @@ atualizada, esta lista aqui não é mantida em detalhe:
    simulado (não acerto) repetiu o mesmo padrão de overfitting já visto
    com `k_mando`/`estilo_por_mando`; nenhum candidato bateu o neutro no
    critério que importa (z-score). Decisão: manter parâmetros neutros +
-   `limiar_edge≥8%` como critério de aposta na Série A (único ponto com
-   z>2 até agora); Série B ainda sem edge estatisticamente defensável em
-   nenhuma configuração testada. **Achado mais importante da sessão até
-   agora** — ver `docs/retrospectiva_roi_calibracao_holdout_2026-08-25.md`.
+   `limiar_edge≥8%` como critério de aposta na Série A; Série B ainda
+   sem edge defensável. Ver
+   `docs/retrospectiva_roi_calibracao_holdout_2026-08-25.md`.
+7. **Repetido com 3 temporadas de treino (2023+2024+2025 → holdout
+   2026)** — Lucas subiu 2023/2024 completos. O achado da Série A se
+   REFORÇOU (BTTS edge=8% subiu de z=2,72 pra z=2,91); o neutro da Série
+   B Over 2.5 piorou (ficou claramente negativo com mais histórico); e
+   pela primeira vez o grid achou algo pra Série B BTTS que bate o
+   neutro (`k=0.2, estilo=True, filtro=0.65, edge=5%`, z≈0,9-1,0 — ainda
+   não significativo, mas o sinal mais consistente que essa liga já
+   mostrou). **Achado mais importante da sessão até agora** — ver
+   `docs/retrospectiva_roi_calibracao_2023_2025_holdout_2026-08-25.md`.
 
 ## O que ainda falta
 
-- Conseguir mais uma temporada de treino (2024) — principalmente pra
-  Série B, onde nenhuma configuração passou de z≈0.9 em ROI ainda; mais
-  dado pode ajudar a separar sinal de ruído.
+- Confirmar o sinal de Série B BTTS (z≈0,9-1,0, ainda não passa do
+  limiar de significância ~2) com mais holdout conforme a temporada de
+  2026 avança.
+- Série B Over 2.5 segue sem qualquer edge defensável, mesmo com 3
+  temporadas de treino — considerar não apostar esse mercado nessa liga
+  por ora.
 - Os proxies de Pressão Alta/Transição/Bola Parada em `estilo.py` não
   estão se mostrando úteis em nenhum mercado testado — candidatos a
   redesenho (dado mais rico) antes de reavaliar a contribuição do estilo.

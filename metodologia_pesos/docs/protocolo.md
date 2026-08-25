@@ -78,6 +78,18 @@ APOSTA (não de acerto). Na prática:
 - **Série B**: não apostar por este critério ainda — nenhuma
   configuração testada passou de z≈0.9.
 
+**⚠️ Atualizado 25/08/2026 — repetido com 3 temporadas de treino
+(2023+2024+2025), ver `docs/retrospectiva_roi_calibracao_2023_2025_holdout_2026-08-25.md`:**
+- Série A: achado se REFORÇOU com mais dado (BTTS edge=8% subiu de
+  z=2,72 pra **z=2,91**) — mantém neutro + `limiar_edge≥8%`.
+- **Série B Over 2.5**: piorou — mesmo o parâmetro neutro virou
+  claramente negativo (ROI −7,9% a −21,4% conforme o limiar) com mais
+  histórico. Reforça: não apostar aqui.
+- **Série B BTTS**: primeira vez que o grid supera o neutro — considerar
+  `k_mando=0.2, usar_estilo=True, filtro_aderencia=0.65, limiar_edge=5%`
+  (z≈0,9-1,0, ROI +12-14%, n=53-54) em vez do neutro puro (z≈0). Ainda
+  não é significativo (z<2) — promissor, não comprovado.
+
 Versão inicial, consolidada a partir do que estava espalhado nas skills
 `copa-planilha-dia`/`serie-b-planilha-dia` (que citavam um
 `briefing_*.md`/`PROTOCOLO_BETS_LUCAS.md` vivendo só em pasta efêmera de
