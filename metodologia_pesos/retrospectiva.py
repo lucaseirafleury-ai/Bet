@@ -244,7 +244,10 @@ def prever_jogo(row, df, params=None, min_jogos_historico=10, min_jogos_estilo=N
         gf_real=gf_real, ga_real=ga_real, gf_pred=gf_pred, ga_pred=ga_pred,
         erro_gf=abs(gf_pred - gf_real), erro_ga=abs(ga_pred - ga_real),
         total_real=gf_real + ga_real, total_pred=gf_pred + ga_pred,
+        over15_real=(gf_real + ga_real) > 1.5, over15_pred=(gf_pred + ga_pred) > 1.5,
         over25_real=(gf_real + ga_real) > 2.5, over25_pred=(gf_pred + ga_pred) > 2.5,
+        over35_real=(gf_real + ga_real) > 3.5, over35_pred=(gf_pred + ga_pred) > 3.5,
+        over45_real=(gf_real + ga_real) > 4.5, over45_pred=(gf_pred + ga_pred) > 4.5,
         btts_real=(gf_real > 0 and ga_real > 0), btts_pred=(gf_pred > 0.5 and ga_pred > 0.5),
         n_jogos_validos=len(validos),
         mercados=mercados,
@@ -262,36 +265,41 @@ def _valor_odd(row, coluna):
         return None
 
 
-def _probabilidades_e_odds(row, gf_pred, ga_pred):
-    """Probabilidade que o MODELO dá pros mercados Over 2.5 e BTTS, e a
-    probabilidade IMPLÍCITA nas odds reais do jogo (quando disponíveis no
-    CSV) — a comparação entre as duas é o que mede vantagem real (não só
-    acerto), usada por `simular_apostas`.
+_LINHAS_OVER = dict(over15=(1.5, "odds_ft_over15"), over25=(2.5, "odds_ft_over25"),
+                     over35=(3.5, "odds_ft_over35"), over45=(4.5, "odds_ft_over45"))
 
-    Over 2.5: o CSV só traz a odd do lado "over" (`odds_ft_over25`), não a
-    do "under" — a probabilidade implícita fica sem remover a margem da
-    casa (`probabilidade_implicita`, superestima um pouco).
+
+def _probabilidades_e_odds(row, gf_pred, ga_pred):
+    """Probabilidade que o MODELO dá pros mercados de Over gols (1.5/2.5/
+    3.5/4.5) e BTTS, e a probabilidade IMPLÍCITA nas odds reais do jogo
+    (quando disponíveis no CSV) — a comparação entre as duas é o que mede
+    vantagem real (não só acerto), usada por `simular_apostas`.
+
+    Over (todas as linhas): o CSV só traz a odd do lado "over", não a do
+    "under" — a probabilidade implícita fica sem remover a margem da casa
+    (`probabilidade_implicita`, superestima um pouco).
     BTTS: o CSV traz os dois lados (`odds_btts_yes`/`odds_btts_no`), dá pra
     normalizar de verdade com `probabilidade_implicita_2vias`.
     """
-    prob_modelo_over25 = probabilidade_over(gf_pred + ga_pred, linha=2.5)
+    resultado = {}
+    for nome, (linha, coluna_odd) in _LINHAS_OVER.items():
+        odd = _valor_odd(row, coluna_odd)
+        resultado[f"prob_modelo_{nome}"] = probabilidade_over(gf_pred + ga_pred, linha=linha)
+        resultado[f"odd_{nome}"] = odd
+        resultado[f"prob_mercado_{nome}"] = probabilidade_implicita(odd) if odd else None
+
     prob_modelo_btts = probabilidade_btts(gf_pred, ga_pred)
-
-    odd_over25 = _valor_odd(row, "odds_ft_over25")
-    prob_mercado_over25 = probabilidade_implicita(odd_over25) if odd_over25 else None
-
     odd_btts_sim = _valor_odd(row, "odds_btts_yes")
     odd_btts_nao = _valor_odd(row, "odds_btts_no")
     prob_mercado_btts = (
         probabilidade_implicita_2vias(odd_btts_sim, odd_btts_nao)
         if odd_btts_sim and odd_btts_nao else None
     )
-
-    return dict(
-        prob_modelo_over25=prob_modelo_over25, odd_over25=odd_over25, prob_mercado_over25=prob_mercado_over25,
+    resultado.update(
         prob_modelo_btts=prob_modelo_btts, odd_btts_sim=odd_btts_sim, odd_btts_nao=odd_btts_nao,
         prob_mercado_btts=prob_mercado_btts,
     )
+    return resultado
 
 
 def rodar_retrospectiva(df, params=None, min_jogos_historico=10, min_jogos_estilo=N_JOGOS_PADRAO,
@@ -410,8 +418,11 @@ def grid_search(df, grade_parametros, ordenar_por="mae_gols_total", min_apostas_
 
 
 _MERCADOS_SIMULAVEIS = {
-    "over25": dict(prob_modelo="prob_modelo_over25", prob_mercado="prob_mercado_over25",
-                    odd="odd_over25", real="over25_real"),
+    **{
+        nome: dict(prob_modelo=f"prob_modelo_{nome}", prob_mercado=f"prob_mercado_{nome}",
+                   odd=f"odd_{nome}", real=f"{nome}_real")
+        for nome in _LINHAS_OVER
+    },
     "btts": dict(prob_modelo="prob_modelo_btts", prob_mercado="prob_mercado_btts",
                  odd="odd_btts_sim", real="btts_real"),
 }
@@ -429,9 +440,10 @@ def simular_apostas(jogos, mercado="over25", limiar_edge=0.0, stake=1.0):
     já carrega `prob_modelo_*`/`prob_mercado_*`/`odd_*` calculados por
     `prever_jogo`).
 
-    `mercado`: `"over25"` (usa a odd de Over 2.5, sem remover margem — só
-    temos a odd de um lado no CSV) ou `"btts"` (usa BTTS Sim, com margem
-    removida via odds dos dois lados).
+    `mercado`: `"over15"`/`"over25"`/`"over35"`/`"over45"` (odd do lado
+    "over" apenas, sem remover margem — só temos a odd de um lado no CSV)
+    ou `"btts"` (usa BTTS Sim, com margem removida via odds dos dois
+    lados).
 
     IMPORTANTE — só cobre apostar no lado "over"/"sim": o CSV não traz a
     odd do lado oposto (Under 2.5), então não dá pra simular apostar contra
@@ -443,7 +455,7 @@ def simular_apostas(jogos, mercado="over25", limiar_edge=0.0, stake=1.0):
     (lucro/total apostado), `edge_medio` (das apostas feitas).
     """
     if mercado not in _MERCADOS_SIMULAVEIS:
-        raise ValueError(f"mercado inválido: {mercado!r} (use 'over25' ou 'btts')")
+        raise ValueError(f"mercado inválido: {mercado!r} (use {sorted(_MERCADOS_SIMULAVEIS)!r})")
     campos = _MERCADOS_SIMULAVEIS[mercado]
 
     apostas = []

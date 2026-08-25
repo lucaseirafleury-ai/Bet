@@ -43,7 +43,11 @@ def _linha(i, home, away):
         "home_team_fouls": 10, "away_team_fouls": 11,
         "home_team_goal_count_half_time": 0, "away_team_goal_count_half_time": 0,
         "odds_ft_home_team_win": 2.1, "odds_ft_draw": 3.3, "odds_ft_away_team_win": 3.4,
-        "odds_ft_over25": 1.8 + 0.05 * (i % 5), "odds_btts_yes": 1.9, "odds_btts_no": 1.85,
+        "odds_ft_over15": 1.3 + 0.05 * (i % 5),
+        "odds_ft_over25": 1.8 + 0.05 * (i % 5),
+        "odds_ft_over35": 2.6 + 0.05 * (i % 5),
+        "odds_ft_over45": 4.0 + 0.05 * (i % 5),
+        "odds_btts_yes": 1.9, "odds_btts_no": 1.85,
         "__src": "teste.csv",
     }
 
@@ -269,6 +273,13 @@ def test_prever_jogo_traz_probabilidades_e_odds_de_mercado(df_fabricado):
     assert resultado["prob_mercado_btts"] == pytest.approx(
         (1 / 1.9) / (1 / 1.9 + 1 / 1.85)
     )
+    # mesma cobertura pras outras linhas de Over (1.5/3.5/4.5) — mesmo padrão do 2.5
+    for nome, coluna in (("over15", "odds_ft_over15"), ("over35", "odds_ft_over35"), ("over45", "odds_ft_over45")):
+        assert 0 <= resultado[f"prob_modelo_{nome}"] <= 1
+        assert resultado[f"odd_{nome}"] == pytest.approx(ultima_linha[coluna])
+        assert resultado[f"prob_mercado_{nome}"] == pytest.approx(1 / ultima_linha[coluna])
+    # linha mais baixa (1.5) tem probabilidade de Over maior que a mais alta (4.5)
+    assert resultado["prob_modelo_over15"] > resultado["prob_modelo_over25"] > resultado["prob_modelo_over45"]
 
 
 def test_prever_jogo_sem_coluna_de_odd_retorna_none_nesse_campo(df_fabricado):
@@ -288,10 +299,10 @@ def test_prever_jogo_sem_coluna_de_odd_retorna_none_nesse_campo(df_fabricado):
 
 
 def _jogo_simulado(odd, prob_modelo, prob_mercado, venceu, mercado="over25"):
-    campo_odd = "odd_over25" if mercado == "over25" else "odd_btts_sim"
-    campo_pm = "prob_modelo_over25" if mercado == "over25" else "prob_modelo_btts"
-    campo_pmk = "prob_mercado_over25" if mercado == "over25" else "prob_mercado_btts"
-    campo_real = "over25_real" if mercado == "over25" else "btts_real"
+    campo_odd = "odd_btts_sim" if mercado == "btts" else f"odd_{mercado}"
+    campo_pm = f"prob_modelo_{mercado}"
+    campo_pmk = f"prob_mercado_{mercado}"
+    campo_real = f"{mercado}_real"
     return {
         "jogo": "Time A x Time B", "data": None,
         campo_odd: odd, campo_pm: prob_modelo, campo_pmk: prob_mercado, campo_real: venceu,
@@ -345,6 +356,17 @@ def test_simular_apostas_sem_nenhuma_aposta_valida():
 def test_simular_apostas_mercado_invalido_levanta_erro():
     with pytest.raises(ValueError):
         simular_apostas([], mercado="escanteios")
+
+
+@pytest.mark.parametrize("mercado", ["over15", "over35", "over45"])
+def test_simular_apostas_funciona_nas_outras_linhas_de_over(mercado):
+    jogos = [
+        _jogo_simulado(odd=2.0, prob_modelo=0.60, prob_mercado=0.50, venceu=True, mercado=mercado),
+        _jogo_simulado(odd=1.8, prob_modelo=0.65, prob_mercado=0.55, venceu=False, mercado=mercado),
+    ]
+    r = simular_apostas(jogos, mercado=mercado, limiar_edge=0.0, stake=1.0)
+    assert r["n_apostas"] == 2
+    assert r["lucro_total"] == pytest.approx(0.0)
 
 
 def test_simular_apostas_btts_usa_campos_corretos():
