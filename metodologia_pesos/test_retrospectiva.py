@@ -314,6 +314,22 @@ def test_prever_jogo_traz_under_aproximado_de_todas_as_linhas(df_fabricado):
         assert resultado[f"odd_{nome}"] == pytest.approx(1 / prob_under_esperada)
 
 
+def test_prever_jogo_margem_under_reduz_odd_de_under(df_fabricado):
+    ultima_linha = df_fabricado.iloc[11]
+    sem_margem = prever_jogo(
+        ultima_linha, df_fabricado, params=dict(filtro_aderencia=0.0, margem_under=0.0),
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    com_margem = prever_jogo(
+        ultima_linha, df_fabricado, params=dict(filtro_aderencia=0.0, margem_under=0.07),
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    assert sem_margem is not None and com_margem is not None
+    for nome in ("under15", "under25", "under35", "under45"):
+        assert com_margem[f"odd_{nome}"] < sem_margem[f"odd_{nome}"]
+        assert com_margem[f"prob_mercado_{nome}"] > sem_margem[f"prob_mercado_{nome}"]
+
+
 def test_prever_jogo_sem_coluna_de_odd_retorna_none_nesse_campo(df_fabricado):
     df_sem_odds = df_fabricado.drop(columns=["odds_ft_over25", "odds_btts_yes", "odds_btts_no"])
     ultima_linha = df_sem_odds.iloc[11]

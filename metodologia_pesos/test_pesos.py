@@ -286,6 +286,24 @@ def test_odd_e_prob_under_aproximada_e_mais_generosa_que_o_mercado_real():
     assert odd_under_aproximada > odd_under_real
 
 
+def test_odd_e_prob_under_aproximada_com_margem_reduz_o_viés_otimista():
+    # par real com ~7% de margem (1/1.87 + 1/1.87 - 1 = 0.0695): com
+    # margem_total=0.07 (margem real medida nesta fonte de dado), a odd
+    # de Under fica bem mais perto da real (1.87) do que sem margem.
+    odd_over_real = odd_under_real = 1.87
+    _, odd_sem_margem = odd_e_prob_under_aproximada(odd_over_real)
+    _, odd_com_margem = odd_e_prob_under_aproximada(odd_over_real, margem_total=0.07)
+    assert odd_com_margem < odd_sem_margem
+    assert abs(odd_com_margem - odd_under_real) < abs(odd_sem_margem - odd_under_real)
+
+
+def test_odd_e_prob_under_aproximada_com_margem_formula_exata():
+    prob_under, odd_under = odd_e_prob_under_aproximada(1.80, margem_total=0.07)
+    prob_esperada = 1.07 - (1 / 1.80)
+    assert prob_under == pytest.approx(prob_esperada)
+    assert odd_under == pytest.approx(1 / prob_esperada)
+
+
 def test_odd_e_prob_under_aproximada_rejeita_odd_invalida():
     assert odd_e_prob_under_aproximada(None) == (None, None)
     assert odd_e_prob_under_aproximada(1.0) == (None, None)

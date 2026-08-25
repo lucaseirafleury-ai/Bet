@@ -262,29 +262,37 @@ def probabilidade_implicita_2vias(odd_lado, odd_lado_oposto):
     return p1 / soma
 
 
-def odd_e_prob_under_aproximada(odd_over):
+def odd_e_prob_under_aproximada(odd_over, margem_total=0.0):
     """Aproxima a probabilidade implícita e a odd decimal do lado "Under"
     a partir da odd real do lado "Over" (o CSV só traz o lado Over pras
     linhas de gols — não tem odd real de Under).
 
-    Usa o complemento bruto da probabilidade implícita do Over
-    (`1 - 1/odd_over`), sem remover a margem da casa dos dois lados —
-    não temos a odd real de Under pra normalizar de verdade como em
-    `probabilidade_implicita_2vias`. Isso faz a odd de Under aproximada
-    ficar um pouco ACIMA da odd que uma casa provavelmente ofereceria de
-    verdade (a margem inteira "sobra" pro lado Over computado, nenhuma é
-    descontada do lado Under) — ao contrário da aproximação de Dupla
-    Chance do favorito (que é conservadora, pra menos), esta tende a ser
-    OTIMISTA, pra mais. Qualquer edge encontrado usando esta odd merece
-    ainda mais cautela que o normal.
+    Com `margem_total=0.0` (padrão), usa o complemento bruto da
+    probabilidade implícita do Over (`1 - 1/odd_over`) — equivale a
+    assumir margem ZERO no lado Under (a margem inteira "sobra" pro lado
+    Over computado). Isso faz a odd de Under ficar ACIMA da odd que uma
+    casa realmente ofereceria — testado e comprovadamente otimista
+    demais (`docs/retrospectiva_under_aproximado_2026-08-25.md`: ROI
+    positivo em 24/24 combinações testadas, viés claro da fórmula).
+
+    `margem_total` permite assumir que a casa aplica uma margem (%) sobre
+    a SOMA das probabilidades implícitas dos dois lados (Over + Under),
+    igual à margem real observada nos mercados que têm os dois lados
+    nesta mesma fonte de dado (1x2 e BTTS ficam em ~7-9%, medido em
+    `docs/retrospectiva_under_margem_2026-08-25.md`): `prob_under =
+    (1 + margem_total) - prob_over_bruta`. Ainda é uma aproximação (não
+    sabemos a margem real do lado Under especificamente, só assumimos
+    que segue o padrão do resto do book), mas corrige a maior parte do
+    viés otimista do caso `margem_total=0.0`.
 
     Retorna `(prob_under, odd_under)`, ou `(None, None)` se `odd_over`
-    for inválida (`None` ou <= 1).
+    for inválida (`None` ou <= 1) ou se a margem assumida não deixar
+    probabilidade positiva de Under.
     """
     if odd_over is None or odd_over <= 1:
         return None, None
     prob_over_bruta = probabilidade_implicita(odd_over)
-    prob_under = 1 - prob_over_bruta
+    prob_under = (1 + margem_total) - prob_over_bruta
     if prob_under <= 0:
         return None, None
     return prob_under, 1 / prob_under

@@ -51,6 +51,10 @@ PARAMS_PADRAO = dict(
     k_mando=None, filtro_aderencia=0.65, limite_unilateral=4, multiplicador_dp=2.5,
     usar_estilo=True, estilo_por_mando=False,
     limiar_edge=0.0,  # edge mínimo (prob_modelo - prob_mercado) pra simular_apostas contar como aposta
+    margem_under=0.0,  # margem de casa assumida ao aproximar odd/prob de Under a partir da odd de Over
+                        # (ver pesos.odd_e_prob_under_aproximada) — 0.0 preserva o comportamento antigo
+                        # (comprovadamente otimista); usar ~0.07 (margem real medida nesta fonte de
+                        # dado, docs/retrospectiva_under_margem_2026-08-25.md) corrige a maior parte do viés.
 )
 
 _MANDO_OPOSTO = {"Casa": "Fora", "Fora": "Casa"}
@@ -258,7 +262,7 @@ def prever_jogo(row, df, params=None, min_jogos_historico=10, min_jogos_estilo=N
         btts_real=(gf_real > 0 and ga_real > 0), btts_pred=(gf_pred > 0.5 and ga_pred > 0.5),
         n_jogos_validos=len(validos),
         mercados=mercados,
-        **_probabilidades_e_odds(row, gf_pred, ga_pred, gf_real, ga_real),
+        **_probabilidades_e_odds(row, gf_pred, ga_pred, gf_real, ga_real, margem_under=params["margem_under"]),
     )
 
 
@@ -327,7 +331,7 @@ def _probabilidades_favorito_dc(row, gf_pred, ga_pred, gf_real, ga_real):
     )
 
 
-def _probabilidades_e_odds(row, gf_pred, ga_pred, gf_real=None, ga_real=None):
+def _probabilidades_e_odds(row, gf_pred, ga_pred, gf_real=None, ga_real=None, margem_under=0.0):
     """Probabilidade que o MODELO dá pros mercados de Over gols (1.5/2.5/
     3.5/4.5), BTTS e Dupla Chance do favorito, e a probabilidade IMPLÍCITA
     nas odds reais do jogo (quando disponíveis no CSV) — a comparação entre
@@ -338,8 +342,11 @@ def _probabilidades_e_odds(row, gf_pred, ga_pred, gf_real=None, ga_real=None):
     "under" — a probabilidade implícita fica sem remover a margem da casa
     (`probabilidade_implicita`, superestima um pouco).
     Under (todas as linhas): odd/probabilidade APROXIMADAS a partir da odd
-    de Over, via `odd_e_prob_under_aproximada` — não é odd real de
-    mercado, tende a ficar um pouco otimista (ver docstring da função).
+    de Over, via `odd_e_prob_under_aproximada(odd, margem_under)` — não é
+    odd real de mercado. Com `margem_under=0.0` (padrão) tende a ficar
+    otimista (comprovado, ver `docs/retrospectiva_under_aproximado_2026-08-25.md`);
+    `margem_under` > 0 assume uma margem de casa e corrige a maior parte
+    do viés (ver `docs/retrospectiva_under_margem_2026-08-25.md`).
     BTTS: o CSV traz os dois lados (`odds_btts_yes`/`odds_btts_no`), dá pra
     normalizar de verdade com `probabilidade_implicita_2vias`.
     Favorito DC: ver `_probabilidades_favorito_dc`.
@@ -353,7 +360,7 @@ def _probabilidades_e_odds(row, gf_pred, ga_pred, gf_real=None, ga_real=None):
         resultado[f"prob_mercado_{nome}"] = probabilidade_implicita(odd) if odd else None
 
         nome_under = f"under{nome[len('over'):]}"
-        prob_mercado_under, odd_under = odd_e_prob_under_aproximada(odd) if odd else (None, None)
+        prob_mercado_under, odd_under = odd_e_prob_under_aproximada(odd, margem_under) if odd else (None, None)
         resultado[f"prob_modelo_{nome_under}"] = 1 - prob_modelo_over
         resultado[f"odd_{nome_under}"] = odd_under
         resultado[f"prob_mercado_{nome_under}"] = prob_mercado_under
