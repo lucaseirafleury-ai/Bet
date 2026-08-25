@@ -9,9 +9,17 @@ vantagem competitiva real (ROI contra odd de mercado) é outra métrica.
 `k_mando=0.5, usar_estilo=False, filtro_aderencia=0.8,
 multiplicador_dp=1.5, limite_unilateral=2, limiar_edge=5%`** — z=2,23
 no período completo 2023-2026 (n=221), sem ano negativo real. Substitui
-a recomendação anterior (neutro + `limiar_edge≥8%`). Não apostar na
-Série B por nenhum critério ainda — ver a seção nova pro raciocínio
-completo.
+a recomendação anterior (neutro + `limiar_edge≥8%`).
+
+**Segundo critério (25/08/2026) pra BTTS na Série A:
+`k_mando=0.7, usar_estilo=True, filtro_estilo=0.8,
+filtro_favoritismo=0.65, multiplicador_dp=1.5, limite_unilateral=2,
+n_historico=10, limiar_edge=5%`** — z=2,65, n=207, ROI+17,9%, sem
+nenhum ano negativo — ver seção "BTTS com parâmetros próprios" mais
+abaixo.
+
+Não apostar na Série B por nenhum critério ainda — ver a seção nova pro
+raciocínio completo.
 
 ## Acerto ≠ vantagem real (24/08/2026)
 
@@ -189,7 +197,7 @@ BTTS e o teto PIORA** (ver seção seguinte). Ver
 por mercado/liga/edge (mantido como registro histórico do teste, já
 corrigido pela seção abaixo).
 
-## BTTS com parâmetros próprios — segundo critério possível, mais arriscado que Over 2.5 (25/08/2026)
+## BTTS com parâmetros próprios — segundo critério de aposta (25/08/2026, atualizado)
 
 Testado o candidato de BTTS (`k_mando=0.7, usar_estilo=True,
 filtro_aderencia=0, multiplicador_dp=1.5, limite_unilateral=2,
@@ -197,14 +205,34 @@ limiar_edge=8%`) com seus PRÓPRIOS parâmetros de modelo (não os de Over
 2.5) e o teto de odd (≤2,0): **o teto PIORA o resultado** (z cai de
 +2,13 pra +1,18) — descartar essa ideia pra BTTS.
 
-**Sem teto, o candidato confirma z=+2,13, ROI+21,5%, n=95** (período
-completo) — mas com consistência ano a ano bem mais fraca que o Over
-2.5: **2 dos 4 anos com queda real** (2023: −21,0%, 2025: −9,1%, não só
-"quase zero" como no Over 2.5). Pode ser adotado como SEGUNDO critério
-de aposta em paralelo ao Over 2.5 (soma ~27 apostas/ano de volume), mas
-com risco visivelmente maior — decisão de usar fica com Lucas, ciente
-dessa diferença de consistência. Ver
+**Sem teto, esse candidato confirmava z=+2,13, ROI+21,5%, n=95**
+(período completo), com 2 dos 4 anos negativos (2023: −7,7%, 2025:
+−6,7%) — mais fraco que o Over 2.5. Ver
 `docs/retrospectiva_btts_final_2026-08-25.md`.
+
+**Superado por um candidato melhor** (variando `n_historico` e
+separando os filtros de estilo/favoritismo, nunca testados antes):
+`k_mando=0.7, usar_estilo=True, filtro_estilo=0.8,
+filtro_favoritismo=0.65, multiplicador_dp=1.5, limite_unilateral=2,
+n_historico=10, limiar_edge=5%` → **n=207, ROI+17,9%, z=+2,65, SEM
+nenhum ano negativo** (2023 +18,3%, 2024 +19,0%, 2025 +1,9%, 2026
++37,2%). Ver `docs/retrospectiva_novos_eixos_2026-08-25.md`.
+
+**Este é agora o segundo critério de aposta recomendado, em paralelo
+ao Over 2.5** — substitui o candidato anterior. Volume combinado:
+Over 2.5 (~63/ano) + BTTS (~59/ano) ≈ 122 apostas/ano.
+
+## Segmentação do Over 2.5 por favoritismo — curiosidade, não acionável (25/08/2026)
+
+Dividindo as 221 apostas do critério campeão de Over 2.5 em tercis por
+`prob_mercado_favorito_dc` (o quão favorito é o time da odd 1x2):
+jogos equilibrados (tercil 1) e favoritos claros (tercil 3) rendem mais
+(ROI +24,0% e +20,5%) que o meio-termo (tercil 2, ROI+3,4%) — um
+padrão em U, não monotônico. **Não é acionável ainda**: é uma
+segmentação post-hoc de um `n` já pequeno (n≈73-75 por tercil), alto
+risco de comparação múltipla (poderíamos ter cortado em quartis,
+quintis etc. e visto outro padrão). Registrado como curiosidade a
+investigar com mais dado, não como regra de aposta.
 
 ## Under com odd aproximada — NÃO USAR (25/08/2026)
 

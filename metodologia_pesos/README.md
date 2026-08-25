@@ -252,13 +252,28 @@ atualizada, esta lista aqui não é mantida em detalhe:
    candidato de BTTS (`k=0.7, usar_estilo=True, filtro_aderencia=0`)
    com o teto (≤2,0) usando SEUS PRÓPRIOS parâmetros de modelo: o teto
    reduz o z de +2,13 pra +1,18 — descartar teto pra BTTS. **Sem teto,
-   confirma z=+2,13, ROI+21,5%, n=95** no período completo, mas com
-   consistência ano a ano bem mais fraca que o Over 2.5: **2 dos 4 anos
-   com queda real** (2023: −21,0%, 2025: −9,1%), não só "quase zero".
-   Pode ser adotado como SEGUNDO critério de aposta em paralelo ao Over
-   2.5 (soma ~27 apostas/ano), mas com risco visivelmente maior — Lucas
-   decide, ciente da diferença de consistência. Ver
-   `docs/retrospectiva_btts_final_2026-08-25.md`.
+   confirma z=+2,13, ROI+21,5%, n=95** no período completo, com
+   consistência ano a ano mais fraca que o Over 2.5: **2 dos 4 anos com
+   queda real** (2023: −7,7%, 2025: −6,7%). **Superado pelo item 17
+   abaixo.** Ver `docs/retrospectiva_btts_final_2026-08-25.md`.
+17. **Janela de histórico + filtros separados: novo candidato de BTTS,
+   mais forte que o anterior e tão consistente quanto o Over 2.5** —
+   nunca tínhamos variado `n_historico` (sempre 15) nem separado o
+   filtro de aderência de estilo do de favoritismo (implementados nesta
+   sessão). Grid de 48 combinações × 3 edges achou, pra BTTS:
+   `k=0.7, usar_estilo=True, filtro_estilo=0.8, filtro_favoritismo=0.65,
+   n_historico=10, edge=5%` → **n=207, ROI+17,9%, z=+2,65, SEM nenhum
+   ano negativo** (2023 +18,3%, 2024 +19,0%, 2025 +1,9%, 2026 +37,2%) —
+   mais amostra e mais consistente que o candidato anterior. **Agora é
+   o segundo critério de aposta recomendado** (volume combinado com
+   Over 2.5: ~122 apostas/ano). Pro Over 2.5, o mesmo grid confirmou o
+   critério já vigente sem melhorá-lo (o filtro de estilo nunca
+   filtrava nada nesse mercado). Série B continua sem qualquer
+   candidato viável mesmo com esses eixos novos. Também testamos
+   segmentar o Over 2.5 por nível de favoritismo (tercis): achado
+   curioso em U (extremos melhores que o meio-termo), mas não acionável
+   — amostra pequena por tercil e risco alto de comparação múltipla.
+   Ver `docs/retrospectiva_novos_eixos_2026-08-25.md`.
 
 ## O que ainda falta
 

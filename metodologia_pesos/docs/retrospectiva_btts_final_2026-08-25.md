@@ -29,20 +29,32 @@ lição do resto da sessão).
 
 ## O candidato em si (SEM teto, edge=8%) — confirma z=2,13, mas ano a ano é mais fraco que o Over 2.5
 
+**Correção (25/08/2026): a tabela abaixo estava errada numa versão
+anterior deste documento** — o script usado aplicava por engano o teto
+de odd (≤2,0) também no cálculo ano a ano da seção "SEM teto" (a soma
+de apostas por ano batia com o `n=63` do "COM teto", não com o `n=95`
+do "SEM teto" real). Corrigido abaixo com os números certos.
+
 | Ano | n | ROI |
 |---|---|---|
-| 2023 | 12 | **−21,0%** |
-| 2024 | 18 | +27,3% |
-| 2025 | 15 | **−9,1%** |
-| 2026 | 18 | +42,8% |
+| 2023 | 20 | **−7,7%** |
+| 2024 | 28 | +44,3% |
+| 2025 | 24 | **−6,7%** |
+| 2026 | 23 | +48,7% |
 
-**2 dos 4 anos são negativos** (2023 e 2025), não só "levemente"
-negativos como no Over 2.5 (que tinha só 2025 em −1,0%, essencialmente
-zero) — aqui são quedas reais de −21% e −9%. O z=+2,13 do período
-completo é puxado por 2024 e 2026 serem excepcionalmente bons (+27% e
-+43%), compensando dois anos ruins. **Isso é uma consistência ano a
-ano nitidamente mais fraca que o Over 2.5**, mesmo cruzando o mesmo
-limiar de z.
+**2 dos 4 anos são negativos** (2023 e 2025) — quedas reais, ainda que
+menores do que a versão anterior (errada) deste documento reportava.
+Não são "levemente negativos" como no Over 2.5 (que tinha só 2025 em
+−1,0%, essencialmente zero), mas também não são tão severos quanto
+−21%/−9%. O z=+2,13 do período completo é puxado por 2024 e 2026 serem
+excepcionalmente bons (+44% e +49%), compensando dois anos ruins.
+**Isso ainda é uma consistência ano a ano mais fraca que o Over 2.5**,
+mesmo cruzando o mesmo limiar de z — mas **este candidato foi
+substituído por um melhor** (ver
+`docs/retrospectiva_novos_eixos_2026-08-25.md`): variando a janela de
+histórico e separando os filtros de estilo/favoritismo, achamos
+`n_historico=10, filtro_estilo=0.8, filtro_favoritismo=0.65, edge=5%`
+com n=207, ROI+17,9%, z=+2,65, e **nenhum ano negativo**.
 
 Série B: sem sinal nenhum com esses parâmetros (Série A-otimizados) —
 z negativo em todos os limiares de edge, ROI negativo na maioria dos
