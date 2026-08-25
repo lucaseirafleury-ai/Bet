@@ -203,9 +203,21 @@ atualizada, esta lista aqui não é mantida em detalhe:
    `multiplicador_dp=1.5, limite_unilateral=2` dá z=+1,50 (ROI+16,2%)
    no período completo 2023-2026, contra z=−0,31 (ROI−2,3%) do padrão
    — confirmado como platô (não célula isolada) e com estabilidade ano
-   a ano melhor. Ainda z<2, específico da Série A/Over 2.5. **Achado
-   mais importante da sessão até agora** — ver
+   a ano melhor. Ainda z<2, específico da Série A/Over 2.5. Ver
    `docs/retrospectiva_corte_outlier_2026-08-25.md`.
+12. **Grid completo (parâmetros + corte de outlier + todas as linhas de
+   Over): melhor achado da sessão** — combinando `k_mando × usar_estilo
+   × filtro_aderencia` com o corte de outlier apertado, achou
+   `k=0.5, sem estilo, filtro=0.8, mult_dp=1.5, uni=2, edge=5%` pra
+   Over 2.5 na Série A: **z=+2,23, ROI+16,0%, n=221** no período
+   completo 2023-2026 — primeiro candidato do projeto a passar de z=2
+   sem depender só do holdout, e SEM nenhum ano negativo real (pior ano:
+   2025, −1,0%, essencialmente zero). BTTS também tem candidato forte
+   (z=+2,13) mas com pior consistência ano a ano. Série B segue sem
+   configuração defensável. **Este é agora o critério de aposta
+   recomendado pra Over 2.5 na Série A** — substitui o critério anterior
+   (neutro + edge≥8%). **Achado mais importante da sessão até agora** —
+   ver `docs/retrospectiva_grid_completo_2026-08-25.md`.
 
 ## O que ainda falta
 

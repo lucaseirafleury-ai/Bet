@@ -1,16 +1,17 @@
 # Protocolo de Apostas — Regras Persistentes
 
 **⚠️ Leitura obrigatória antes de qualquer outra coisa neste arquivo —
-seções "Acerto ≠ vantagem real (24/08/2026)" e "Recalibração por ROI não
-superou o neutro (25/08/2026)" logo abaixo.** Os parâmetros de
-`k_mando`/`usar_estilo`/`filtro_aderencia` da tabela abaixo foram
-otimizados por ACERTO (Over/Under, BTTS) — vantagem competitiva real
-(ROI contra odd de mercado) é outra métrica, e a recalibração feita por
-ROI (25/08/2026) **não encontrou nada melhor que os parâmetros neutros**
-(sem ajuste nenhum). **Pra decisão de aposta, usar os parâmetros neutros
-com `limiar_edge ≥ 8%` na Série A (único ponto com sinal
-estatisticamente defensável até agora); não apostar na Série B por este
-critério ainda** — ver a seção nova pro raciocínio completo.
+seção "Grid completo: melhor achado da sessão (25/08/2026)" logo mais
+abaixo.** Os parâmetros de `k_mando`/`usar_estilo`/`filtro_aderencia` da
+tabela logo abaixo foram otimizados por ACERTO (Over/Under, BTTS) —
+vantagem competitiva real (ROI contra odd de mercado) é outra métrica.
+**Critério de aposta ATUAL (25/08/2026) pra Over 2.5 na Série A:
+`k_mando=0.5, usar_estilo=False, filtro_aderencia=0.8,
+multiplicador_dp=1.5, limite_unilateral=2, limiar_edge=5%`** — z=2,23
+no período completo 2023-2026 (n=221), sem ano negativo real. Substitui
+a recomendação anterior (neutro + `limiar_edge≥8%`). Não apostar na
+Série B por nenhum critério ainda — ver a seção nova pro raciocínio
+completo.
 
 ## Acerto ≠ vantagem real (24/08/2026)
 
@@ -138,6 +139,36 @@ ano a ano melhor (só 1 ano negativo, era 2). Ainda z<2 (não
 em vez do padrão. Ver
 `docs/retrospectiva_corte_outlier_2026-08-25.md`.
 
+## Grid completo: melhor achado da sessão (25/08/2026)
+
+Combinando tudo — `k_mando × usar_estilo × filtro_aderencia` × corte de
+outlier (apertado vs. padrão), reincluindo Over 1.5/3.5/4.5 na busca —
+encontrou o candidato mais forte de toda a sessão:
+
+**Over 2.5, Série A: `k_mando=0.5, usar_estilo=False,
+filtro_aderencia=0.8, multiplicador_dp=1.5, limite_unilateral=2,
+limiar_edge=5%` → z=+2,23, ROI+16,0%, n=221 (período completo
+2023-2026), SEM ano realmente negativo** (2023 +10,2%, 2024 +35,8%,
+2025 −1,0%, 2026 +25,4%). É o primeiro candidato do projeto todo que
+passa de z=2 no período completo (não só no holdout isolado) com
+amostra grande (n=221, mais que o dobro de qualquer achado anterior).
+
+BTTS também tem candidatos fortes (`k=0.7, usar_estilo=True,
+filtro_aderencia=0`, mesmo corte, edge=8%: z=+2,13, ROI+21,5%, n=95),
+mas com pior consistência ano a ano (2025 sempre fraco nos candidatos
+testados) — considerar validado com mais cautela que Over 2.5.
+
+Série B continua sem qualquer configuração defensável — os melhores
+candidatos do mesmo grid deram ROI negativo ou catastrófico
+(Over 3.5/4.5 até −100%, amostra minúscula).
+
+**Este é agora o critério de aposta recomendado pra Over 2.5 na Série
+A** — substitui o critério anterior (neutro + `limiar_edge≥8%`). Ver
+`docs/retrospectiva_grid_completo_2026-08-25.md` pro raciocínio
+completo, incluindo por que o combo dos 3 parâmetros funciona melhor
+que qualquer um isolado, e as ressalvas (risco residual de comparação
+múltipla ao testar 96 combinações).
+
 Versão inicial, consolidada a partir do que estava espalhado nas skills
 `copa-planilha-dia`/`serie-b-planilha-dia` (que citavam um
 `briefing_*.md`/`PROTOCOLO_BETS_LUCAS.md` vivendo só em pasta efêmera de
@@ -169,8 +200,10 @@ sessões — complete/corrija o que estiver incompleto ou desatualizado.**
 ## Parâmetros do motor de pesos (ver `metodologia_pesos/pesos.py`)
 
 **Esta tabela é a validação por ACERTO — pra decisão de aposta (ROI),
-usar os parâmetros neutros com `limiar_edge` conforme a seção
-"Recalibração por ROI" acima, não necessariamente os valores aqui.**
+usar o critério da seção "Grid completo: melhor achado da sessão"
+acima (Over 2.5 na Série A: `k=0.5, sem estilo, filtro=0.8,
+multiplicador_dp=1.5, limite_unilateral=2, edge=5%`), não
+necessariamente os valores desta tabela.**
 
 | Parâmetro | Série A | Série B | Origem |
 |---|---|---|---|
