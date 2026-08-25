@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 .venv/
+.claude/settings.local.json
 ligas_live_app/data/*.json
 ligas_live_app/data/*.csv
 pesquisa_gols/resultados/*.csv
