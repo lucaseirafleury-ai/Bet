@@ -183,9 +183,21 @@ atualizada, esta lista aqui não é mantida em detalhe:
    qualquer linha (`retrospectiva.py`); resultado: ROI negativo em
    TODOS os limiares/anos testados nas duas ligas, Over 3.5/4.5
    especialmente ruins (até −81%). O edge fica concentrado só em
-   Over 2.5/BTTS, não generaliza. **Achado mais importante da sessão
-   até agora** — ver
+   Over 2.5/BTTS, não generaliza. Ver
    `docs/retrospectiva_over_1_5_3_5_4_5_2026-08-25.md`.
+9. **Simulação "desde 2023" revela que o z=2,24/2,91 é só o holdout
+   2026, não o histórico completo** — apostando com neutro+edge≥8%
+   desde 2023: Over 2.5 dá ROI acumulado **−2,3%** (2023/2025 foram
+   anos de prejuízo, 2024/2026 de lucro); BTTS dá **+5,0%**, também com
+   variação enorme ano a ano. Corrige a impressão de "edge comprovado"
+   que os z-scores do holdout sozinhos passavam.
+10. **Favorito DC (sozinho e combinado com Over/Under) não tem edge** —
+   Lucas relatou que essa combinação funcionou pra ele no passado;
+   implementamos `probabilidade_resultado` + `simular_apostas_combo`
+   (múltipla genérica) pra testar. Resultado: sempre negativo sozinho,
+   pior ainda combinado com Over 2.5, e combinado com BTTS não passa de
+   z≈1 em nenhuma liga. **Achado mais importante da sessão até agora**
+   — ver `docs/retrospectiva_favorito_dc_2026-08-25.md`.
 
 ## O que ainda falta
 

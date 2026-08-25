@@ -99,6 +99,31 @@ TODOS os limiares/anos — Over 3.5/4.5 especialmente ruins (ROI até
 generaliza pras linhas vizinhas. **Não apostar Over 1.5/3.5/4.5.** Ver
 `docs/retrospectiva_over_1_5_3_5_4_5_2026-08-25.md`.
 
+**⚠️ IMPORTANTE — o z=2,24/2,91 da Série A é só o holdout de 2026, não
+prova de vantagem no longo prazo.** Simulando "se tivéssemos apostado
+desde 2023" com os parâmetros neutros + `limiar_edge≥8%` (walk-forward
+2023-2026 inteiro, sem cortar só o holdout): **Over 2.5 dá ROI
+acumulado −2,3%** (2023 −28,4%, 2024 +11,5%, 2025 −15,7%, 2026 +35,8% —
+2026 foi o ano bom, não a média); **BTTS dá +5,0%** acumulado, mas
+também com variação enorme ano a ano (−19,1% a +37,8%). Ou seja: **não
+tratar Over 2.5/BTTS como "edge comprovado que sempre ganha dinheiro"**
+— é um sinal estatisticamente distinguível de zero no holdout mais
+recente, mas o histórico completo mostra metade dos anos no prejuízo.
+Qualquer decisão de apostar dinheiro real precisa considerar essa
+variância, não só o z-score do último ano.
+
+**⚠️ Testado 25/08/2026 — Favorito DC (sozinho e combinado) NÃO tem
+edge** (Lucas relatou que combinar Over/Under + Dupla Chance do
+favorito funcionou pra ele no passado; pediu pra buscarmos qualquer
+metodologia com ROI positivo sucessivo). Implementado
+`pesos.probabilidade_resultado` + `retrospectiva.simular_apostas_combo`
+(múltipla genérica). Resultado: Favorito DC sozinho é sempre negativo
+nas duas ligas (ROI −3% a −17%); combinado com Over 2.5 piora ainda
+mais (até −34% na Série B); combinado com BTTS é o menos ruim mas sem
+significância (z=0,59 Série A, z=1,06 Série B — e esse último inflado
+por 1 ano de amostra minúscula, n=8). **Não incorporar Favorito DC como
+critério de aposta.** Ver `docs/retrospectiva_favorito_dc_2026-08-25.md`.
+
 Versão inicial, consolidada a partir do que estava espalhado nas skills
 `copa-planilha-dia`/`serie-b-planilha-dia` (que citavam um
 `briefing_*.md`/`PROTOCOLO_BETS_LUCAS.md` vivendo só em pasta efêmera de
