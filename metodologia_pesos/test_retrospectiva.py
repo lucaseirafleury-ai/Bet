@@ -88,6 +88,36 @@ def test_prever_jogo_funciona_com_historico_e_estilo_suficientes(df_fabricado):
     assert resultado["n_jogos_validos"] > 0
 
 
+def test_prever_jogo_filtro_estilo_e_favoritismo_none_usa_filtro_aderencia(df_fabricado):
+    ultima_linha = df_fabricado.iloc[11]
+    via_filtro_aderencia = prever_jogo(
+        ultima_linha, df_fabricado, params=dict(filtro_aderencia=0.3),
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    via_filtros_separados = prever_jogo(
+        ultima_linha, df_fabricado, params=dict(filtro_aderencia=0.3, filtro_estilo=0.3, filtro_favoritismo=0.3),
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    assert via_filtro_aderencia is not None and via_filtros_separados is not None
+    assert via_filtro_aderencia["n_jogos_validos"] == via_filtros_separados["n_jogos_validos"]
+
+
+def test_prever_jogo_filtro_estilo_e_favoritismo_aplicam_independentemente(df_fabricado):
+    ultima_linha = df_fabricado.iloc[11]
+    # cada corte, sozinho, em 1.1 (impossível de satisfazer - aderência é 0-1) já
+    # zera os jogos válidos, mesmo com o outro corte totalmente permissivo (0.0)
+    so_estilo_impossivel = prever_jogo(
+        ultima_linha, df_fabricado, params=dict(filtro_estilo=1.1, filtro_favoritismo=0.0),
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    so_favoritismo_impossivel = prever_jogo(
+        ultima_linha, df_fabricado, params=dict(filtro_estilo=0.0, filtro_favoritismo=1.1),
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    assert so_estilo_impossivel is None
+    assert so_favoritismo_impossivel is None
+
+
 def test_prever_jogo_calcula_os_12_mercados_pro_contra(df_fabricado):
     ultima_linha = df_fabricado.iloc[11]
     resultado = prever_jogo(

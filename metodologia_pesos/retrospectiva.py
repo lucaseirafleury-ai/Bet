@@ -55,6 +55,10 @@ PARAMS_PADRAO = dict(
                         # (ver pesos.odd_e_prob_under_aproximada) — 0.0 preserva o comportamento antigo
                         # (comprovadamente otimista); usar ~0.07 (margem real medida nesta fonte de
                         # dado, docs/retrospectiva_under_margem_2026-08-25.md) corrige a maior parte do viés.
+    filtro_estilo=None,        # corte mínimo de aderencia_estilo, independente de aderencia_favoritismo.
+    filtro_favoritismo=None,   # corte mínimo de aderencia_favoritismo, independente de aderencia_estilo.
+                               # None em qualquer um dos dois usa filtro_aderencia (comportamento antigo,
+                               # retrocompatível) — só divergem quando explicitamente setados nos params.
 )
 
 _MANDO_OPOSTO = {"Casa": "Fora", "Fora": "Casa"}
@@ -223,9 +227,13 @@ def prever_jogo(row, df, params=None, min_jogos_historico=10, min_jogos_estilo=N
     if params["k_mando"] is not None:
         com_pesos = ajuste_mando(com_pesos, mando_alvo="Casa", k=params["k_mando"])
 
+    corte_estilo = params["filtro_estilo"] if params["filtro_estilo"] is not None else params["filtro_aderencia"]
+    corte_favoritismo = (
+        params["filtro_favoritismo"] if params["filtro_favoritismo"] is not None else params["filtro_aderencia"]
+    )
     validos = [
         j for j in com_pesos
-        if j["aderencia_estilo"] >= params["filtro_aderencia"] and j["aderencia_favoritismo"] >= params["filtro_aderencia"]
+        if j["aderencia_estilo"] >= corte_estilo and j["aderencia_favoritismo"] >= corte_favoritismo
     ]
     if not validos:
         return None
