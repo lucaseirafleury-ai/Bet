@@ -199,9 +199,17 @@ isso é a assinatura de viés sistemático da fórmula (a aproximação é
 propositalmente otimista, documentado antes do teste rodar), não uma
 descoberta de edge real. Nenhum mercado líquido como Over/Under gols
 deixaria essa ineficiência aberta em todas as linhas, nas duas ligas,
-por 4 anos seguidos. **Não usar nenhum critério de Under pra apostar
-dinheiro real** até conseguirmos uma fonte com odd REAL desse lado. Ver
-`docs/retrospectiva_under_aproximado_2026-08-25.md`.
+por 4 anos seguidos. Ver `docs/retrospectiva_under_aproximado_2026-08-25.md`.
+
+**Correção testada (margem de casa ~7-8%, em vez de 0%)**: refeito com
+`margem_under=0.07` (Série A) / `0.08` (Série B) — margem real medida
+nos mercados 1x2/BTTS desta fonte de dado. **O viés desapareceu** (só
+5/24 combinações positivas, contra 24/24 antes), mas **continua sem
+edge real** — os mercados com amostra confiável (Under 1.5/2.5) ficam
+consistentemente NEGATIVOS (z até −3,35) nas duas ligas. Duas
+conclusões independentes na mesma direção: **não usar nenhum critério
+de Under pra apostar dinheiro real**, até conseguirmos uma fonte com
+odd REAL desse lado. Ver `docs/retrospectiva_under_margem_2026-08-25.md`.
 
 ## Regras que nunca mudam
 

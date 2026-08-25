@@ -235,8 +235,18 @@ atualizada, esta lista aqui não é mantida em detalhe:
    (até z=+6,18) — assinatura clássica de viés sistemático da fórmula,
    não de vantagem real (nenhum mercado líquido deixaria essa
    "ineficiência" aberta em todas as linhas, nas duas ligas, por 4 anos).
-   **Não usar nenhum critério de Under pra apostar dinheiro real.** Ver
-   `docs/retrospectiva_under_aproximado_2026-08-25.md`.
+   Ver `docs/retrospectiva_under_aproximado_2026-08-25.md`.
+15. **Under com margem de casa assumida (~7-8%) — viés corrigido, mas
+   ainda sem edge** — estendemos `odd_e_prob_under_aproximada` com um
+   parâmetro `margem_total` (medimos a margem real desta fonte de dado
+   nos mercados 1x2/BTTS: ~7% Série A, ~8% Série B) em vez de assumir
+   margem zero. **O viés sistemático desaparece** (só 5/24 combinações
+   positivas, contra 24/24 antes), confirmando que a correção é
+   sensata — mas **continua sem edge real**: os mercados com amostra
+   confiável (Under 1.5/2.5) ficam consistentemente NEGATIVOS nas duas
+   ligas (z até −3,35). **Não usar nenhum critério de Under pra apostar
+   dinheiro real** — agora por duas razões independentes, não só viés
+   de fórmula. Ver `docs/retrospectiva_under_margem_2026-08-25.md`.
 
 ## O que ainda falta
 
@@ -248,10 +258,10 @@ atualizada, esta lista aqui não é mantida em detalhe:
 - Diversificação de mercado ainda não resolvida: cartões/escanteios não
   têm odd real na fonte de dado atual; buscar outra fonte de odds
   histórica seria o próximo passo, se existir de graça.
-- Under (1.5/2.5/3.5/4.5) segue sem odd real na fonte de dado atual — a
-  aproximação testada foi descartada por viés (item 14 acima); só dá
-  pra testar Under de verdade com uma fonte que traga a odd real desse
-  lado.
+- Under (1.5/2.5/3.5/4.5) segue sem odd real na fonte de dado atual —
+  testado com aproximação simples (viés, item 14) e com margem de casa
+  assumida (item 15, viés corrigido mas sem edge real); só dá pra testar
+  Under de verdade com uma fonte que traga a odd real desse lado.
 - Os proxies de Pressão Alta/Transição/Bola Parada em `estilo.py` não
   estão se mostrando úteis em nenhum mercado testado — candidatos a
   redesenho (dado mais rico) antes de reavaliar a contribuição do estilo.
