@@ -1,14 +1,16 @@
 # Protocolo de Apostas — Regras Persistentes
 
 **⚠️ Leitura obrigatória antes de qualquer outra coisa neste arquivo —
-seção "Acerto ≠ vantagem real (24/08/2026)" logo abaixo.** Ela muda o que
-"parâmetro validado" significa: os parâmetros de `k_mando`/`usar_estilo`/
-`filtro_aderencia` documentados neste arquivo foram otimizados por
-ACERTO (Over/Under, BTTS), e simular apostas contra odd real mostrou que
-isso não é a mesma coisa que vantagem competitiva — na Série B, inclusive,
-aponta na direção OPOSTA. Tratar os "parâmetros validados" abaixo como
-"validados pra acertar mais", não "validados pra ganhar dinheiro", até a
-recalibração por ROI ser feita (ver seção nova).
+seções "Acerto ≠ vantagem real (24/08/2026)" e "Recalibração por ROI não
+superou o neutro (25/08/2026)" logo abaixo.** Os parâmetros de
+`k_mando`/`usar_estilo`/`filtro_aderencia` da tabela abaixo foram
+otimizados por ACERTO (Over/Under, BTTS) — vantagem competitiva real
+(ROI contra odd de mercado) é outra métrica, e a recalibração feita por
+ROI (25/08/2026) **não encontrou nada melhor que os parâmetros neutros**
+(sem ajuste nenhum). **Pra decisão de aposta, usar os parâmetros neutros
+com `limiar_edge ≥ 8%` na Série A (único ponto com sinal
+estatisticamente defensável até agora); não apostar na Série B por este
+critério ainda** — ver a seção nova pro raciocínio completo.
 
 ## Acerto ≠ vantagem real (24/08/2026)
 
@@ -46,6 +48,36 @@ recalibrar `k_mando`/`usar_estilo`/`filtro_aderencia` otimizando ROI
 simulado (não mais `acerto_over25`) — a infraestrutura de grid/holdout já
 existe, só falta trocar a métrica.
 
+## Recalibração por ROI não superou o neutro (25/08/2026)
+
+Feita a recalibração sugerida acima — grid de 48 combinações
+(`k_mando × usar_estilo × filtro_aderencia`) treinado só em 2025,
+ordenado por ROI simulado (não acerto), top candidatos revalidados em
+holdout 2026. Ver `docs/retrospectiva_roi_calibracao_holdout_2026-08-25.md`
+para o relatório completo.
+
+**Resultado: nenhuma combinação encontrada bate o parâmetro neutro
+(sem ajuste) no critério que importa — z-score/significância
+estatística.** O mesmo padrão de overfitting que já tinha derrubado
+`k_mando`(Série A) e `estilo_por_mando` se repetiu pra ROI: na Série B, o
+"vencedor" de treino (ROI +22%) virou ROI −14% no holdout; na Série A, o
+grid achou candidatos com ROI de holdout positivo mas mais fracos
+(z≈1.0-1.5) que o que já estava documentado (z=2.24 Over 2.5, z=2.72
+BTTS, ambos em `limiar_edge=8%`). O motivo: ranquear por ROI de treino
+prefere limiares de edge baixos (mais apostas, ROI mais "estável" na
+amostra pequena) — mas o sinal genuíno mora no limiar mais alto e
+seletivo (8%), que fica sub-representado no treino.
+
+**Decisão**: manter os parâmetros neutros (`k_mando=None,
+usar_estilo=True, filtro_aderencia=0.65, estilo_por_mando=False`) —
+não os "vencedores por acerto" da tabela abaixo — como critério de
+APOSTA (não de acerto). Na prática:
+- **Série A**: exigir `limiar_edge ≥ 8%` em Over 2.5/BTTS antes de
+  apostar — único ponto com sinal estatisticamente defensável (z>2)
+  encontrado até agora.
+- **Série B**: não apostar por este critério ainda — nenhuma
+  configuração testada passou de z≈0.9.
+
 Versão inicial, consolidada a partir do que estava espalhado nas skills
 `copa-planilha-dia`/`serie-b-planilha-dia` (que citavam um
 `briefing_*.md`/`PROTOCOLO_BETS_LUCAS.md` vivendo só em pasta efêmera de
@@ -75,6 +107,10 @@ sessões — complete/corrija o que estiver incompleto ou desatualizado.**
 - Gestão de banca: máximo 47% da banca por jogo.
 
 ## Parâmetros do motor de pesos (ver `metodologia_pesos/pesos.py`)
+
+**Esta tabela é a validação por ACERTO — pra decisão de aposta (ROI),
+usar os parâmetros neutros com `limiar_edge` conforme a seção
+"Recalibração por ROI" acima, não necessariamente os valores aqui.**
 
 | Parâmetro | Série A | Série B | Origem |
 |---|---|---|---|
@@ -231,9 +267,13 @@ um cache sobrescrito a cada sessão, não mais editado à mão.
       `simular_apostas`, achado principal: acerto e vantagem real (ROI)
       não são a mesma coisa, Série B "vencedora" por acerto não tem edge
       nenhum contra o mercado. Ver "Acerto ≠ vantagem real" acima.
-- [ ] Recalibrar `k_mando`/`usar_estilo`/`filtro_aderencia` otimizando
-      ROI simulado em vez de acerto (`grid_search` + `simular_apostas`) —
-      maior prioridade agora, é o que a seção acima recomenda.
+- [x] Recalibrar `k_mando`/`usar_estilo`/`filtro_aderencia` otimizando
+      ROI simulado em vez de acerto (25/08/2026) — nenhuma combinação
+      encontrada bateu o parâmetro neutro (ver "Recalibração por ROI não
+      superou o neutro" acima e
+      `docs/retrospectiva_roi_calibracao_holdout_2026-08-25.md`).
+      Decisão: manter neutro + `limiar_edge≥8%` na Série A pra apostar;
+      não apostar na Série B por este critério ainda.
 - [ ] Conseguir odd do lado "Under 2.5" (hoje só "Over") pra poder simular
       apostar contra o modelo também, não só a favor.
 - [ ] Completar critérios de ROI por faixa de odd (só temos "Alta Certeza"
@@ -286,4 +326,8 @@ um cache sobrescrito a cada sessão, não mais editado à mão.
       2026?), repetir o treino/holdout de novo — principalmente pra
       Série A, que precisa de mais dado antes de qualquer ajuste fino
       valer a pena, e pra confirmar se o achado da Série B se mantém
-      numa 3ª temporada (1 holdout não é prova definitiva).
+      numa 3ª temporada (1 holdout não é prova definitiva). Lucas
+      confirmou (25/08/2026) que pode subir 2024 se pedirmos — vale a
+      pena principalmente pra Série B (nenhum candidato passou de z≈0.9
+      em ROI ainda, mais dado de treino pode ajudar a separar sinal de
+      ruído).

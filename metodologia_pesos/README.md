@@ -158,13 +158,22 @@ atualizada, esta lista aqui não é mantida em detalhe:
    que acerto e vantagem competitiva NÃO são a mesma coisa: a config
    "vencedora" da Série B por acerto não tem edge nenhum contra o
    mercado; a Série A (parâmetros neutros) mostra edge real e crescente.
-   **Achado mais importante da sessão até agora** — ver
-   `docs/retrospectiva_roi_2026-08-24.md`.
+   Ver `docs/retrospectiva_roi_2026-08-24.md`.
+6. **Recalibração por ROI (treino 2025/holdout 2026) não superou os
+   parâmetros neutros** — grid de 48 combinações otimizado por ROI
+   simulado (não acerto) repetiu o mesmo padrão de overfitting já visto
+   com `k_mando`/`estilo_por_mando`; nenhum candidato bateu o neutro no
+   critério que importa (z-score). Decisão: manter parâmetros neutros +
+   `limiar_edge≥8%` como critério de aposta na Série A (único ponto com
+   z>2 até agora); Série B ainda sem edge estatisticamente defensável em
+   nenhuma configuração testada. **Achado mais importante da sessão até
+   agora** — ver `docs/retrospectiva_roi_calibracao_holdout_2026-08-25.md`.
 
 ## O que ainda falta
 
-- **Recalibrar `k_mando`/`usar_estilo`/`filtro_aderencia` otimizando ROI
-  simulado, não acerto** — maior prioridade agora (ver item 5 acima).
+- Conseguir mais uma temporada de treino (2024) — principalmente pra
+  Série B, onde nenhuma configuração passou de z≈0.9 em ROI ainda; mais
+  dado pode ajudar a separar sinal de ruído.
 - Os proxies de Pressão Alta/Transição/Bola Parada em `estilo.py` não
   estão se mostrando úteis em nenhum mercado testado — candidatos a
   redesenho (dado mais rico) antes de reavaliar a contribuição do estilo.
