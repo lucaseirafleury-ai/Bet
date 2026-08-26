@@ -48,14 +48,6 @@ MODELOS_CALIBRADOS_POR_LIGA = {
         "liga": "Superettan", "metrica": None, "coef": 0.0,
         "interceptos": {15: 0.891998, 30: 0.739267, 45: 0.514021, 60: 0.204735, 75: -0.166763},
     },
-    405: {  # A Lyga — recalibrado em 481 jogos
-        "liga": "A Lyga", "metrica": None, "coef": 0.0,
-        "interceptos": {15: 0.814448, 30: 0.671779, 45: 0.435318, 60: 0.152639, 75: -0.229506},
-    },
-    408: {  # 1. Lyga — recalibrado em 644 jogos
-        "liga": "1. Lyga", "metrica": None, "coef": 0.0,
-        "interceptos": {15: 0.946364, 30: 0.78959, 45: 0.57068, 60: 0.298141, 75: -0.089563},
-    },
     447: {  # 1. Division (Noruega) — recalibrado em 629 jogos
         "liga": "1. Division", "metrica": None, "coef": 0.0,
         "interceptos": {15: 1.08137, 30: 0.927129, 45: 0.702717, 60: 0.402255, 75: -0.04591},

@@ -14,8 +14,6 @@ BASE_URL = "https://api.sportmonks.com/v3/football"
 LIGAS_MONITORADAS = {
     579: "Superettan",
     573: "Allsvenskan",
-    405: "A Lyga",
-    408: "1. Lyga",
     447: "1. Division",
 }
 
