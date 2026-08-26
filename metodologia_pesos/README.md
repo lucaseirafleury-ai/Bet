@@ -353,6 +353,16 @@ atualizada, esta lista aqui não é mantida em detalhe:
    acompanhar a tendência ao longo de várias semanas). Rotina agendada
    (toda segunda) pergunta se há export novo do FootyStats pra
    atualizar — não busca dado sozinha, depende do Lucas subir o CSV.
+25. **Início de temporada não explica a queda de ROI ao estender o
+   histórico** — separamos as apostas 2023-2026 por rodada (`Game
+   Week`, cortes de 5/10) pra testar se jogos de início de temporada
+   saem sistematicamente piores. Sem padrão consistente: o resultado
+   inverte de sinal dependendo do corte, nos dois mercados. A queda de
+   ROI observada (n=221→278 no Over 2.5) provavelmente é um efeito único
+   de bootstrap do dataset (só o início de 2023, quando faltava
+   histórico anterior), não um padrão recorrente a cada temporada. Não
+   muda nenhuma recomendação. Ver
+   `docs/retrospectiva_inicio_temporada_2026-08-26.md`.
 
 ## O que ainda falta
 

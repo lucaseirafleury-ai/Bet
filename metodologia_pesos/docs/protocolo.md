@@ -394,6 +394,22 @@ busca. Mantém a recomendação prática: usar os critérios calibrados em
 período recente". Ver
 `docs/retrospectiva_recalibracao_holdout_2026-08-26.md`.
 
+## Início de temporada não explica a queda de ROI (26/08/2026)
+
+Lucas perguntou se a queda de ROI do Over 2.5 (n=221→278 ao estender o
+histórico) é explicada por "jogos de início de temporada saem piores"
+— testamos separando as apostas 2023-2026 por número de rodada (`Game
+Week`), cortes de 5 e 10 rodadas. **Resultado: sem padrão consistente**
+— o resultado inverte de sinal dependendo do corte (às vezes início
+parece melhor que o resto, às vezes pior) nos dois mercados, e o ano a
+ano dentro do grupo "início" não mostra nenhuma consistência (n
+pequeno, 11-56 por bloco). Não é "início de temporada é
+sistematicamente pior" — a queda de ROI observada provavelmente reflete
+um efeito único de bootstrap do dataset (jogos de início de 2023
+especificamente, o único momento em que faltava histórico anterior a
+2016-2022), não um padrão recorrente. Não muda nenhuma recomendação —
+ver `docs/retrospectiva_inicio_temporada_2026-08-26.md`.
+
 ## Regras que nunca mudam
 
 1. **Não usar odds de memória** — sempre pesquisar odds reais (Betano e
