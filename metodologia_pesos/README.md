@@ -299,6 +299,13 @@ atualizada, esta lista aqui não é mantida em detalhe:
    +2,3%→2026 **−9,9%**); só os 2 anos mais recentes juntos já dão
    ROI≈−2,8%. O z agregado alto vinha só dos anos antigos. **Não usar.**
    Ver `docs/retrospectiva_1x2_dc_2026-08-25.md`.
+20. **1x2/DC com n_historico + filtros separados — confirma, não muda
+   nada** — mesmo eixo que melhorou o BTTS, aplicado aos mercados de
+   1x2/DC (rodado em paralelo, 4 processos, pra acelerar): o "casa" da
+   Série B mantém a mesma deterioração ano a ano em toda a vizinhança
+   testada — não é problema de calibração fina, é tendência temporal
+   que nenhum corte de amostra reverte. Série A continua sem sinal em
+   nenhum mercado. Ver `docs/retrospectiva_1x2_dc_novos_eixos_2026-08-25.md`.
 
 ## O que ainda falta
 

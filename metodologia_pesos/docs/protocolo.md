@@ -300,6 +300,13 @@ mudou. **Não usar `casa`/`mandante_dc` pra apostar** — apostar nisso
 hoje seria ir contra a tendência mais recente dos dados. Ver
 `docs/retrospectiva_1x2_dc_2026-08-25.md`.
 
+**Testado também com `n_historico`/filtros separados** (mesmo eixo que
+melhorou o BTTS): não muda nada — o "casa" da Série B mantém a mesma
+deterioração ano a ano em toda a vizinhança testada (não é problema de
+calibração, é tendência temporal, que nenhum corte de amostra reverte).
+Confirma a decisão acima. Ver
+`docs/retrospectiva_1x2_dc_novos_eixos_2026-08-25.md`.
+
 ## Regras que nunca mudam
 
 1. **Não usar odds de memória** — sempre pesquisar odds reais (Betano e
