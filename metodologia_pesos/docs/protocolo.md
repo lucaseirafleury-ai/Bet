@@ -11,6 +11,17 @@ multiplicador_dp=1.5, limite_unilateral=2, limiar_edge=5%`** — z=2,23
 no período completo 2023-2026 (n=221), sem ano negativo real. Substitui
 a recomendação anterior (neutro + `limiar_edge≥8%`).
 
+**⚠️ Atualização importante (26/08/2026) — os z-scores acima NÃO se
+sustentam fora de 2023-2026.** Com histórico estendido pra 2016-2026 (11
+anos), os dois critérios acima têm z≈0 no agregado completo — negativos
+em 2016-2019 e 2020-2022, só positivos no bloco 2023-2026 (onde foram
+calibrados). Isso não invalida o uso atual (2023-2026 continua sendo o
+período relevante pra apostar agora), mas rebaixa a confiança de "forte"
+pra "moderada, específica do período recente, com hipótese plausível de
+causa" — ver seção "Estabilidade por era" mais abaixo para a análise
+completa antes de tratar qualquer z-score deste documento como prova
+definitiva.
+
 **Segundo critério (25/08/2026) pra BTTS na Série A:
 `k_mando=0.7, usar_estilo=True, filtro_estilo=0.8,
 filtro_favoritismo=0.65, multiplicador_dp=1.5, limite_unilateral=2,
@@ -306,6 +317,48 @@ deterioração ano a ano em toda a vizinhança testada (não é problema de
 calibração, é tendência temporal, que nenhum corte de amostra reverte).
 Confirma a decisão acima. Ver
 `docs/retrospectiva_1x2_dc_novos_eixos_2026-08-25.md`.
+
+## Estabilidade por era (2016-2026) — os critérios campeões NÃO são duráveis em 10 anos (26/08/2026)
+
+Lucas conseguiu 7 temporadas adicionais da Série A (2016-2022),
+estendendo a cobertura de 4 pra 11 anos seguidos (2016-2026). Testamos
+os dois critérios campeões (Over 2.5 e BTTS, parâmetros já validados)
+divididos em 3 blocos de era, em vez de uma média só — pra evitar o
+mesmo problema já visto no "casa" da Série B (agregado escondendo
+decadência).
+
+**Resultado: os dois critérios têm z≈0 no agregado de 11 anos.** São
+claramente negativos em 2016-2019 e 2020-2022 (7 dos 11 anos) e só
+ficam positivos no bloco 2023-2026 — justamente o único período usado
+pra calibrar TODOS os parâmetros já validados nesta sessão.
+
+| Critério | Agregado 2016-2026 | 2016-2019 | 2020-2022 | 2023-2026 |
+|---|---|---|---|---|
+| Over 2.5 | z=+0,12 (n=578) | z=−1,18 | z=−0,47 | z=+1,37 (n=278) |
+| BTTS | z=+0,46 (n=540) | z=−1,11 | z=−1,27 | z=+2,62 (n=256) |
+
+Duas explicações não excludentes: (1) todo o grid search desta sessão
+foi calibrado exclusivamente em 2023-2026 — é esperado que uma
+configuração otimizada pra um período específico performe pior fora
+dele; (2) mudança real de regime de mercado — o Brasil regulamentou
+apostas esportivas (Lei 14.790/2023), com casas licenciadas operando a
+partir de 2024, o que coincide com a janela onde o edge aparece
+(hipótese concreta de ineficiência temporária de mercado novo, não
+garantida durar).
+
+**Isso NÃO significa abandonar os critérios atuais** — pro que
+interessa agora (apostar em 2026), 2023-2026 continua sendo o período
+relevante e nele os dois critérios continuam positivos. **Mas rebaixa a
+confiança estatística de "forte" pra "moderada, específica do período
+recente, com hipótese plausível de causa"** — os z=2,23/z=2,65
+documentados antes não se sustentam fora da janela onde foram
+calibrados.
+
+Próximo passo natural (ainda não feito): recalibrar o grid completo
+usando 2016-2022 como treino e 2023-2026 como holdout de verdade
+(inverso do que foi feito até agora), pra testar se ALGUM conjunto de
+parâmetros é durável através das eras. Ver
+`docs/retrospectiva_estabilidade_era_2026-08-26.md`.
 
 ## Regras que nunca mudam
 

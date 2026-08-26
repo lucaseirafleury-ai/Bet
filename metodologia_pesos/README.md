@@ -317,6 +317,19 @@ atualizada, esta lista aqui não é mantida em detalhe:
    a bit o cálculo/round-trip de parâmetros (bate exatamente com
    `simular_apostas`); a interação de clique dentro do Excel não pôde
    ser testada neste ambiente (sem Excel disponível).
+22. **Estabilidade por era (2016-2026) — critérios campeões NÃO são
+   duráveis em 10 anos** — Lucas conseguiu 7 temporadas adicionais da
+   Série A (2016-2022), estendendo a cobertura de 4 pra 11 anos. Os
+   critérios de Over 2.5 (z=2,23) e BTTS (z=2,65), calibrados só em
+   2023-2026, caem pra z≈0 (+0,12/+0,46) no agregado de 11 anos —
+   negativos em 2016-2019 e 2020-2022, só positivos em 2023-2026 (a
+   janela de calibração). Duas hipóteses não excludentes: overfitting
+   dos parâmetros ao período de treino, ou mudança real de regime de
+   mercado (regulamentação de apostas no Brasil, Lei 14.790/2023, casas
+   licenciadas desde 2024). Não invalida o uso atual (2023-2026 segue
+   positivo e é o período relevante pra apostar agora), mas rebaixa a
+   confiança de "forte" pra "moderada, específica do período recente".
+   Ver `docs/retrospectiva_estabilidade_era_2026-08-26.md`.
 
 ## O que ainda falta
 
@@ -341,3 +354,8 @@ atualizada, esta lista aqui não é mantida em detalhe:
 - Aplicar os parâmetros validados nas planilhas reais (skills de
   Copa/Série A/B) — ainda pendente de confirmação com o Lucas.
 - Re-rodar tudo quando as temporadas avançarem mais (amostra maior).
+- Recalibrar o grid completo usando 2016-2022 como treino e 2023-2026
+  como holdout de verdade (inverso do que foi feito até agora) — testar
+  se ALGUM conjunto de parâmetros é durável através das eras, em vez de
+  só aplicar o já escolhido (calibrado em 2023-2026) a dados que ele
+  nunca viu. Ver item 22 e `docs/retrospectiva_estabilidade_era_2026-08-26.md`.
