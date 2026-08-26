@@ -344,6 +344,15 @@ atualizada, esta lista aqui não é mantida em detalhe:
    usar os critérios calibrados em 2023-2026 pra apostar agora, com
    confiança moderada. Ver
    `docs/retrospectiva_recalibracao_holdout_2026-08-26.md`.
+24. **Rotina semanal de checagem de decaimento** — `checar_decaimento.py`
+   roda os dois critérios campeões (Over 2.5, BTTS) contra o dado
+   disponível, mede ROI/z no acumulado 2023-2026 e numa janela móvel dos
+   últimos 90 dias (a janela recente é o que pega decaimento cedo — o
+   acumulado se move devagar demais), e registra em
+   `docs/decaimento_semanal.md` (uma linha por checagem, pra dar pra
+   acompanhar a tendência ao longo de várias semanas). Rotina agendada
+   (toda segunda) pergunta se há export novo do FootyStats pra
+   atualizar — não busca dado sozinha, depende do Lucas subir o CSV.
 
 ## O que ainda falta
 
