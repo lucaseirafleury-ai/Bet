@@ -11,6 +11,17 @@ multiplicador_dp=1.5, limite_unilateral=2, limiar_edge=5%`** — z=2,23
 no período completo 2023-2026 (n=221), sem ano negativo real. Substitui
 a recomendação anterior (neutro + `limiar_edge≥8%`).
 
+**⚠️ n=221/z=2,23 é o número ORIGINAL (calculado quando só havia dado
+de 2023-2026 disponível) — desatualizado.** Com o histórico 2016-2022
+disponível, jogos do início de 2023 que antes eram pulados (sem
+histórico suficiente) agora entram na avaliação, e o ROI deles puxa a
+média pra baixo: recalculado com o histórico completo, o mesmo critério
+dá **n=278, ROI+8,7%, z=+1,37** (26/08/2026, ver
+`docs/retrospectiva_estabilidade_era_2026-08-26.md`, seção "Nota
+técnica sobre a diferença de `n`"). Esse n=278/z=1,37 é o número que
+`checar_decaimento.py` reporta a partir de agora — trate-o como o valor
+de referência atual, não o n=221 antigo.
+
 **⚠️ Atualização importante (26/08/2026) — os z-scores acima NÃO se
 sustentam fora de 2023-2026.** Com histórico estendido pra 2016-2026 (11
 anos), os dois critérios acima têm z≈0 no agregado completo — negativos
