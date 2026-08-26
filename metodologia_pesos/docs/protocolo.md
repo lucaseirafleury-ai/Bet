@@ -360,6 +360,29 @@ usando 2016-2022 como treino e 2023-2026 como holdout de verdade
 parâmetros é durável através das eras. Ver
 `docs/retrospectiva_estabilidade_era_2026-08-26.md`.
 
+## Recalibração 2016-2022 → holdout 2023-2026 — não existe parâmetro durável (26/08/2026)
+
+Fizemos o próximo passo acima: grid de 208 combinações (`k_mando` ×
+corte de outlier × `n_historico` × variantes de estilo/filtro) rodado
+inteiramente sobre 2016-2022 (treino), selecionando só por ROI de
+treino. **Resultado: nenhuma configuração tem edge defensável no
+treino.** Over 2.5 — a MELHOR das 416 combinações qualificadas tem ROI
+**negativo** (-2,7%, z=-0,36). BTTS — a melhor chega a z=+0,37, bem
+abaixo de qualquer limiar de significância usado no projeto (z≈2).
+
+Isso não é problema de calibração fina — é ausência de edge real em
+2016-2022 pra este modelo, em qualquer configuração testada (832
+avaliações no total). Se fosse overfitting puro ao acaso, seria
+esperado que alguma combinação aparecesse com z alto por comparação
+múltipla; nenhuma apareceu. Reforça a hipótese de mudança real de
+regime de mercado (regulamentação de apostas no Brasil, 2023/2024) em
+vez de simples ajuste fino errado. **Não existe um conjunto de
+parâmetros "santo graal" durável nas 3 eras** — não vale insistir nessa
+busca. Mantém a recomendação prática: usar os critérios calibrados em
+2023-2026 pra apostar agora, com confiança "moderada, específica do
+período recente". Ver
+`docs/retrospectiva_recalibracao_holdout_2026-08-26.md`.
+
 ## Regras que nunca mudam
 
 1. **Não usar odds de memória** — sempre pesquisar odds reais (Betano e

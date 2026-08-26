@@ -330,6 +330,20 @@ atualizada, esta lista aqui não é mantida em detalhe:
    positivo e é o período relevante pra apostar agora), mas rebaixa a
    confiança de "forte" pra "moderada, específica do período recente".
    Ver `docs/retrospectiva_estabilidade_era_2026-08-26.md`.
+23. **Recalibração 2016-2022 → holdout 2023-2026 — não existe parâmetro
+   durável** — grid de 208 combinações (`k_mando`, corte de outlier,
+   `n_historico`, filtros de estilo/favoritismo) rodado inteiramente em
+   2016-2022, selecionando só por ROI de treino. Nenhuma configuração
+   tem edge defensável: a melhor de Over 2.5 tem ROI **negativo**
+   (-2,7%, z=-0,36); a melhor de BTTS chega a z=+0,37 (ruído, não
+   sinal). Não é problema de calibração fina — em 832 avaliações,
+   nenhuma combinação mostrou edge por acaso, o que pesa contra
+   "overfitting simples" e a favor de mudança real de regime de mercado
+   (regulamentação de apostas no Brasil). Confirma: não existe um
+   conjunto de parâmetros durável nas 3 eras — mantém a recomendação de
+   usar os critérios calibrados em 2023-2026 pra apostar agora, com
+   confiança moderada. Ver
+   `docs/retrospectiva_recalibracao_holdout_2026-08-26.md`.
 
 ## O que ainda falta
 
@@ -354,8 +368,7 @@ atualizada, esta lista aqui não é mantida em detalhe:
 - Aplicar os parâmetros validados nas planilhas reais (skills de
   Copa/Série A/B) — ainda pendente de confirmação com o Lucas.
 - Re-rodar tudo quando as temporadas avançarem mais (amostra maior).
-- Recalibrar o grid completo usando 2016-2022 como treino e 2023-2026
-  como holdout de verdade (inverso do que foi feito até agora) — testar
-  se ALGUM conjunto de parâmetros é durável através das eras, em vez de
-  só aplicar o já escolhido (calibrado em 2023-2026) a dados que ele
-  nunca viu. Ver item 22 e `docs/retrospectiva_estabilidade_era_2026-08-26.md`.
+- Acompanhar se o ROI dos critérios calibrados em 2023-2026 decai
+  conforme mais dado de 2026/2027 entra — confirmaria a hipótese de
+  janela de ineficiência temporária (item 23) em vez de propriedade
+  permanente do futebol brasileiro.
