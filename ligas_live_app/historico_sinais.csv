@@ -1,2 +1,3 @@
 fixture_id,tipo,liga,jogo,data_jogo,alvo,direcao,linha,minuto,probabilidade_estimada,odd_minima,resultado,valor_final_alvo,timestamp_sinal,timestamp_verificacao
 19636134,sinal_escanteios_mais_de,Superettan,Värnamo x Landskrona,2026-08-24,escanteios,mais_de,10.5,47,86.0,1.16,red,9.0,2026-08-24T18:02:35.655996+00:00,2026-08-25T08:03:57.937751+00:00
+19636133,sinal_chutes_totais_menos_de,Superettan,Öster x GIF Sundsvall,2026-08-25,chutes_totais,menos_de,24.5,15,80.2,1.25,green,21.0,2026-08-25T17:14:55.174905+00:00,2026-08-26T08:19:35.376040+00:00
