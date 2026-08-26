@@ -1,28 +1,34 @@
 """Planilha de testes visuais — Série A, todos os jogos (2023-2026).
 
 Gera/recalcula um .xlsx com 3 abas:
-  - Parâmetros: células editáveis com os parâmetros do MODELO (k_mando,
-    usar_estilo, filtro_aderencia, multiplicador_dp, limite_unilateral) e
-    o limiar_edge (esse último recalcula na hora, sem rodar nada — é só
-    comparação de números já calculados).
+  - Parâmetros: células editáveis com TODOS os parâmetros do MODELO
+    (k_mando, usar_estilo, filtro_aderencia, filtro_estilo,
+    filtro_favoritismo, multiplicador_dp, limite_unilateral,
+    n_historico) e o limiar_edge (esse último recalcula na hora, sem
+    rodar nada — é só comparação de números já calculados).
   - Jogos: todos os jogos da Série A com histórico suficiente, odds reais,
     probabilidade do MODELO e do MERCADO por mercado (Over 1.5/2.5/3.5/4.5,
     BTTS), edge, "Aposta?" e lucro — as 3 últimas são FÓRMULA VIVA do
     Excel (recalculam na hora ao mudar limiar_edge).
   - Resumo: n_apostas/taxa de acerto/lucro/ROI por mercado, também fórmula
-    viva, lendo direto da aba Jogos.
+    viva, lendo direto da aba Jogos (faixa de linhas fixa e generosa —
+    `LINHA_MAX_JOGOS` — pra continuar funcionando mesmo se `n_historico`/
+    filtros mudarem quantos jogos entram).
 
 IMPORTANTE — dois tipos de parâmetro, dois fluxos diferentes:
   1. limiar_edge: muda o resultado ao vivo, o Excel recalcula sozinho.
-  2. k_mando/usar_estilo/filtro_aderencia/multiplicador_dp/limite_unilateral:
-     mudam a PREVISÃO do modelo em si (o histórico ponderado de cada
-     time) — não dá pra recalcular só com fórmula sem reimplementar todo
-     o motor de pesos no Excel (o que reintroduziria o mesmo tipo de bug
-     que motivou construir esse motor em Python). Pra esses, rode este
-     script de novo depois de editar a aba Parâmetros — ele lê os valores
-     atuais da planilha e reprocessa.
+  2. Todos os outros (k_mando, usar_estilo, filtro_aderencia,
+     filtro_estilo, filtro_favoritismo, multiplicador_dp,
+     limite_unilateral, n_historico): mudam a PREVISÃO do modelo em si
+     (o histórico ponderado de cada time) — não dá pra recalcular só
+     com fórmula sem reimplementar todo o motor de pesos no Excel (o
+     que reintroduziria o mesmo tipo de bug que motivou construir esse
+     motor em Python). Pra esses, é preciso rodar `computar_jogos`
+     de novo — manualmente (`python3 gerar_planilha_testes.py`) ou pelo
+     botão "Run main" do Excel (ver `xlwings_recalcular.py` e
+     `docs/planilha_botao_recalcular.md` pro setup do botão).
 
-Uso:
+Uso (linha de comando):
     python3 gerar_planilha_testes.py [caminho.xlsx]
 
 Se o arquivo já existir, lê os parâmetros da aba Parâmetros antes de
@@ -42,9 +48,22 @@ from retrospectiva import rodar_retrospectiva
 
 CAMINHO_PADRAO = "SerieA_testes_visuais.xlsx"
 
+# faixa fixa de linhas que as fórmulas da aba Resumo sempre olham na aba
+# Jogos — generosa o bastante pra cobrir qualquer combinação de parâmetros
+# (o total de jogos da Série A 2023-2026 é 1374; linhas sobrando ficam
+# em branco e não afetam COUNTIF/SUMIF).
+LINHA_MAX_JOGOS = 1400
+
 PARAMS_PADRAO = dict(
     k_mando=0.5, usar_estilo=False, filtro_aderencia=0.8,
-    multiplicador_dp=1.5, limite_unilateral=2, limiar_edge=0.05,
+    filtro_estilo=None, filtro_favoritismo=None,  # None = usa filtro_aderencia pros dois (padrão antigo)
+    multiplicador_dp=1.5, limite_unilateral=2, n_historico=15,
+    limiar_edge=0.05,
+)
+
+_CHAVES_PARAMS = (
+    "k_mando", "usar_estilo", "filtro_aderencia", "filtro_estilo", "filtro_favoritismo",
+    "multiplicador_dp", "limite_unilateral", "n_historico", "limiar_edge",
 )
 
 MERCADOS = [
@@ -73,6 +92,20 @@ def carregar_jogos_seriea():
     return pd.concat(dfs + [df26], ignore_index=True, sort=False)
 
 
+def _valor_param(chave, valor):
+    """Converte o valor bruto de uma célula da aba Parâmetros pro tipo certo
+    de cada chave — usado tanto lendo de um arquivo salvo (openpyxl) quanto
+    lendo do livro aberto no Excel (xlwings, mesma convenção de células)."""
+    vazio = valor in (None, "", "None")
+    if chave in ("k_mando", "filtro_estilo", "filtro_favoritismo"):
+        return None if vazio else float(valor)
+    if chave == "usar_estilo":
+        return str(valor).strip().upper() in ("TRUE", "VERDADEIRO", "1")
+    if chave == "n_historico":
+        return PARAMS_PADRAO["n_historico"] if vazio else int(float(valor))
+    return PARAMS_PADRAO[chave] if vazio else float(valor)
+
+
 def ler_parametros_existentes(caminho):
     """Lê os parâmetros já salvos na aba Parâmetros de um arquivo existente."""
     wb = load_workbook(caminho, data_only=True)
@@ -82,17 +115,11 @@ def ler_parametros_existentes(caminho):
     valores = {}
     for row in ws.iter_rows(min_row=3, max_col=3, values_only=False):
         nome_cel, valor_cel = row[0], row[2]
-        if nome_cel.value in ("k_mando", "usar_estilo", "filtro_aderencia",
-                              "multiplicador_dp", "limite_unilateral", "limiar_edge"):
+        if nome_cel.value in _CHAVES_PARAMS:
             valores[nome_cel.value] = valor_cel.value
     params = dict(PARAMS_PADRAO)
     for chave, valor in valores.items():
-        if chave == "k_mando":
-            params[chave] = None if valor in (None, "", "None") else float(valor)
-        elif chave == "usar_estilo":
-            params[chave] = str(valor).strip().upper() in ("TRUE", "VERDADEIRO", "1")
-        elif valor is not None:
-            params[chave] = float(valor)
+        params[chave] = _valor_param(chave, valor)
     return params
 
 
@@ -108,15 +135,25 @@ def montar_aba_parametros(wb, params):
 
     linhas = [
         ("k_mando", params["k_mando"] if params["k_mando"] is not None else "",
-         "Encolhimento de mando (0-1). Vazio = sem ajuste (None). MUDA A PREVISÃO — rode o script de novo."),
+         "Encolhimento de mando (0-1). Vazio = sem ajuste (None). MUDA A PREVISÃO — precisa recalcular."),
         ("usar_estilo", "TRUE" if params["usar_estilo"] else "FALSE",
-         "TRUE/FALSE — usa aderência de estilo no peso. MUDA A PREVISÃO — rode o script de novo."),
+         "TRUE/FALSE — usa aderência de estilo no peso. MUDA A PREVISÃO — precisa recalcular."),
         ("filtro_aderencia", params["filtro_aderencia"],
-         "Mínimo de aderência (estilo/favoritismo) pro jogo histórico entrar (0-1). MUDA A PREVISÃO — rode o script de novo."),
+         "Mínimo de aderência (estilo/favoritismo) pro jogo histórico entrar (0-1) — usado quando filtro_estilo/"
+         "filtro_favoritismo abaixo estão vazios. MUDA A PREVISÃO — precisa recalcular."),
+        ("filtro_estilo", params["filtro_estilo"] if params["filtro_estilo"] is not None else "",
+         "Corte de aderência SÓ de estilo, independente do de favoritismo. Vazio = usa filtro_aderencia. "
+         "MUDA A PREVISÃO — precisa recalcular."),
+        ("filtro_favoritismo", params["filtro_favoritismo"] if params["filtro_favoritismo"] is not None else "",
+         "Corte de aderência SÓ de favoritismo, independente do de estilo. Vazio = usa filtro_aderencia. "
+         "MUDA A PREVISÃO — precisa recalcular."),
         ("multiplicador_dp", params["multiplicador_dp"],
-         "Corte de outlier: multiplicador do desvio-padrão. MUDA A PREVISÃO — rode o script de novo."),
+         "Corte de outlier: multiplicador do desvio-padrão. MUDA A PREVISÃO — precisa recalcular."),
         ("limite_unilateral", params["limite_unilateral"],
-         "Corte de outlier: limite pra decidir unilateral/bilateral. MUDA A PREVISÃO — rode o script de novo."),
+         "Corte de outlier: limite pra decidir unilateral/bilateral. MUDA A PREVISÃO — precisa recalcular."),
+        ("n_historico", params["n_historico"],
+         "Quantos jogos passados de cada time entram no cálculo (janela de histórico). MUDA A PREVISÃO — "
+         "precisa recalcular."),
         ("limiar_edge", params["limiar_edge"],
          "Só conta como aposta se (prob. modelo − prob. mercado) ≥ isso. RECALCULA NA HORA, é só editar."),
     ]
@@ -127,17 +164,19 @@ def montar_aba_parametros(wb, params):
         cel_valor.fill = FUNDO_PARAM
         ws.cell(r, 4, explicacao).alignment = Alignment(wrap_text=True)
 
-    ws["A10"] = "Como usar"
-    ws["A10"].font = Font(bold=True, size=12)
-    ws["A11"] = (
-        "limiar_edge (linha 8): edite e veja a aba Resumo recalcular na hora — é só comparação, o Excel já faz sozinho.\n\n"
-        "k_mando/usar_estilo/filtro_aderencia/multiplicador_dp/limite_unilateral (linhas 3-7): mudam o histórico "
-        "ponderado de cada time — não dá pra recalcular só com fórmula. Depois de editar, rode:\n"
+    linha_edge = 3 + len(linhas) - 1  # última linha da lista = limiar_edge
+    linha_ajuda = linha_edge + 2
+    ws.cell(linha_ajuda, 1, "Como usar").font = Font(bold=True, size=12)
+    ws.cell(linha_ajuda + 1, 1, (
+        f"limiar_edge (linha {linha_edge}): edite e veja a aba Resumo recalcular na hora — é só comparação, "
+        "o Excel já faz sozinho.\n\n"
+        f"Todos os outros parâmetros (linhas 3-{linha_edge - 1}): mudam o histórico ponderado de cada time — "
+        "não dá pra recalcular só com fórmula. Depois de editar, clique no botão \"Run main\" da aba xlwings "
+        "(ver docs/planilha_botao_recalcular.md) ou rode:\n"
         "    python3 gerar_planilha_testes.py " + CAMINHO_PADRAO + "\n"
-        "O script lê os valores que você deixou aqui e reprocessa a aba Jogos com o novo modelo."
-    )
-    ws["A11"].alignment = Alignment(wrap_text=True)
-    ws.merge_cells("A11:D16")
+        "O script/botão lê os valores que você deixou aqui e reprocessa a aba Jogos com o novo modelo."
+    )).alignment = Alignment(wrap_text=True)
+    ws.merge_cells(start_row=linha_ajuda + 1, start_column=1, end_row=linha_ajuda + 6, end_column=4)
     return ws
 
 
@@ -182,7 +221,7 @@ def montar_aba_jogos(wb, jogos):
             ws.cell(r, base + 2, prob_mercado if prob_mercado is not None else "")
             ws.cell(r, base + 3, f"={col_pm}{r}-{col_pmk}{r}" if prob_modelo is not None and prob_mercado is not None else "")
             ws.cell(r, base + 4,
-                    f'=IF({col_edge}{r}="","",IF({col_edge}{r}>=Parâmetros!$C$8,"SIM",""))'
+                    f'=IF({col_edge}{r}="","",IF({col_edge}{r}>=Parâmetros!$C$11,"SIM",""))'
                     if prob_modelo is not None and prob_mercado is not None else "")
             ws.cell(r, base + 5, ("SIM" if real else "NÃO") if real is not None else "")
             col_real = get_column_letter(base + 5)
@@ -199,7 +238,7 @@ def montar_aba_jogos(wb, jogos):
     return ws, inicio_mercado, len(jogos)
 
 
-def montar_aba_resumo(wb, inicio_mercado, n_jogos):
+def montar_aba_resumo(wb, inicio_mercado):
     ws = wb.create_sheet("Resumo")
     ws.column_dimensions["A"].width = 14
     ws.column_dimensions["B"].width = 12
@@ -217,7 +256,7 @@ def montar_aba_resumo(wb, inicio_mercado, n_jogos):
         c.font = FONTE_CABECALHO
         c.fill = FUNDO_CABECALHO
 
-    ultima_linha_jogos = n_jogos + 1
+    ultima_linha_jogos = LINHA_MAX_JOGOS  # faixa fixa e generosa, ver LINHA_MAX_JOGOS
     for i, (chave, titulo, *_resto) in enumerate(MERCADOS):
         r = 4 + i
         base = inicio_mercado[chave]
@@ -238,6 +277,38 @@ def montar_aba_resumo(wb, inicio_mercado, n_jogos):
     return ws
 
 
+def computar_jogos(params, df=None):
+    """Roda o motor de pesos (walk-forward) com os `params` dados e retorna a
+    lista de jogos avaliados, pronta pra popular a aba Jogos — usado tanto
+    pelo gerador de linha de comando quanto pelo botão do Excel (xlwings).
+
+    `df`: opcional, dataset já carregado (evita reler os CSVs a cada
+    recálculo quando chamado repetidamente, ex. pelo servidor do xlwings).
+    """
+    if df is None:
+        df = carregar_jogos_seriea()
+    params_modelo = {k: v for k, v in params.items() if k not in ("limiar_edge", "n_historico")}
+    rel = rodar_retrospectiva(
+        df, params=params_modelo, min_jogos_historico=8, min_jogos_estilo=5,
+        n_historico=params["n_historico"],
+    )
+    print(f"{rel['n']} jogos avaliados, {rel['n_pulados']} pulados (histórico insuficiente)")
+    return rel["jogos"]
+
+
+def gerar_workbook(caminho, params, jogos):
+    """Monta as 3 abas (Parâmetros/Jogos/Resumo) num Workbook novo e salva
+    em `caminho` — usado tanto pelo gerador de linha de comando quanto pelo
+    botão do Excel (`SerieA_testes_visuais.py`, xlwings)."""
+    wb = Workbook()
+    wb.remove(wb.active)
+    montar_aba_parametros(wb, params)
+    _, inicio_mercado, _ = montar_aba_jogos(wb, jogos)
+    montar_aba_resumo(wb, inicio_mercado)
+    wb.save(caminho)
+    print(f"Salvo em {caminho}")
+
+
 def gerar(caminho):
     if os.path.exists(caminho):
         params = ler_parametros_existentes(caminho)
@@ -246,18 +317,8 @@ def gerar(caminho):
         params = dict(PARAMS_PADRAO)
         print(f"Arquivo novo, usando parâmetros padrão: {params}")
 
-    df = carregar_jogos_seriea()
-    params_modelo = {k: v for k, v in params.items() if k != "limiar_edge"}
-    rel = rodar_retrospectiva(df, params=params_modelo, min_jogos_historico=8, min_jogos_estilo=5, n_historico=15)
-    print(f"{rel['n']} jogos avaliados, {rel['n_pulados']} pulados (histórico insuficiente)")
-
-    wb = Workbook()
-    wb.remove(wb.active)
-    montar_aba_parametros(wb, params)
-    _, inicio_mercado, n_jogos = montar_aba_jogos(wb, rel["jogos"])
-    montar_aba_resumo(wb, inicio_mercado, n_jogos)
-    wb.save(caminho)
-    print(f"Salvo em {caminho}")
+    jogos = computar_jogos(params)
+    gerar_workbook(caminho, params, jogos)
 
 
 if __name__ == "__main__":

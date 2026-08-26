@@ -306,6 +306,17 @@ atualizada, esta lista aqui não é mantida em detalhe:
    testada — não é problema de calibração fina, é tendência temporal
    que nenhum corte de amostra reverte. Série A continua sem sinal em
    nenhum mercado. Ver `docs/retrospectiva_1x2_dc_novos_eixos_2026-08-25.md`.
+21. **Planilha de testes visuais ganha botão "Recalcular" no Excel** —
+   `gerar_planilha_testes.py` refatorado (`computar_jogos`/`gerar_workbook`
+   reutilizáveis) e todos os parâmetros já validados na sessão
+   (`filtro_estilo`, `filtro_favoritismo`, `n_historico`, além dos já
+   existentes) agora editáveis na aba Parâmetros. Novo
+   `SerieA_testes_visuais.py` (script pareado do xlwings) permite clicar
+   "Run main" no Excel e recalcular a aba Jogos inteira sem terminal —
+   setup de uma vez em `docs/planilha_botao_recalcular.md`. Validado bit
+   a bit o cálculo/round-trip de parâmetros (bate exatamente com
+   `simular_apostas`); a interação de clique dentro do Excel não pôde
+   ser testada neste ambiente (sem Excel disponível).
 
 ## O que ainda falta
 
