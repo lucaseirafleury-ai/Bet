@@ -284,6 +284,22 @@ conclusões independentes na mesma direção: **não usar nenhum critério
 de Under pra apostar dinheiro real**, até conseguirmos uma fonte com
 odd REAL desse lado. Ver `docs/retrospectiva_under_margem_2026-08-25.md`.
 
+## 1x2 e Dupla Chance de mandante/visitante — testado, NÃO USAR (25/08/2026)
+
+Testamos casa/empate/fora (1x2, odd REAL, margem removida via
+`probabilidades_implicitas_nvias`) e Dupla Chance de lado FIXO
+(`mandante_dc`/`visitante_dc`, diferente de Favorito DC) — motivado por
+termos as 3 odds reais desse mercado. **Série A: nenhum sinal em
+nenhum dos 5 mercados** (melhor z=+0,27, ruído). **Série B: "casa"
+parecia forte** (z=+2,71, n=354, ROI+17,5%, robusto a vizinhança de
+parâmetros) **mas é um sinal morto**: ano a ano mostra deterioração
+progressiva (2023 +35,8%, 2024 +38,6%, 2025 +2,3%, 2026 **−9,9%**) —
+somando só os 2 anos mais recentes (2025+2026), ROI≈−2,8%. O z agregado
+alto vinha só de 2023-2024; o mercado já foi arbitrado ou o regime
+mudou. **Não usar `casa`/`mandante_dc` pra apostar** — apostar nisso
+hoje seria ir contra a tendência mais recente dos dados. Ver
+`docs/retrospectiva_1x2_dc_2026-08-25.md`.
+
 ## Regras que nunca mudam
 
 1. **Não usar odds de memória** — sempre pesquisar odds reais (Betano e

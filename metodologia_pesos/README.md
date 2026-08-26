@@ -288,6 +288,17 @@ atualizada, esta lista aqui não é mantida em detalhe:
    coincidem continuam positivos sozinhos em cada mercado (BTTS
    +9,9%, Over2.5 +11,0%) — não é motivo pra parar de apostar fora da
    interseção. Ver `docs/retrospectiva_dupla_confirmacao_2026-08-25.md`.
+19. **1x2 e Dupla Chance de mandante/visitante — testado, NÃO USAR** —
+   implementados `pesos.probabilidades_implicitas_nvias` (de-vig de N
+   vias) e `retrospectiva._probabilidades_1x2_e_dc` (casa/empate/fora
+   com odd REAL de mercado, mais Dupla Chance de lado fixo). Grid
+   completo (96 combos × 2 ligas): Série A sem sinal em nenhum mercado
+   (melhor z=+0,27). Série B: "casa" parecia forte (z=+2,71, n=354,
+   robusto a vizinhança de parâmetros), **mas é um sinal morto** — ano a
+   ano mostra deterioração progressiva (2023 +35,8%→2024 +38,6%→2025
+   +2,3%→2026 **−9,9%**); só os 2 anos mais recentes juntos já dão
+   ROI≈−2,8%. O z agregado alto vinha só dos anos antigos. **Não usar.**
+   Ver `docs/retrospectiva_1x2_dc_2026-08-25.md`.
 
 ## O que ainda falta
 
