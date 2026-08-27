@@ -302,7 +302,7 @@ body {
 .tab-btn:hover { color: var(--text); }
 .tab-btn.active { color: var(--accent-green); border-bottom-color: var(--accent-green); }
 .tab-panel.layout { padding-top: 20px; }
-#tab-historico { max-width: 1180px; margin: 0 auto; padding: 20px 24px 48px; }
+.tab-panel.single-col { max-width: 1180px; margin: 0 auto; padding: 20px 24px 48px; }
 
 /* ── Aba Histórico & ROI ── */
 .hist-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
