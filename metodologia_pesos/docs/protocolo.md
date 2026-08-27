@@ -1,22 +1,31 @@
 # Protocolo de Apostas — Regras Persistentes
 
-**🔄 Migração em andamento (27/08/2026) — saindo do FootyStats (upload
-manual de CSV), indo 100% Sportmonks (API automatizada).** Lucas decidiu
-cancelar o FootyStats e montar um painel automatizado (rotina diária,
-sem planilha manual). Tudo abaixo desta nota que fala em "critério
-campeão"/`k_mando`/etc. foi calibrado em cima do FootyStats — os
-parâmetros NÃO transferem automaticamente pro Sportmonks (odds mais
-"afiadas", sem xG real, formato de dado diferente). **Estado atual da
-transição, revalidando cada critério 100% em cima do Sportmonks**:
-- ✅ **BTTS (Série A)** — confirma, z=+2,33 (praticamente igual ao
-  original). Vai pro painel com stake normal.
-- ❌ **Over 2.5 (Série A)** — não se sustenta (z caiu de +2,23 pra
-  +0,49); recalibração dedicada também não achou candidato defensável
-  (o que parecia promissor era artefato de amostra pequena da
-  temporada 2026 incompleta). NÃO entra no painel por enquanto.
-- ✅ **Cartões+Árbitro (Série B)** — já era nativamente Sportmonks, sem
-  mudança. Continua stake reduzido.
+**🔄 Migração concluída (27/08/2026) — saiu do FootyStats (upload manual
+de CSV), foi pra 100% Sportmonks com painel automatizado.** Lucas
+cancelou o FootyStats. Tudo abaixo desta nota que fala em "critério
+campeão"/`k_mando`/etc. foi calibrado em cima do FootyStats — histórico
+de como se chegou aos parâmetros atuais, não mais a fonte de dado em
+produção. **3 critérios rodando no painel diário**:
+- ✅ **BTTS (Série A)** — stake normal. z=+2,33 100% Sportmonks
+  (praticamente igual ao original em FootyStats).
+- ⚠️ **Over 2.5 recalibrado (Série A)** — stake reduzido. Parâmetros
+  antigos não se sustentam no Sportmonks (z caiu de +2,23 pra +0,49);
+  recalibração dedicada (`k=0.35, sem estilo, filtro=0.65, mult_dp=1.5,
+  uni=4, edge=8%`) validada com treino honesto em 2024+2025 (z=+1,15,
+  escolhido sem olhar 2026) + holdout real em 2026 (z=+2,83, n=23) —
+  mesmo padrão "positivo todo ano, ainda não z≈2" do Cartões+Árbitro.
+- ⚠️ **Cartões+Árbitro (Série B)** — stake reduzido, sem mudança
+  (já era nativamente Sportmonks).
 - Série B Over 2.5/BTTS seguem sem edge, confirmado de novo.
+
+**Painel automatizado**: `metodologia_pesos/previsao_dia.py` (previsão
+ao vivo, reaproveitando `retrospectiva.prever_jogo` via linha sintética
+— ver `sportmonks_adapter.py`) + `gerar_painel_dia.py` (monta o HTML)
++ rotina diária (Claude Code Routine, 08h BRT, sem notificação
+proativa) que republica o Artifact. Depende de `SPORTMONKS_TOKEN`
+configurado como variável de ambiente persistente no ambiente do
+Claude Code (não em arquivo/sessão — precisa sobreviver entre
+disparos da rotina).
 
 Ver `docs/retrospectiva_validacao_100_sportmonks_2026-08-27.md` e
 `docs/retrospectiva_over25_sportmonks_2026-08-27.md`. O conteúdo
@@ -117,6 +126,47 @@ mais jogos de 2026 entram — se subir e se sustentar acima de z≈2 de
 forma consistente (não só um ano isolado), promover pra stake normal;
 se decair, reduzir mais ou descartar (mesmo tratamento que qualquer
 outro critério deste documento).
+
+## Quarto critério (stake reduzido) — Over 2.5 recalibrado, Série A (27/08/2026)
+
+Os parâmetros antigos de Over 2.5 (calibrados em cima do FootyStats)
+não se sustentam 100% em cima do Sportmonks (z caiu de +2,23 pra
++0,49) — ver `docs/retrospectiva_over25_sportmonks_2026-08-27.md`.
+Recalibração dedicada achou um candidato novo, validado com a mesma
+disciplina de treino/holdout usada no resto do projeto: **`k_mando=0.35,
+usar_estilo=False, filtro_aderencia=0.65, multiplicador_dp=1.5,
+limite_unilateral=4, limiar_edge=8%`**.
+
+**Por que stake reduzido, não normal**: o parâmetro foi escolhido
+olhando só 2024+2025 (honesto, sem espiar 2026) — nesse treino, o z
+combinado é só +1,15, fraco sozinho. O que sustenta a decisão é o
+holdout de 2026 (nunca usado na escolha): z=+2,83, mas com `n=23` —
+amostra pequena, mesmo padrão de cautela do Cartões+Árbitro. Positivo
+nos 3 anos disponíveis (2024/2025/2026), sem nenhum ano negativo —
+critério real, ainda não comprovado ao nível dos dois primeiros.
+
+**Acompanhamento**: mesmo tratamento do Cartões+Árbitro — reavaliar
+conforme 2026 completa e 2027 começa a entrar na amostra.
+
+## Painel automatizado (27/08/2026)
+
+Substituiu a planilha manual. Roda 100% em cima do Sportmonks:
+- `sportmonks_client.py` — pull de fixtures finalizados (histórico) e
+  futuros (odds pré-jogo) das duas ligas.
+- `sportmonks_adapter.py` — traduz fixture do Sportmonks pro formato
+  que o motor já entende; fixtures futuros viram uma linha SINTÉTICA
+  (placar placeholder nunca lido de verdade) — é assim que
+  `retrospectiva.prever_jogo` (feito pra backtesting) prevê jogos que
+  ainda não aconteceram, sem duplicar lógica em lugar nenhum.
+- `previsao_dia.py` — gera as sugestões dos 3 critérios ativos (BTTS,
+  Over 2.5 recalibrado, Cartões+Árbitro) pros próximos dias.
+- `gerar_painel_dia.py` — monta o HTML publicado como Artifact.
+- **Rotina diária** (Claude Code Routine, 08h BRT, sem notificação
+  proativa — só o painel) republica o Artifact automaticamente todo
+  dia. Depende de `SPORTMONKS_TOKEN` configurado como variável de
+  ambiente PERSISTENTE no ambiente do Claude Code (precisa sobreviver
+  entre disparos da rotina — diferente do token usado durante o
+  desenvolvimento, que só existia na sessão).
 
 ## Acerto ≠ vantagem real (24/08/2026)
 

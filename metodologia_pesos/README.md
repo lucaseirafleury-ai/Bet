@@ -433,22 +433,56 @@ atualizada, esta lista aqui não é mantida em detalhe:
    ausente já existente). Rodando os 2 critérios campeões 100% em cima
    do Sportmonks: **BTTS (Série A) confirma** (z=+2,33, quase igual ao
    original) — vai pro painel com stake normal. **Over 2.5 (Série A)
-   não se sustenta** (z caiu pra +0,49) — recalibração dedicada (grid de
-   192 combinações) também não achou candidato defensável, o topo do
-   grid era inflado pela temporada 2026 incompleta (2025, ano completo
-   mais recente, fica em z≈0,3 em todos os candidatos testados). Não
-   entra no painel automatizado por enquanto. Ver
-   `docs/retrospectiva_validacao_100_sportmonks_2026-08-27.md` e
-   `docs/retrospectiva_over25_sportmonks_2026-08-27.md`.
+   não se sustenta** (z caiu pra +0,49) com os parâmetros antigos —
+   recalibração dedicada (grid de 192 combinações) achou um candidato
+   novo (`k=0.35, sem estilo, filtro=0.65, mult_dp=1.5, uni=4,
+   edge=8%`). Ver `docs/retrospectiva_validacao_100_sportmonks_2026-08-27.md`
+   e `docs/retrospectiva_over25_sportmonks_2026-08-27.md`.
+31. **Over 2.5 recalibrado validado com treino/holdout honesto — entra
+   no painel com stake reduzido.** Lucas questionou o descarte do item
+   30 (positivo nos 3 anos, "ganha na média"). Reavaliação correta:
+   escolher o parâmetro usando SÓ 2024+2025 (sem espiar 2026) dá
+   z_treino=+1,15 (fraco sozinho); o holdout real em 2026 (nunca visto
+   na escolha) dá z=+2,83 (n=23, pequeno mas honesto). Mesmo padrão do
+   Cartões+Árbitro — adotado com stake reduzido, não descartado.
+   Auditoria de todos os outros achados rejeitados da sessão sob essa
+   mesma régua ("sem ano negativo, mesmo que z<2") não revelou nenhum
+   outro candidato — todos os demais têm pelo menos um ano
+   genuinamente negativo (Série B BTTS, Favorito DC, "casa" 1x2 Série
+   B) ou tendência de deterioração, o que os desqualifica mesmo sob a
+   régua mais permissiva.
+32. **Painel automatizado substitui a planilha manual** —
+   `sportmonks_client.py` (pull de fixtures finalizados e futuros,
+   odds pré-jogo incluídas) + `sportmonks_adapter.py` (traduz fixture
+   do Sportmonks pro formato do motor; fixture futuro vira uma linha
+   SINTÉTICA — placar placeholder nunca lido de verdade — pra
+   reaproveitar `retrospectiva.prever_jogo`, feito pra backtesting, sem
+   duplicar lógica de previsão) + `previsao_dia.py` (gera as sugestões
+   dos 3 critérios ativos) + `gerar_painel_dia.py` (monta o HTML).
+   Testado de ponta a ponta com dado real: 5 sugestões geradas pros
+   próximos jogos das duas ligas. Publicado como Artifact, atualizado
+   por uma Claude Code Routine diária (08h BRT, sem notificação
+   proativa) — depende de `SPORTMONKS_TOKEN` como variável de ambiente
+   persistente no ambiente do Claude Code (configuração pendente do
+   Lucas, fora do que dá pra fazer via ferramentas desta sessão).
 
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
   sem qualquer edge defensável — não apostar por este critério.
-- Cartões+Árbitro (Série B, item 28) está em stake reduzido porque
-  ainda não passa de z≈2 de forma robusta — acompanhar semanalmente
-  (`checar_decaimento.py`) e promover pra stake normal só se o z se
-  sustentar acima de 2 com mais dado de 2026/2027, não com um ano
-  isolado.
+- Cartões+Árbitro (Série B, item 28) e Over 2.5 recalibrado (item 31)
+  estão em stake reduzido porque ainda não passam de z≈2 de forma
+  robusta — acompanhar (`checar_decaimento.py` cobre Cartões+Árbitro;
+  Over 2.5 recalibrado ainda não entrou nessa checagem semanal) e
+  promover pra stake normal só se o z se sustentar acima de 2 com mais
+  dado de 2026/2027, não com um ano isolado.
+- **Configurar `SPORTMONKS_TOKEN` como variável de ambiente persistente
+  no ambiente do Claude Code** — passo manual pendente do Lucas, sem
+  isso a rotina diária do painel (item 32) falha.
+- Consolidar as duas fontes de dado Sportmonks que existem em paralelo
+  (`data/sportmonks_serieb_cartoes/` do item 28, mais estreita, só pro
+  `checar_decaimento.py`; `data/sportmonks_{seriea,serieb}/` do item 32,
+  mais ampla, pro painel) — funciona, mas é duplicação que dava pra
+  unificar numa rodada futura.
 - Escanteios (Série A + Série B) seguem sem qualquer edge com o motor
   atual, mesmo com odd real do Sportmonks (item 26) — não vale
   insistir sem repensar o motor de previsão desse mercado especificamente.
@@ -461,8 +495,10 @@ atualizada, esta lista aqui não é mantida em detalhe:
 - `k_mando`/`limite_unilateral`/`multiplicador_dp` só foram calibrados
   olhando o mercado de gols — os outros 11 mercados têm MAE calculado mas
   não passaram pelo mesmo grid search ainda.
-- Aplicar os parâmetros validados nas planilhas reais (skills de
-  Copa/Série A/B) — ainda pendente de confirmação com o Lucas.
+- Planilhas manuais (skills de Série A/B) foram substituídas pelo painel
+  automatizado (item 32) pra Série A BTTS/Over 2.5 e Série B
+  Cartões+Árbitro — ainda valem pra qualquer mercado/liga fora desses 3
+  critérios, se o Lucas quiser.
 - Re-rodar tudo quando as temporadas avançarem mais (amostra maior).
 - Acompanhar se o ROI dos critérios calibrados em 2023-2026 decai
   conforme mais dado de 2026/2027 entra — confirmaria a hipótese de
