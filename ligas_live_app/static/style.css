@@ -167,6 +167,15 @@ body {
   font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--accent-amber);
   background: rgba(240,169,59,0.12); padding: 1px 6px; border-radius: 3px; white-space: nowrap;
 }
+/* Odd REAL de casa de apostas (quando existe mercado) — cor indica se o EV
+   contra essa odd é positivo (nosso modelo acha mais provável do que a odd
+   embute) ou negativo, diferente do odd-min-tag (que é só um número sintético). */
+.odd-real-tag {
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  padding: 1px 6px; border-radius: 3px; white-space: nowrap;
+}
+.odd-real-tag-pos { color: var(--accent-green); background: rgba(53,214,138,0.12); }
+.odd-real-tag-neg { color: var(--accent-red); background: rgba(255,92,92,0.12); }
 .sinal-compacto .msg { margin-top: 8px; }
 
 .empty-state { color: var(--muted); font-size: 13px; }

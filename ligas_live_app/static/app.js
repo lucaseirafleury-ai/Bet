@@ -143,6 +143,7 @@ function htmlSinalItem(i, { mostrarJogo }) {
         <span class="delta-tag">${seta} ${i.resumo}</span>
         ${i.probabilidade != null ? `<span class="odd-min-tag">${i.probabilidade.toFixed(1)}%</span>` : ""}
         ${i.odd_minima != null ? `<span class="odd-min-tag">odd mín. ${i.odd_minima.toFixed(2)}</span>` : ""}
+        ${i.odd_real != null ? `<span class="odd-real-tag ${i.ev_pct >= 0 ? "odd-real-tag-pos" : "odd-real-tag-neg"}">${i.odd_real_casa} ${i.odd_real.toFixed(2)} · EV ${i.ev_pct >= 0 ? "+" : ""}${i.ev_pct.toFixed(1)}%</span>` : ""}
         <span id="sinal-chevron-${chave}" class="chevron-link">${expandido ? "▲ ocultar" : "▼ detalhes"}</span>
       </div>
       <div id="sinal-detalhe-${chave}" class="msg" style="display:${expandido ? "block" : "none"}">${i.mensagem}</div>

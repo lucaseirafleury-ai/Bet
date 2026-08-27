@@ -25,6 +25,7 @@ from datetime import datetime, timedelta, timezone
 from pywebpush import webpush, WebPushException
 
 import config
+import odds_ao_vivo
 import sportmonks_client as sm
 from xg_pressure import (
     calcular_xg_proxy, calcular_pressao, calcular_cartoes,
@@ -537,13 +538,28 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
             if n_condicoes > 1 else f" Condição: {melhor_regra['rotulo']}."
         )
         nome_alvo_valor = "escanteios" if alvo == "escanteios" else ("chutes totais" if alvo == "chutes_totais" else "chutes no alvo")
+        linha_mercado = melhor_regra["mercado"]["linha"]
+
+        # Odd REAL de casa de apostas, quando o mercado existir na liga (hoje: escanteios
+        # nas nórdicas; escanteios/chutes no Brasil — ver odds_ao_vivo.py). Nunca bloqueia
+        # o sinal se não achar — é um complemento ao odd mínima sintético, não requisito.
+        odd_real_info = odds_ao_vivo.buscar_odd_real(relatorio["fixture_id"], alvo, direcao, linha_mercado)
+        texto_odd_real = ""
+        if odd_real_info:
+            ev_pct = (melhor_stats["p_condicao"] * odd_real_info["odd"] - 1) * 100
+            texto_odd_real = (
+                f" Odd real ao vivo ({odd_real_info['casa']}): {odd_real_info['odd']:.2f} (implica "
+                f"{odd_real_info['probabilidade_implicita']*100:.1f}%) — valor esperado "
+                f"{'positivo' if ev_pct >= 0 else 'negativo'} de {ev_pct:+.1f}%."
+            )
+
         mensagem = (
             f"min {minuto} — {melhor_regra['mercado_curto']}.{reforco} Recalculado já considerando que o jogo "
             f"tem {melhor_stats['valor_atual_real']} {nome_alvo_valor} até agora: {melhor_stats['n']} jogos de "
             f"referência com esse mesmo valor (impacto +{melhor_stats['impacto_pp']:.1f} p.p. sobre a base nesse "
             f"estado de jogo). Probabilidade estimada: {melhor_stats['p_condicao']*100:.1f}%. Odd mínima de "
             f"referência: {melhor_stats['odd_minima']:.2f} (estimada da amostra histórica, não do modelo ao "
-            f"vivo deste painel)."
+            f"vivo deste painel).{texto_odd_real}"
         )
         insight = _insight_base(
             relatorio, minuto, f"sinal_{alvo}_{direcao}", "Jogo", melhor_stats["impacto_pp"], mensagem
@@ -556,7 +572,12 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
         insight["probabilidade"] = round(melhor_stats["p_condicao"] * 100, 1)
         insight["alvo"] = alvo
         insight["direcao"] = direcao
-        insight["linha"] = melhor_regra["mercado"]["linha"]  # valor numérico limpo — permite avaliar green/red depois sem parsear texto
+        insight["linha"] = linha_mercado  # valor numérico limpo — permite avaliar green/red depois sem parsear texto
+        if odd_real_info:
+            insight["odd_real"] = odd_real_info["odd"]
+            insight["odd_real_casa"] = odd_real_info["casa"]
+            insight["probabilidade_implicita_real"] = round(odd_real_info["probabilidade_implicita"] * 100, 1)
+            insight["ev_pct"] = round(ev_pct, 1)
         insights.append(insight)
     return insights
 
