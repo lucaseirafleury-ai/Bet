@@ -424,8 +424,14 @@ não de sinal real) — provavelmente precisa do fator árbitro (não
 incorporado ainda) pra sair do ruído. **Confirmado também com os
 combos campeões de Over 2.5 e BTTS** (não só neutro) — escanteios
 negativo nas 6 combinações testadas (2 ligas × 3 configs), cartões
-perto de zero e inconsistente nas 6. Mantém a recomendação de usar só
-Over 2.5/BTTS por enquanto. Ver
+perto de zero e inconsistente nas 6. **Testamos também se
+`limite_unilateral` (corte de outlier) mal escalado pra gols estava
+prejudicando escanteios/cartões** (calibrado pra média de ~1,4 gols/
+time, aplicado sem reescalar pra escanteios ~5/time e cartões
+~2,6/time): reescalar proporcionalmente NÃO ajuda escanteios (continua
+negativo, às vezes pior), mas AJUDA cartões (Série B com corte do BTTS
+passa a ter os 3 anos positivos pela primeira vez, ainda abaixo de
+z≈2). Mantém a recomendação de usar só Over 2.5/BTTS por enquanto. Ver
 `docs/retrospectiva_escanteios_cartoes_2026-08-27.md`.
 
 ## Regras que nunca mudam

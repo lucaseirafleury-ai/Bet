@@ -73,6 +73,40 @@ agregado z=+0,59) tem 2026 isolado em z=+2,77, mas 2024 z=+0,17 e 2025
 fracos/negativos, o padrão clássico de ruído (mesma lição do "casa" da
 Série B), não sinal calibrado.
 
+## Hipótese testada: `limite_unilateral` mal escalado pro tamanho de escanteios/cartões
+
+Lucas perguntou se algum parâmetro podia estar prejudicando a análise.
+Identificamos que `corte_outlier` (`pesos.py`) decide corte
+unilateral/bilateral comparando `media <= limite_unilateral` — esse
+`limite_unilateral` (2 ou 4 nos combos testados) foi calibrado pensando
+na escala de GOLS (~1,4/time). Escanteios (~5,0-5,2/time, ~3,6x) e
+cartões (~2,6-2,7/time, ~1,9x) têm escalas bem diferentes — pra
+escanteios, `media` está sempre acima de qualquer `limite_unilateral`
+testado, então o corte roda SEMPRE no modo bilateral (mais agressivo),
+nunca no modo unilateral pensado originalmente.
+
+Testamos reescalando `limite_unilateral` proporcionalmente (×3,6 pra
+escanteios, ×1,9 pra cartões) nos mesmos 3 combos:
+
+| Mercado | Config | Antes → Depois (Série A) | Antes → Depois (Série B) |
+|---|---|---|---|
+| Escanteios | Neutro | -2,38 → -2,23 | -2,80 → -2,85 |
+| Escanteios | Over2.5-corte | -0,93 → **-1,49** | -3,14 → **-4,07** |
+| Escanteios | BTTS-corte | -2,13 → -2,10 | -2,32 → -2,53 |
+| Cartões | Neutro | -0,20 → -0,20 | +0,94 → +0,94 |
+| Cartões | Over2.5-corte | -0,51 → **-0,23** | +0,42 → **+1,27** |
+| Cartões | BTTS-corte | +0,59 → **+1,19** | -0,00 → **+1,27** |
+
+**Escanteios: hipótese refutada** — reescalar não ajuda, em 2 dos 6
+casos até piora. O viés negativo é mais estrutural, não é explicado
+por esse parâmetro específico.
+
+**Cartões: melhora real, mas ainda abaixo do limiar** — Série B com o
+corte do BTTS passa a ter os **3 anos positivos** pela primeira vez
+(2024 z=+0,38, 2025 z=+0,12, 2026 z=+1,91) — antes sempre tinha algum
+ano negativo. Ainda não é z≈2 na maioria dos anos, mas é um padrão mais
+consistente do que o observado antes do reescalonamento.
+
 ## Interpretação
 
 **Escanteios**: o sinal negativo é forte demais e consistente demais
@@ -93,12 +127,14 @@ fina estaria só ajustando ruído.
 ## Recomendação
 
 1. **Não usar escanteios com o motor atual** — sinal negativo forte,
-   não é problema de calibração.
-2. **Não usar cartões com o motor atual** — sem edge, mas aberto a
-   reavaliação SE incorporarmos dado de árbitro (Sportmonks expõe
-   `referee_id` por jogo; falta calcular a média histórica de cartões
-   de cada árbitro e incorporar como fator novo no modelo — trabalho
-   de arquitetura, não feito nesta rodada).
+   confirmado que não é `limite_unilateral` mal escalado (testado e
+   refutado) nem calibração de `k_mando`/`usar_estilo`/filtros
+   (testado e refutado antes) — é mais estrutural.
+2. **Não usar cartões com o motor atual** — mas o reescalonamento do
+   corte de outlier mostrou melhora real de consistência (Série B com
+   3 anos positivos pela primeira vez), então vale reavaliar cartões
+   COM esse ajuste E o dado de árbitro juntos numa rodada futura, em
+   vez de descartar de vez.
 3. **Mantém a recomendação de usar só Over 2.5/BTTS** por enquanto —
    a busca por diversificação continua em aberto.
 

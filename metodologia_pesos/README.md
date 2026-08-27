@@ -375,7 +375,12 @@ atualizada, esta lista aqui não é mantida em detalhe:
    agregada pronta) pra sair do zero. **Confirmado também com os
    parâmetros campeões de Over 2.5 e BTTS** (não só neutro) —
    escanteios negativo nas 6 combinações testadas (2 ligas × 3
-   configs), cartões perto de zero e inconsistente nas 6. Mantém
+   configs), cartões perto de zero e inconsistente nas 6. **Testamos
+   também reescalar `limite_unilateral`** (corte de outlier calibrado
+   pra escala de gols, ~1,4/time, nunca reescalado pra escanteios
+   ~5/time ou cartões ~2,6/time): não ajuda escanteios (continua
+   negativo), mas ajuda cartões (Série B passa a ter os 3 anos
+   positivos com o corte do BTTS, ainda abaixo de z≈2). Mantém
    recomendação de usar só Over 2.5/BTTS. Ver
    `docs/retrospectiva_escanteios_cartoes_2026-08-27.md`.
 
