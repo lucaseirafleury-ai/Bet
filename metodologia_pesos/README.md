@@ -380,7 +380,12 @@ atualizada, esta lista aqui não é mantida em detalhe:
    pra escala de gols, ~1,4/time, nunca reescalado pra escanteios
    ~5/time ou cartões ~2,6/time): não ajuda escanteios (continua
    negativo), mas ajuda cartões (Série B passa a ter os 3 anos
-   positivos com o corte do BTTS, ainda abaixo de z≈2). Mantém
+   positivos com o corte do BTTS, ainda abaixo de z≈2). **Testamos
+   também combinar cartões com dado de árbitro** (`referee_id` via
+   Sportmonks): Série A piora com mais peso no árbitro (não usar);
+   Série B melhora e cruza z≈2 no agregado (ROI+9,8-10,9%, positivo
+   nos 3 anos), mas o z está inflado por uma amostra de só n=28 em
+   2024 — não é prova definitiva, vale continuar acompanhando. Mantém
    recomendação de usar só Over 2.5/BTTS. Ver
    `docs/retrospectiva_escanteios_cartoes_2026-08-27.md`.
 

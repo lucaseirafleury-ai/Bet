@@ -107,6 +107,45 @@ corte do BTTS passa a ter os **3 anos positivos** pela primeira vez
 ano negativo. Ainda não é z≈2 na maioria dos anos, mas é um padrão mais
 consistente do que o observado antes do reescalonamento.
 
+## Cartões combinado com dado de árbitro (27/08/2026)
+
+Testamos a pista do árbitro sugerida pelo Lucas. Puxamos `referee_id`
+(`type_id=6`="Referee" principal, confirmado via `/core/types/{id}`)
+de cada jogo via Sportmonks (1140/1144 jogos identificados), montamos a
+média histórica walk-forward de cartões por árbitro, e testamos:
+
+**Árbitro sozinho** (sem o modelo de times): negativo na Série A em
+todos os limiares de histórico mínimo (z=-2,38 a -2,53), perto de zero
+na Série B (z=+0,04 a +1,21, piorando a confiabilidade quanto maior o
+limiar por causa da amostra cada vez menor). Não é um substituto do
+modelo de times.
+
+**Combinado com o modelo de times** (`pred = pred_time×(1-peso) +
+média_árbitro×peso`, corte de outlier reescalado + parâmetros do BTTS,
+`min_jogos_árbitro=10`):
+
+| Liga | Peso árbitro | n | ROI | z | 2024 (n) | 2025 (n) | 2026 (n) |
+|---|---|---|---|---|---|---|---|
+| Série A | só time | 906 | +3,6% | +1,19 | +0,31 (332) | -0,40 (371) | +2,75 (203) |
+| Série A | 0,3/0,5/0,7 | 558 | +3,4%→+0,3% | +0,87→+0,07 | piora | piora | piora |
+| Série B | só time | 828 | +4,1% | +1,27 | +0,38 (297) | +0,12 (312) | +1,91 (219) |
+| Série B | 0,3 | 381 | +10,9% | **+2,33** | **+2,63 (n=28)** | +0,73 (186) | +1,75 (167) |
+| Série B | 0,5 | 381 | +9,8% | +2,08 | +2,63 (28) | +0,42 (186) | +1,73 (167) |
+| Série B | 0,7 | 381 | +9,8% | +2,09 | +2,61 (28) | +0,70 (186) | +1,43 (167) |
+
+**Série A piora monotonicamente** com mais peso no árbitro — confirma
+que o árbitro não ajuda ali (coerente com o sinal isolado negativo).
+
+**Série B melhora e cruza z≈2 no agregado — mas com uma ressalva
+importante**: o 2024 dentro dessa amostra tem só **n=28** jogos e
+puxa muito pra cima (ROI+42%, z≈2,6) — exatamente o tipo de amostra
+pequena que a disciplina deste projeto manda desconfiar. Excluindo
+2024, sobra 2025 (z≈0,4-0,7) e 2026 (z≈1,4-1,9) — positivos nos dois,
+mas nenhum isolado passa de z=2. **O sinal é genuíno e a direção é
+consistente (positivo nos 3 anos, nas 3 variações de peso), mas o z>2
+do agregado está inflado por uma amostra pequena, não é prova
+definitiva ainda.**
+
 ## Interpretação
 
 **Escanteios**: o sinal negativo é forte demais e consistente demais
@@ -130,11 +169,16 @@ fina estaria só ajustando ruído.
    confirmado que não é `limite_unilateral` mal escalado (testado e
    refutado) nem calibração de `k_mando`/`usar_estilo`/filtros
    (testado e refutado antes) — é mais estrutural.
-2. **Não usar cartões com o motor atual** — mas o reescalonamento do
-   corte de outlier mostrou melhora real de consistência (Série B com
-   3 anos positivos pela primeira vez), então vale reavaliar cartões
-   COM esse ajuste E o dado de árbitro juntos numa rodada futura, em
-   vez de descartar de vez.
+2. **Não usar cartões com o motor atual** — mas há uma linha
+   genuinamente promissora em aberto: corte de outlier reescalado +
+   dado de árbitro na Série B cruza z≈2 no agregado (ROI+9,8-10,9%),
+   positivo nos 3 anos — mas o z está inflado por uma amostra de
+   `n=28` em 2024, então NÃO é prova definitiva ainda. Vale continuar
+   acompanhando conforme mais dado de 2026/2027 entrar (a rotina
+   semanal já vai aumentando a amostra dos anos recentes) antes de
+   promover a critério oficial. Série A não se beneficia do árbitro
+   (piora monotonicamente com mais peso) — essa combinação é
+   específica da Série B.
 3. **Mantém a recomendação de usar só Over 2.5/BTTS** por enquanto —
    a busca por diversificação continua em aberto.
 

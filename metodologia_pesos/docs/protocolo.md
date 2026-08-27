@@ -431,7 +431,13 @@ time, aplicado sem reescalar pra escanteios ~5/time e cartões
 ~2,6/time): reescalar proporcionalmente NÃO ajuda escanteios (continua
 negativo, às vezes pior), mas AJUDA cartões (Série B com corte do BTTS
 passa a ter os 3 anos positivos pela primeira vez, ainda abaixo de
-z≈2). Mantém a recomendação de usar só Over 2.5/BTTS por enquanto. Ver
+z≈2). **Testamos também combinar cartões com dado de árbitro**
+(`referee_id` via Sportmonks, média histórica walk-forward): Série A
+piora monotonicamente com mais peso no árbitro (não usar); **Série B
+melhora e cruza z≈2 no agregado (ROI+9,8-10,9%), positivo nos 3 anos —
+mas o z está inflado por uma amostra de só n=28 em 2024**, não é prova
+definitiva ainda, vale continuar acompanhando conforme mais dado
+entrar. Mantém a recomendação de usar só Over 2.5/BTTS por enquanto. Ver
 `docs/retrospectiva_escanteios_cartoes_2026-08-27.md`.
 
 ## Regras que nunca mudam
