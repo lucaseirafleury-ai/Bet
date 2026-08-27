@@ -47,8 +47,52 @@ mas com ressalva de comparação múltipla empilhada (3 camadas de
 seleção) — ver seção "Dupla confirmação" mais abaixo antes de tratar
 como prova definitiva.
 
-Não apostar na Série B por nenhum critério ainda — ver a seção nova pro
-raciocínio completo.
+Não apostar na Série B por nenhum critério de PADRÃO ainda — ver a seção
+nova pro raciocínio completo. **Exceção, com stake reduzido**: Cartões +
+Árbitro (Série B) — ver seção "Terceiro critério (stake reduzido)" logo
+abaixo.
+
+## Terceiro critério (stake reduzido) — Cartões + Árbitro, Série B (27/08/2026)
+
+Diferente dos dois critérios acima (Over 2.5/BTTS, ambos z>2, stake
+normal), este NÃO passa do limiar de significância padrão do projeto
+— é adotado com **stake reduzido (~1/3 do normal)** por decisão
+explícita do Lucas, não porque a evidência estatística seja
+equivalente. Ver `docs/retrospectiva_escanteios_cartoes_2026-08-27.md`
+pra todo o histórico de como se chegou aqui (por que cartões/escanteios
+"puros" não têm edge, por que o árbitro ajuda).
+
+**Parâmetros**: modelo de times com o corte de outlier do BTTS
+reescalado pra cartões (`k_mando=0.7, usar_estilo=True,
+filtro_estilo=0.8, filtro_favoritismo=0.65, multiplicador_dp=1.5,
+limite_unilateral=2, limite_unilateral_por_campo={cartoes_pro: 3.8,
+cartoes_contra: 3.8}, n_historico=10`), combinado com a média histórica
+de cartões do árbitro (walk-forward, mínimo de 10 jogos antes de
+confiar nela) via `pred = pred_time×0,7 + media_arbitro×0,3`. Aposta no
+mercado real "Number of Cards" (odds do Sportmonks, não do FootyStats)
+sem limiar de edge mínimo (`limiar_edge=0.0` — os números abaixo foram
+medidos assim, mudar isso exige revalidar).
+
+**Evidência**: z≈1,73 combinado nos 2 anos mais recentes e menos
+inflados (2025 z=+0,73 n=186; 2026 z=+1,75 n=167), positivo isoladamente
+nos 3 anos com dado disponível (2024/2025/2026). O agregado completo
+(incluindo 2024, que tem só n=28 e infla o z) chega a z≈2,3 — não tratar
+esse número isolado como prova, o z≈1,73 é a leitura mais honesta.
+
+**Implementação em produção**: `metodologia_pesos/cartoes_arbitro.py`
+(funções puras, testadas em `test_cartoes_arbitro.py`) +
+`sportmonks_pull_serieb_cartoes.py` (atualiza
+`data/sportmonks_serieb_cartoes/fixtures.jsonl` — precisa de
+`SPORTMONKS_TOKEN` no ambiente, rodar de novo periodicamente pra manter
+o dado atualizado, mesmo esforço que já é feito com os CSVs do
+FootyStats). `checar_decaimento.py` já inclui esse critério na checagem
+semanal (pula com aviso se o arquivo do Sportmonks não existir).
+
+**Acompanhamento**: a checagem semanal vai recalculando o z conforme
+mais jogos de 2026 entram — se subir e se sustentar acima de z≈2 de
+forma consistente (não só um ano isolado), promover pra stake normal;
+se decair, reduzir mais ou descartar (mesmo tratamento que qualquer
+outro critério deste documento).
 
 ## Acerto ≠ vantagem real (24/08/2026)
 

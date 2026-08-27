@@ -8,7 +8,9 @@ from datetime import datetime, timedelta
 import pandas as pd
 import pytest
 
+import retrospectiva as retrospectiva_module
 from retrospectiva import (
+    STAT_KEY_MAP,
     _estilo_por_mando,
     _probabilidades_1x2_e_dc,
     _probabilidades_favorito_dc,
@@ -117,6 +119,43 @@ def test_prever_jogo_filtro_estilo_e_favoritismo_aplicam_independentemente(df_fa
     )
     assert so_estilo_impossivel is None
     assert so_favoritismo_impossivel is None
+
+
+def test_prever_jogo_limite_unilateral_por_campo_sobrepoe_so_os_campos_listados(df_fabricado, monkeypatch):
+    chamadas = []
+    original = retrospectiva_module.indicador_pro_contra
+
+    def espiao(valores, pesos, limite_unilateral=4, multiplicador_dp=2.5):
+        chamadas.append(limite_unilateral)
+        return original(valores, pesos, limite_unilateral, multiplicador_dp)
+
+    monkeypatch.setattr(retrospectiva_module, "indicador_pro_contra", espiao)
+
+    ultima_linha = df_fabricado.iloc[11]
+    prever_jogo(
+        ultima_linha, df_fabricado,
+        params=dict(
+            filtro_aderencia=0.0, limite_unilateral=4,
+            limite_unilateral_por_campo={"escanteios_pro": 9, "escanteios_contra": 9},
+        ),
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    esperado = [9 if campo in ("escanteios_pro", "escanteios_contra") else 4 for campo in STAT_KEY_MAP]
+    assert chamadas == esperado
+
+
+def test_prever_jogo_limite_unilateral_por_campo_none_preserva_comportamento_antigo(df_fabricado):
+    ultima_linha = df_fabricado.iloc[11]
+    sem_override = prever_jogo(
+        ultima_linha, df_fabricado, params=dict(filtro_aderencia=0.0, limite_unilateral=4),
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    com_override_none = prever_jogo(
+        ultima_linha, df_fabricado,
+        params=dict(filtro_aderencia=0.0, limite_unilateral=4, limite_unilateral_por_campo=None),
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    assert sem_override["mercados"] == com_override_none["mercados"]
 
 
 def test_prever_jogo_calcula_os_12_mercados_pro_contra(df_fabricado):

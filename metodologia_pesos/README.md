@@ -400,13 +400,30 @@ atualizada, esta lista aqui não é mantida em detalhe:
    nos 3 anos isolados), aqui 2 dos 4 anos são diretamente negativos —
    não é o mesmo tipo de caso, não vale manter em observação. Ver nota
    "Reteste 27/08/2026" em `docs/protocolo.md`.
+28. **Cartões+Árbitro (Série B) formalizado como 3º critério, stake
+   reduzido** — o achado do item 26 (z≈1,73 combinado 2025+2026, positivo
+   isoladamente nos 3 anos) virou produção de verdade: novo módulo
+   `metodologia_pesos/cartoes_arbitro.py` (testado, `test_cartoes_arbitro.py`),
+   `sportmonks_pull_serieb_cartoes.py` (atualiza
+   `data/sportmonks_serieb_cartoes/fixtures.jsonl` com odds de Cartões +
+   `referee_id` da Série B) e `checar_decaimento.py` estendido pra
+   monitorar esse critério toda semana junto com Over 2.5/BTTS. Rodado
+   de ponta a ponta pela primeira vez: n=387, ROI+8,1%, z=+1,71
+   acumulado — consistente com o número original. Adotado com stake
+   ~1/3 do normal (não paridade com Over 2.5/BTTS) — ver seção
+   "Terceiro critério (stake reduzido)" em `docs/protocolo.md`.
 
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
   sem qualquer edge defensável — não apostar por este critério.
-- Diversificação de mercado ainda não resolvida: cartões/escanteios não
-  têm odd real na fonte de dado atual; buscar outra fonte de odds
-  histórica seria o próximo passo, se existir de graça.
+- Cartões+Árbitro (Série B, item 28) está em stake reduzido porque
+  ainda não passa de z≈2 de forma robusta — acompanhar semanalmente
+  (`checar_decaimento.py`) e promover pra stake normal só se o z se
+  sustentar acima de 2 com mais dado de 2026/2027, não com um ano
+  isolado.
+- Escanteios (Série A + Série B) seguem sem qualquer edge com o motor
+  atual, mesmo com odd real do Sportmonks (item 26) — não vale
+  insistir sem repensar o motor de previsão desse mercado especificamente.
 - Under (1.5/2.5/3.5/4.5) segue sem odd real na fonte de dado atual —
   testado com aproximação simples (viés, item 14) e com margem de casa
   assumida (item 15, viés corrigido mas sem edge real); só dá pra testar

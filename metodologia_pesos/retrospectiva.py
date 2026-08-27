@@ -60,6 +60,11 @@ PARAMS_PADRAO = dict(
     filtro_favoritismo=None,   # corte mínimo de aderencia_favoritismo, independente de aderencia_estilo.
                                # None em qualquer um dos dois usa filtro_aderencia (comportamento antigo,
                                # retrocompatível) — só divergem quando explicitamente setados nos params.
+    limite_unilateral_por_campo=None,  # dict opcional {campo: limite}, sobrepõe limite_unilateral só
+                                        # nesses campos de STAT_KEY_MAP — o corte de outlier foi calibrado
+                                        # pra escala de gols (~1,4/time) e não escala sozinho pra campos com
+                                        # média muito maior (escanteios ~5/time, cartões ~2,6/time); None
+                                        # (default) preserva o comportamento antigo em todos os campos.
 )
 
 _MANDO_OPOSTO = {"Casa": "Fora", "Fora": "Casa"}
@@ -240,10 +245,12 @@ def prever_jogo(row, df, params=None, min_jogos_historico=10, min_jogos_estilo=N
         return None
     pesos_lista = [j["peso_final"] for j in validos]
 
+    limites_por_campo = params["limite_unilateral_por_campo"] or {}
     mercados = {}
     for campo in STAT_KEY_MAP:
+        limite_campo = limites_por_campo.get(campo, params["limite_unilateral"])
         ind = indicador_pro_contra(
-            [j[campo] for j in validos], pesos_lista, params["limite_unilateral"], params["multiplicador_dp"]
+            [j[campo] for j in validos], pesos_lista, limite_campo, params["multiplicador_dp"]
         )
         real = _valor_real(row, campo)
         if ind["media_final"] is None or real is None:
