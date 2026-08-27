@@ -388,12 +388,20 @@ atualizada, esta lista aqui não é mantida em detalhe:
    2024 — não é prova definitiva, vale continuar acompanhando. Mantém
    recomendação de usar só Over 2.5/BTTS. Ver
    `docs/retrospectiva_escanteios_cartoes_2026-08-27.md`.
+27. **Série B BTTS (k=0.2/estilo/filtro=0.65) reavaliado no período
+   completo — NÃO se sustenta, item fechado.** O z≈0,9-1,0 documentado
+   no item 7 era só o holdout 2026; rodando o mesmo parâmetro em
+   2023-2026 inteiro (n=262), o resultado deixa de ser um "platô
+   robusto": 2023 e 2024 são negativos (z=-0,40 e -0,15), só 2025/2026
+   são positivos, agregado cai pra z=+0,76. Testando também com odds
+   Sportmonks (2024-2026 pareado, mesmo método usado no item 26): o
+   pouco sinal que sobrava quase desaparece (z=+1,04 FootyStats →
+   z=+0,16 Sportmonks). Diferente de cartões+árbitro (item 26, positivo
+   nos 3 anos isolados), aqui 2 dos 4 anos são diretamente negativos —
+   não é o mesmo tipo de caso, não vale manter em observação. Ver nota
+   "Reteste 27/08/2026" em `docs/protocolo.md`.
 
 ## O que ainda falta
-
-- Confirmar o sinal de Série B BTTS (z≈0,9-1,0, ainda não passa do
-  limiar de significância ~2) com mais holdout conforme a temporada de
-  2026 avança.
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
   sem qualquer edge defensável — não apostar por este critério.
 - Diversificação de mercado ainda não resolvida: cartões/escanteios não

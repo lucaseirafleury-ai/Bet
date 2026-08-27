@@ -128,6 +128,31 @@ APOSTA (não de acerto). Na prática:
   (z≈0,9-1,0, ROI +12-14%, n=53-54) em vez do neutro puro (z≈0). Ainda
   não é significativo (z<2) — promissor, não comprovado.
 
+**❌ Reteste 27/08/2026 — Série B BTTS NÃO se sustenta, descartar.**
+O n=53-54/z≈0,9-1,0 documentado acima era só o holdout de 2026 — ao
+rodar o MESMO parâmetro (`k_mando=0.2, usar_estilo=True,
+filtro_aderencia=0.65, limiar_edge=5%`) no período completo 2023-2026
+(n=262), o quadro muda bastante: **não é consistente ano a ano**
+(2023: ROI−6,7%/z=−0,40; 2024: ROI−1,8%/z=−0,15; 2025: ROI+14,8%/
+z=+1,20; 2026: ROI+11,7%/z=+0,89) — 2 dos 4 anos são negativos, o
+"platô robusto" descrito antes não existia no período inteiro, só
+apareceu no recorte de holdout que foi olhado na época. Agregado
+completo: z=+0,76 (mais fraco que o já modesto z≈0,9-1,0 original).
+
+Testando também a troca de odds por Sportmonks (mesmo padrão usado em
+Over 2.5/BTTS da Série A, jogos 2024-2026 pareados): o pouco sinal que
+sobrava praticamente desaparece — FootyStats z=+1,04 (n=216) vs.
+Sportmonks **z=+0,16** (n=213), caindo em todos os 3 anos
+individualmente. Mesmo padrão já visto no Over 2.5 da Série A (odds
+mais "afiadas" reduzem o edge medido), mas aqui o efeito é decisivo:
+não sobra nada defensável.
+
+**Conclusão: Série B BTTS não é um segundo caso de "cartões+árbitro"**
+(que ao menos é positivo nos 3 anos isolados). Aqui 2 anos são
+diretamente negativos e o sinal restante é odd-dependente. Não
+incorporar como critério nem como pista em observação — item fechado,
+removido do backlog do README.
+
 **⚠️ Testado 25/08/2026 — Over 1.5/3.5/4.5 NÃO diversificam** (Lucas
 perguntou como reduzir a variância ano a ano do Over 2.5; cartões/
 escanteios não têm odd real no CSV, então a alternativa era mais linhas
