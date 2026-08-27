@@ -50,6 +50,7 @@ CAMPOS_DETALHE = [
 ]
 
 BOOKMAKER_BET365 = 2
+BOOKMAKER_SBO = 34  # Sbobet — usado só como base do Over 2.5 recalibrado (ver previsao_dia.py)
 
 
 def _media_odd(entradas, label, total_alvo=None, bookmaker_id=None):

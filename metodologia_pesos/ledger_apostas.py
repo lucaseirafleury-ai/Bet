@@ -49,7 +49,7 @@ def registrar_novas_sugestoes(ledger, sugestoes, data_registro):
         ledger.append(dict(
             fixture_id=s["fixture_id"], criterio=s["criterio"], stake=s["stake"], liga=s["liga"], liga_chave=s["liga_chave"],
             jogo=s["jogo"], data_jogo=s["data"], lado=s["lado"], linha_aposta=s.get("linha_aposta"),
-            odd=s["odd"], edge=s["edge"], data_registro=data_registro,
+            odd=s["odd"], edge=s["edge"], data_registro=data_registro, casa_ref=s.get("casa_ref"),
             resultado="pendente", lucro=None,
         ))
         chaves_existentes.add(chave)

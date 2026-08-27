@@ -31,10 +31,18 @@ DIAS_RESULTADOS_RECENTES = 14
 
 CRITERIOS_INFO = [
     dict(nome="BTTS", stake="cheio", stake_label="stake normal", evidencia="Série A · bet365 z=+2,89 · sem ano negativo"),
+    dict(nome="Over 2.5", stake="reduzido", stake_label="stake reduzido", evidencia="Série A · Sbo z=+2,00 · sem ano negativo"),
     dict(nome="Cartões+Árbitro", stake="reduzido", stake_label="stake reduzido", evidencia="Série B · bet365 z=+2,08 · positivo nos 3 anos"),
 ]
 
 _NOME_LADO = {"btts": "BTTS · Sim", "over25": "Over 2.5"}
+
+# Casa usada como base estatística de cada critério ("bet365" não leva
+# nota — é a casa que o Lucas já usa direto). Sbo leva a nota de tentar a
+# Betfair Exchange antes, na prática — a Exchange não está representada
+# no dado do Sportmonks (só a Sportsbook deles, rala e com margem pior
+# que o bet365), então isso não dá pra confirmar automaticamente aqui.
+_NOTA_EXECUCAO = {"Sbo": "odd de referência: Sbo — tente a Betfair Exchange antes, se a linha existir"}
 
 
 def _fmt_data_hora(data_iso):
@@ -47,6 +55,8 @@ def _card_pendente_html(s):
     lado = _NOME_LADO.get(s["lado"], s["lado"])
     stake_classe = "cheio" if s["stake"] == "normal" else "reduzido"
     stake_texto = "stake normal" if s["stake"] == "normal" else "stake reduzido"
+    nota = _NOTA_EXECUCAO.get(s.get("casa_ref"))
+    nota_html = f'\n      <div class="nota-execucao">{nota}</div>' if nota else ""
     return f"""
     <div class="jogo-card">
       <div class="confronto">{s['jogo']}</div>
@@ -55,7 +65,7 @@ def _card_pendente_html(s):
         <span class="lado">{lado}</span>
         <span class="odd-edge"><span class="odd">{s['odd']:.2f}</span><span class="edge">+{s['edge']*100:.1f}% edge</span></span>
         <span class="stake-tag stake {stake_classe}">{stake_texto}</span>
-      </div>
+      </div>{nota_html}
     </div>"""
 
 
@@ -172,6 +182,8 @@ TEMPLATE = """<title>Painel Brasileirão</title>
   .resultado-pill {{ font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; padding: 0.15rem 0.5rem; border-radius: 999px; }}
   .resultado-pill.green {{ background: var(--accent-tint); color: var(--accent-strong); }}
   .resultado-pill.red {{ background: var(--red-tint); color: var(--red-strong); }}
+
+  .nota-execucao {{ grid-column: 1 / -1; font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--text-faint); border-top: 1px dashed var(--border); padding-top: 0.4rem; margin-top: 0.15rem; }}
 
   .vazio {{ background: var(--surface); border: 1px dashed var(--border); border-radius: 12px; padding: 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.9rem; }}
 

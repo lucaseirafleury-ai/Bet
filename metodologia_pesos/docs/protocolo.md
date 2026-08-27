@@ -5,28 +5,39 @@ de CSV), foi pra 100% Sportmonks com painel automatizado.** Lucas
 cancelou o FootyStats. Tudo abaixo desta nota que fala em "critério
 campeão"/`k_mando`/etc. foi calibrado em cima do FootyStats — histórico
 de como se chegou aos parâmetros atuais, não mais a fonte de dado em
-produção. **2 critérios rodando no painel diário** (odds restritas ao
-**bet365** — ver nota abaixo sobre por quê):
-- ✅ **BTTS (Série A)** — stake normal. z=+2,89 com odd real do bet365
-  (mais forte até que a média de todas as casas do Sportmonks, z=+2,33).
-- ✅ **Cartões+Árbitro (Série B)** — stake reduzido. z=+2,08 com odd
-  real do bet365 (também mais forte que a média, z=+1,19).
-- ❌ **Over 2.5 recalibrado (Série A) — REMOVIDO do painel (27/08/2026).**
-  Só parecia "positivo todo ano" na média de todas as casas do
-  Sportmonks (z=+2,28); com a odd real do bet365, 2025 vira
-  NEGATIVO (z=−0,72) e o agregado cai pra z=+1,31. Não usar.
+produção. **3 critérios rodando no painel diário**:
+- ✅ **BTTS (Série A)** — stake normal, odd bet365. z=+2,89 com odd real
+  do bet365 (mais forte até que a média de todas as casas do
+  Sportmonks, z=+2,33).
+- ✅ **Over 2.5 recalibrado (Série A)** — stake reduzido, odd **Sbo**
+  (bookmaker_id=34), não bet365. Foi removido em 27/08/2026 (com odd do
+  bet365, 2025 vira negativo — z 2,28→1,31) e READICIONADO no mesmo dia
+  depois de testar 12 bookmakers: Sbo é o único acima de z≈2 sem
+  nenhum ano negativo (z=+2,00, n=80, ROI+23,6%; 2024 z=+1,38, 2025
+  z=+0,28, 2026 z=+2,07). Execução real: tentar a Betfair Exchange
+  primeiro (Lucas relata odd geralmente melhor nesse mercado — não
+  validável no dado do Sportmonks, que só tem a Betfair Sportsbook
+  cadastrada e com cobertura/margem piores que o bet365), caindo pra
+  Sbo como preço já confirmado. Ver
+  `docs/retrospectiva_over25_sbo_betfair_2026-08-27.md`.
+- ✅ **Cartões+Árbitro (Série B)** — stake reduzido, odd bet365. z=+2,08
+  com odd real do bet365 (também mais forte que a média, z=+1,19).
 - Série B Over 2.5/BTTS seguem sem edge, confirmado de novo.
 
-**⚠️ Odds restritas ao bet365 (bookmaker_id=2), não mais média de
-todas as casas do Sportmonks (27/08/2026).** Lucas reportou uma
-sugestão de cartões que não existia em nenhuma casa que ele usa —
+**⚠️ Odds restritas por critério a UMA casa específica (não mais média
+de todas as casas do Sportmonks), desde 27/08/2026.** Lucas reportou
+uma sugestão de cartões que não existia em nenhuma casa que ele usa —
 investigando, o Sportmonks agrega dezenas de casas internacionais
 (Unibet, Pinnacle, 10Bet...) que ele não tem acesso; Betano nem existe
-no catálogo pro Brasil. bet365 é a única casa real dele coberta de
-forma confiável (999/999 Série A, 998/1000 Série B). Revalidação
-completa com bet365-só mudou a recomendação: BTTS e Cartões+Árbitro
-ficaram MAIS fortes, Over 2.5 recalibrado ficou mais fraco e foi
-removido. Ver `docs/retrospectiva_bookmaker_bet365_2026-08-27.md`.
+no catálogo pro Brasil. bet365 é a casa padrão (única coberta de forma
+confiável: 999/999 Série A, 998/1000 Série B) — usada em BTTS e
+Cartões+Árbitro. Over 2.5 é a exceção: usa Sbo especificamente (ver
+acima), porque é a única casa testada que passa na barra "sem ano
+negativo" pra esse critério. Revalidação completa com bet365-só mudou a
+recomendação original: BTTS e Cartões+Árbitro ficaram MAIS fortes,
+Over 2.5 recalibrado ficou mais fraco com bet365 mas se recuperou com
+Sbo. Ver `docs/retrospectiva_bookmaker_bet365_2026-08-27.md` e
+`docs/retrospectiva_over25_sbo_betfair_2026-08-27.md`.
 
 **Painel automatizado**: `metodologia_pesos/previsao_dia.py` (previsão
 ao vivo, reaproveitando `retrospectiva.prever_jogo` via linha sintética
@@ -140,15 +151,35 @@ outro critério deste documento).
 
 ## Quarto critério (stake reduzido) — Over 2.5 recalibrado, Série A (27/08/2026)
 
-**❌ REMOVIDO em 27/08/2026 (mesmo dia) — não se sustenta com a odd
-real do bet365.** Toda a seção abaixo foi validada com a MÉDIA de
-todas as casas do Sportmonks. Ao restringir pra bet365 (a casa real
-que o Lucas usa — ver seção "Odds restritas ao bet365" no topo deste
-arquivo), 2025 vira negativo (z=−0,72) e o agregado cai de z=+2,28 pra
-z=+1,31. Não é mais um critério ativo — mantido aqui só como registro
-do raciocínio (útil se uma recalibração futura, com dado de mais anos,
-encontrar algo que também se sustente no bet365). Ver
-`docs/retrospectiva_bookmaker_bet365_2026-08-27.md`.
+**✅ ATIVO no painel — odd de referência Sbo (bookmaker_id=34), não
+bet365.** Histórico do mesmo dia: a seção abaixo foi validada com a
+MÉDIA de todas as casas do Sportmonks. Ao restringir pra bet365 (a casa
+padrão do painel — ver seção "Odds restritas" no topo deste arquivo),
+2025 vira negativo (z=−0,72) e o agregado cai de z=+2,28 pra z=+1,31 —
+critério foi removido do painel nesse ponto. Lucas pediu pra testar
+outras casas antes de descartar; testando os mesmos parâmetros contra
+12 bookmakers do catálogo Sportmonks, **Sbo é o único que fica acima de
+z≈2 com os 3 anos genuinamente positivos** (z=+2,00 agregado, n=80,
+ROI+23,6%; 2024 z=+1,38 n=21, 2025 z=+0,28 n=34, 2026 z=+2,07 n=25) —
+readicionado ao painel usando Sbo como casa de referência. Ver
+`docs/retrospectiva_bookmaker_bet365_2026-08-27.md` e
+`docs/retrospectiva_over25_sbo_betfair_2026-08-27.md`.
+
+**Nota de execução (Betfair Exchange)**: Lucas relata que, na prática,
+a Betfair Exchange costuma pagar melhor que a Sbo nesse mercado (e
+possivelmente nos outros). Investigamos a entrada "Betfair"
+(bookmaker_id=9) no catálogo do Sportmonks — não é a Exchange: cobertura
+rala (8,9-16,1% dos jogos, contra 98,7-98,9% da Sbo), margem MAIOR que
+o bet365 (8,08% vs 5,80% em gols) e uma grade fixa de só 34 valores de
+odd distintos — características de sportsbook tradicional fraco, não
+de uma exchange peer-to-peer (que teria margem baixa e preços
+contínuos). A Betfair Exchange simplesmente não está representada no
+dado do Sportmonks — não dá pra validar estatisticamente a observação
+do Lucas. Recomendação: a Sbo é a odd de referência pra validar o
+critério (garante que o preço mínimo aceitável existe de verdade);
+na execução real, tentar a Betfair Exchange primeiro (se a linha
+existir e a odd for igual ou melhor), caindo pra Sbo como preço já
+confirmado.
 
 Os parâmetros antigos de Over 2.5 (calibrados em cima do FootyStats)
 não se sustentam 100% em cima do Sportmonks (z caiu de +2,23 pra

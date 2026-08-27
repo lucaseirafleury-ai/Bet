@@ -488,6 +488,22 @@ atualizada, esta lista aqui não é mantida em detalhe:
    (z=+2,08) ficaram MAIS fortes; Over 2.5 recalibrado (item 31) ficou
    mais fraco e teve 2025 virar negativo (z=−0,72 nesse ano) — removido
    do painel.** Ver `docs/retrospectiva_bookmaker_bet365_2026-08-27.md`.
+35. **Over 2.5 recalibrado READICIONADO ao painel usando odd da Sbo
+   (bookmaker_id=34), não bet365** — Lucas pediu pra testar outras casas
+   antes de descartar (item 34). Testando os mesmos parâmetros contra
+   12 bookmakers do catálogo Sportmonks, **Sbo é o único acima de z≈2
+   sem nenhum ano negativo** (z=+2,00, n=80, ROI+23,6%; 2024 z=+1,38,
+   2025 z=+0,28, 2026 z=+2,07) — ranking bruto por z era enganoso
+   (Pinnacle no topo, z=+2,31, mas 2025 negativo, mesmo problema do
+   bet365). Investigamos também se a entrada "Betfair" do Sportmonks
+   (bookmaker_id=9) é a Betfair Exchange (Lucas relata odd melhor lá
+   pra esse mercado) — não é: cobertura rala (8,9-16,1% vs 98,7-98,9%
+   da Sbo), margem MAIOR que o bet365, e grade de preço fixa (34
+   valores distintos) — características de sportsbook tradicional, não
+   de exchange peer-to-peer. A Betfair Exchange não está representada
+   no dado do Sportmonks; painel documenta a Sbo como odd de referência
+   e recomenda tentar a Betfair Exchange primeiro na execução real. Ver
+   `docs/retrospectiva_over25_sbo_betfair_2026-08-27.md`.
 
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
@@ -496,10 +512,10 @@ atualizada, esta lista aqui não é mantida em detalhe:
   bet365 (z=+2,08, item 34) ainda vale acompanhar
   (`checar_decaimento.py`, precisa migrar pra ler odds só do bet365
   também) antes de promover pra stake normal.
-- Over 2.5 (Série A) segue sem candidato que se sustente com odd real
-  do bet365 (item 34) — reavaliar só se uma recalibração futura, com
-  mais temporadas completas, achar algo que também funcione com
-  bet365-só, não só com a média de todas as casas.
+- Over 2.5 (Série A, item 35) está em stake reduzido com odd da Sbo —
+  testar 12 bookmakers é uma comparação múltipla em menor escala;
+  reavaliar conforme mais dado (2027) entra na amostra, mesmo
+  tratamento do Cartões+Árbitro.
 - **Configurar `SPORTMONKS_TOKEN` como variável de ambiente persistente
   no ambiente do Claude Code** — passo manual pendente do Lucas, sem
   isso a rotina diária do painel (item 32) falha.

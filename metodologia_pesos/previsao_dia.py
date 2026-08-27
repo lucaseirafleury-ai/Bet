@@ -3,6 +3,16 @@ Over 2.5 recalibrado (Série A, stake reduzido) e Cartões+Árbitro (Série
 B, stake reduzido). Ver `docs/protocolo.md` pra evidência/parâmetros de
 cada critério.
 
+BTTS e Cartões+Árbitro usam odd do bet365 (bookmaker_id=2); Over 2.5
+recalibrado usa odd da Sbo/Sbobet (bookmaker_id=34) — é a única casa,
+entre 12 testadas, que passa acima de z≈2 SEM nenhum ano negativo (ver
+`docs/retrospectiva_over25_sbo_betfair_2026-08-27.md`). Execução real:
+Lucas tenta a Betfair Exchange primeiro (odd normalmente melhor pra
+esse mercado, segundo a experiência dele — não validável com o dado do
+Sportmonks, que só tem a Betfair Sportsbook cadastrada, cobertura rala
+e margem pior que o bet365), caindo pra Sbo como preço já validado
+quando a linha não existir/não compensar lá.
+
 Reaproveita o motor de walk-forward já testado
 (`retrospectiva.prever_jogo`) pra jogos FUTUROS, usando uma linha
 sintética (placar placeholder, nunca lido de verdade) — ver
@@ -29,7 +39,7 @@ from cartoes_arbitro import (
     prever_cartoes_combinado,
 )
 from retrospectiva import _MERCADOS_SIMULAVEIS, prever_jogo
-from sportmonks_adapter import carregar_liga_sportmonks, flat_para_linha
+from sportmonks_adapter import BOOKMAKER_BET365, BOOKMAKER_SBO, carregar_liga_sportmonks, flat_para_linha
 from sportmonks_client import LEAGUE_IDS, puxar_fixtures_futuros, token
 
 CAMINHO_HIST = {
@@ -39,14 +49,20 @@ CAMINHO_HIST = {
 MARKET_NUMBER_OF_CARDS = 255
 DIAS_A_FRENTE_PADRAO = 3
 
-# Over 2.5 recalibrado foi REMOVIDO daqui em 27/08/2026 — só se sustentava
-# com a média de todas as casas do Sportmonks; com odds só do bet365 (a
-# casa real que o Lucas usa), 2025 vira negativo (z=-0,72) e o agregado
-# cai de z=+2,28 pra z=+1,31. Ver docs/retrospectiva_bookmaker_bet365_2026-08-27.md.
+# Over 2.5 recalibrado tinha sido removido em 27/08/2026 (com odds do
+# bet365, 2025 vira negativo — docs/retrospectiva_bookmaker_bet365_2026-08-27.md).
+# Readicionado no mesmo dia usando odd da Sbo (bookmaker_id=34) em vez de
+# bet365 — único bookmaker, entre 12 testados, acima de z≈2 sem ano
+# negativo (docs/retrospectiva_over25_sbo_betfair_2026-08-27.md).
 CRITERIOS_GOLS = [
     dict(nome="BTTS", liga="seriea", mercado="btts", stake="normal", limiar_edge=0.05, n_historico=10,
+         bookmaker_id=BOOKMAKER_BET365, casa_ref="bet365",
          params=dict(k_mando=0.7, usar_estilo=True, filtro_estilo=0.8, filtro_favoritismo=0.65,
                      multiplicador_dp=1.5, limite_unilateral=2)),
+    dict(nome="Over 2.5", liga="seriea", mercado="over25", stake="reduzido", limiar_edge=0.08, n_historico=15,
+         bookmaker_id=BOOKMAKER_SBO, casa_ref="Sbo",
+         params=dict(k_mando=0.35, usar_estilo=False, filtro_aderencia=0.65,
+                     multiplicador_dp=1.5, limite_unilateral=4)),
 ]
 
 # Cartões + Árbitro (Série B) — mesmos parâmetros de checar_decaimento.py
@@ -93,7 +109,7 @@ def avaliar_criterio_gols(criterio, linha, df_historico):
     return dict(
         criterio=criterio["nome"], stake=criterio["stake"], lado=criterio["mercado"],
         odd=odd, prob_modelo=prob_modelo, prob_mercado=prob_mercado, edge=edge,
-        fixture_id=linha.get("_fixture_id"), linha_aposta=None,
+        fixture_id=linha.get("_fixture_id"), linha_aposta=None, casa_ref=criterio["casa_ref"],
     )
 
 
@@ -132,20 +148,26 @@ def avaliar_cartoes_arbitro(linha, df_historico_serieb, medias_arbitro):
         criterio="Cartões+Árbitro", stake="reduzido", lado=f"{decisao['lado']} {linha_mercado} cartões",
         odd=decisao["odd"], prob_modelo=decisao["prob_modelo"], prob_mercado=decisao["prob_mercado"],
         edge=decisao["edge"], fixture_id=linha.get("_fixture_id"), linha_aposta=linha_mercado,
+        casa_ref="bet365",
     )
 
 
 def gerar_sugestoes_do_dia(dias_a_frente=DIAS_A_FRENTE_PADRAO):
     tok = token()
-    df_seriea = carregar_liga_sportmonks(CAMINHO_HIST["seriea"])
+    # Cada critério de gols pode ter sua própria casa de referência (BTTS:
+    # bet365, Over 2.5: Sbo) — carrega um DataFrame de histórico por
+    # bookmaker distinto usado em CRITERIOS_GOLS, em vez de assumir bet365
+    # pra todos.
+    bookmakers_seriea = {c["bookmaker_id"] for c in CRITERIOS_GOLS}
+    dfs_seriea = {bid: carregar_liga_sportmonks(CAMINHO_HIST["seriea"], bookmaker_id=bid) for bid in bookmakers_seriea}
     df_serieb = carregar_liga_sportmonks(CAMINHO_HIST["serieb"])
 
     sugestoes = []
 
     for f in puxar_fixtures_futuros(tok, LEAGUE_IDS["seriea"], dias_a_frente):
-        linha = flat_para_linha(f)
         for criterio in CRITERIOS_GOLS:
-            r = avaliar_criterio_gols(criterio, linha, df_seriea)
+            linha = flat_para_linha(f, bookmaker_id=criterio["bookmaker_id"])
+            r = avaliar_criterio_gols(criterio, linha, dfs_seriea[criterio["bookmaker_id"]])
             if r:
                 sugestoes.append({**r, "liga": "Série A", "liga_chave": "seriea", "jogo": f"{f['home_team']} x {f['away_team']}", "data": f["date"]})
 
