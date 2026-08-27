@@ -33,7 +33,12 @@
 </header>
 <div id="push-hint" class="push-hint" style="display:none"></div>
 
-<main class="layout">
+<nav class="tab-nav">
+  <button class="tab-btn active" id="tab-btn-ao-vivo" onclick="mudarAba('ao-vivo')">Ao vivo</button>
+  <button class="tab-btn" id="tab-btn-historico" onclick="mudarAba('historico')">Histórico &amp; ROI</button>
+</nav>
+
+<main class="layout tab-panel" id="tab-ao-vivo">
 
   <section class="col col-live">
     <div class="panel">
@@ -68,6 +73,36 @@
   </section>
 
 </main>
+
+<div class="tab-panel" id="tab-historico" style="display:none">
+  <div class="hist-kpis" id="hist-kpis"></div>
+  <div class="panel hist-spark-panel">
+    <div class="hist-spark-titulo">
+      <h3>ROI acumulado (unidades, ordem cronológica)</h3>
+      <span id="hist-spark-valor" class="mono"></span>
+    </div>
+    <div id="hist-spark-container"></div>
+  </div>
+  <div class="panel" style="margin-top:16px">
+    <h2>Por tipo de aposta</h2>
+    <div class="tabela-wrap">
+      <table class="tabela-historico">
+        <thead><tr><th>Tipo</th><th class="num">N</th><th class="num">G / R</th><th class="num">Taxa</th><th class="num">ROI</th></tr></thead>
+        <tbody id="hist-tabela-tipos"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:16px">
+    <h2>Histórico completo <span class="muted" id="hist-contagem"></span></h2>
+    <div class="tabela-wrap">
+      <table class="tabela-historico">
+        <thead><tr><th>Data</th><th>Jogo</th><th>Mercado</th><th class="num">Prob. est.</th><th class="num">Odd usada</th><th class="num">Resultado</th><th class="num">Lucro</th></tr></thead>
+        <tbody id="hist-tabela-completa"></tbody>
+      </table>
+    </div>
+  </div>
+  <p class="hist-nota">Stake fixo de 1 unidade por entrada. Odd usada = odd real ao vivo quando encontrada no momento do sinal, senão odd mínima sintética (origem indicada abaixo da odd em cada linha).</p>
+</div>
 
 <script>
   window.MARGEM_VALOR = {{ margem_valor }};

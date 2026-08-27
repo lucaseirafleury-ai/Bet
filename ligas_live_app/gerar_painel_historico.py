@@ -13,69 +13,12 @@ Uso: python3 gerar_painel_historico.py
 Gera ligas_live_app/painel_historico.html — publique manualmente via Artifact
 (action publish, mesma URL de antes pra atualizar em vez de criar outra).
 """
-import csv
 import os
 from datetime import datetime, timezone
 
-CAMINHO_CSV = os.path.join(os.path.dirname(__file__), "historico_sinais.csv")
+from historico_analytics import carregar_linhas, agrupar_por_tipo, curva_roi_acumulado
+
 CAMINHO_SAIDA = os.path.join(os.path.dirname(__file__), "painel_historico.html")
-
-ALVO_NOME = {
-    "escanteios": "Escanteios", "chutes_totais": "Chutes totais",
-    "chutes_no_alvo": "Chutes no alvo", "gols": "Gols", "cartoes": "Cartões",
-}
-DIRECAO_NOME = {"mais_de": "Mais de", "menos_de": "Menos de"}
-
-
-def carregar_linhas():
-    with open(CAMINHO_CSV, newline="", encoding="utf-8") as fp:
-        linhas = list(csv.DictReader(fp))
-    processadas = []
-    for r in linhas:
-        if r["resultado"] not in ("green", "red"):
-            continue
-        odd_real = float(r["odd_real"]) if r.get("odd_real") else None
-        odd_minima = float(r["odd_minima"]) if r.get("odd_minima") else None
-        odd_usada = odd_real if odd_real else odd_minima
-        if odd_usada is None:
-            continue
-        lucro = (odd_usada - 1) if r["resultado"] == "green" else -1.0
-        processadas.append({
-            **r,
-            "odd_usada": odd_usada,
-            "fonte_odd": "real" if odd_real else "sintética",
-            "lucro": lucro,
-            "tipo_aposta": f"{ALVO_NOME.get(r['alvo'], r['alvo'])} · {DIRECAO_NOME.get(r['direcao'], r['direcao'])}",
-        })
-    processadas.sort(key=lambda r: r["timestamp_sinal"])
-    return processadas
-
-
-def agrupar_por_tipo(linhas):
-    grupos = {}
-    for r in linhas:
-        grupos.setdefault(r["tipo_aposta"], []).append(r)
-    resumo = []
-    for tipo, itens in grupos.items():
-        n = len(itens)
-        greens = sum(1 for i in itens if i["resultado"] == "green")
-        reds = n - greens
-        roi_pct = sum(i["lucro"] for i in itens) / n * 100
-        resumo.append({
-            "tipo": tipo, "n": n, "greens": greens, "reds": reds,
-            "taxa_pct": greens / n * 100, "roi_pct": roi_pct,
-        })
-    resumo.sort(key=lambda g: -g["n"])
-    return resumo
-
-
-def curva_roi_acumulado(linhas):
-    acumulado = 0.0
-    pontos = []
-    for r in linhas:
-        acumulado += r["lucro"]
-        pontos.append(acumulado)
-    return pontos
 
 
 def _svg_sparkline(pontos, largura=560, altura=120, pad=14):

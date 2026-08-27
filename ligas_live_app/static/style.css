@@ -288,3 +288,63 @@ body {
 .situacao-acima { color: var(--accent-green); border-color: var(--accent-green); }
 .situacao-abaixo { color: var(--accent-red); border-color: var(--accent-red); }
 .situacao-forte { font-weight: 700; background: rgba(255,255,255,0.04); }
+
+/* ── Abas (Ao vivo / Histórico & ROI) ── */
+.tab-nav {
+  display: flex; gap: 4px; padding: 10px 24px 0; background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+.tab-btn {
+  font-family: var(--mono); font-size: 12.5px; font-weight: 600; color: var(--muted);
+  background: transparent; border: none; border-bottom: 2px solid transparent;
+  padding: 10px 14px; cursor: pointer;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--accent-green); border-bottom-color: var(--accent-green); }
+.tab-panel.layout { padding-top: 20px; }
+#tab-historico { max-width: 1180px; margin: 0 auto; padding: 20px 24px 48px; }
+
+/* ── Aba Histórico & ROI ── */
+.hist-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.hist-kpis .kpi {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px;
+}
+.hist-kpis .label { font-family: var(--mono); font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+.hist-kpis .valor { font-family: var(--mono); font-size: 26px; font-weight: 700; line-height: 1; }
+.hist-kpis .valor.pos { color: var(--accent-green); }
+.hist-kpis .valor.neg { color: var(--accent-red); }
+.hist-kpis .nota { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+.hist-spark-panel { padding: 16px 18px; }
+.hist-spark-titulo { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+.hist-spark-titulo h3 { font-size: 13px; font-weight: 600; margin: 0; color: var(--text); }
+.hist-spark-titulo .pos { color: var(--accent-green); }
+.hist-spark-titulo .neg { color: var(--accent-red); }
+.roi-spark { width: 100%; height: 90px; display: block; }
+.spark-zero { stroke: var(--border); stroke-width: 1; stroke-dasharray: 3 3; }
+.spark-vazio { color: var(--muted); font-size: 12px; padding: 20px 0; text-align: center; }
+
+.tabela-wrap { overflow-x: auto; }
+.tabela-historico { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 520px; }
+.tabela-historico th {
+  text-align: left; font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--muted); font-weight: 500; padding: 8px 10px; border-bottom: 1px solid var(--border);
+}
+.tabela-historico td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.tabela-historico tr:last-child td { border-bottom: none; }
+.tabela-historico td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.tabela-historico td.mono { font-family: var(--mono); color: var(--muted); }
+.tabela-historico td.pos { color: var(--accent-green); font-family: var(--mono); font-weight: 600; }
+.tabela-historico td.neg { color: var(--accent-red); font-family: var(--mono); font-weight: 600; }
+.tabela-historico .liga-inline { display: block; font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+.tabela-historico .fonte-odd { display: block; font-size: 9.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+.tabela-historico .vazio-linha { text-align: center; color: var(--muted); padding: 20px; }
+
+.pill-mini {
+  font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.02em;
+  padding: 1px 7px; border-radius: 999px; white-space: nowrap;
+}
+.pill-mini.green { background: rgba(53,214,138,0.12); color: var(--accent-green); }
+.pill-mini.red { background: rgba(255,92,92,0.12); color: var(--accent-red); }
+
+.hist-nota { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 20px; line-height: 1.6; }
