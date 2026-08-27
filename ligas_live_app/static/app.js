@@ -125,6 +125,10 @@ function htmlSinalItem(i, { mostrarJogo }) {
     : "";
 
   const ehSinalConfirmado = i.resumo != null;
+  // Chave inclui i.time (não só fixture+tipo): o sinal de gols usa o mesmo
+  // tipo "gols" pros dois times do jogo (casa e fora) — sem o time na chave,
+  // expandir o card de um time também expandia/recolhia o do outro.
+  const chave = `${i.fixture_id}-${i.tipo}-${i.time}`;
   if (!ehSinalConfirmado) {
     return `
       <div class="insight-item ${dirClass}">
@@ -134,7 +138,6 @@ function htmlSinalItem(i, { mostrarJogo }) {
     `;
   }
 
-  const chave = `${i.fixture_id}-${i.tipo}`;
   const expandido = sinaisExpandidos.has(chave);
   return `
     <div class="insight-item ${dirClass} sinal-compacto">
@@ -152,11 +155,11 @@ function htmlSinalItem(i, { mostrarJogo }) {
 }
 
 function unidadeDelta(insight) {
-  // Sinais confirmados por pesquisa cross-liga (identificados pelo campo
-  // "resumo", que só eles têm) reportam impacto em pontos percentuais
-  // (p.p.), não desvio percentual relativo como o sinal de ritmo de gols —
-  // unidades diferentes, rótulo diferente. Checa o campo em si, não um
-  // prefixo de "tipo" (que já mudou uma vez — regra_* virou sinal_*).
+  // Campo explícito quando existir (ver live_monitor.py) — evita inferir a
+  // unidade a partir de outro campo (já rolou bug assim antes: checar
+  // "resumo" pra decidir p.p./%, e o sinal de gols também ganhou "resumo"
+  // pra virar card fechado, o que quebraria essa inferência).
+  if (insight.unidade_delta) return insight.unidade_delta;
   return insight.resumo != null ? "p.p." : "%";
 }
 

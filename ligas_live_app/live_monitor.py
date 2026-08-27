@@ -369,7 +369,13 @@ def checar_ritmo_gols(relatorio, minuto, time_nome, gols_reais, lambda_time, xg_
         delta_pct_exibido = -abs(round(delta * 100, 1))  # negativo -> selo vermelho, sinal de alerta
 
     msg = f"min {minuto} — {time_nome}: {rotulo} — {motivo}{_mercados_favorecidos(relatorio, comparacao)}"
-    return _insight_base(relatorio, minuto, "gols", time_nome, delta_pct_exibido, msg)
+    insight = _insight_base(relatorio, minuto, "gols", time_nome, delta_pct_exibido, msg)
+    # Mesmo formato fechado dos outros sinais (ver htmlSinalItem/unidadeDelta em
+    # static/app.js) — "resumo" decide isso no front, e "unidade_delta" evita que
+    # ganhar "resumo" mude sem querer a unidade exibida (aqui é "%", não "p.p.").
+    insight["resumo"] = f"{time_nome}: {rotulo}"
+    insight["unidade_delta"] = "%"
+    return insight
 
 
 # ── Comparação de mercado: pré-live (estático) x ao vivo ──────
@@ -601,6 +607,7 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
         insight["alvo"] = alvo
         insight["direcao"] = direcao
         insight["linha"] = linha_mercado  # valor numérico limpo — permite avaliar green/red depois sem parsear texto
+        insight["unidade_delta"] = "p.p."
         if odd_real_info:
             insight["odd_real"] = odd_real_info["odd"]
             insight["odd_real_casa"] = odd_real_info["casa"]
