@@ -45,6 +45,26 @@ def media_arbitro_walk_forward(jogos_ordenados, min_jogos_arbitro=10):
     return medias
 
 
+def media_arbitro_atual(jogos, min_jogos_arbitro=10):
+    """Média de cartões de cada árbitro usando TODO o histórico
+    disponível — diferente de `media_arbitro_walk_forward` (que dá a
+    média NO MOMENTO de cada jogo passado, pra backtesting sem
+    lookahead), esta função serve pra PREVISÃO AO VIVO: "hoje" é
+    realmente agora, então usar o histórico inteiro não tem risco de
+    lookahead. `jogos`: lista de dicts com `referee_id`/`total_cartoes`,
+    ordem não importa aqui.
+
+    Retorna `{referee_id: media}`, só pros árbitros com pelo menos
+    `min_jogos_arbitro` jogos com dado completo."""
+    historico = defaultdict(list)
+    for jogo in jogos:
+        referee_id = jogo.get("referee_id")
+        total_cartoes = jogo.get("total_cartoes")
+        if referee_id is not None and total_cartoes is not None:
+            historico[referee_id].append(total_cartoes)
+    return {rid: sum(vals) / len(vals) for rid, vals in historico.items() if len(vals) >= min_jogos_arbitro}
+
+
 def prever_cartoes_combinado(pred_time, media_arbitro, peso_arbitro=0.3):
     """Média ponderada entre a previsão do modelo de times (`pred_time`)
     e a média histórica do árbitro (`media_arbitro`). Retorna `None`
@@ -91,6 +111,36 @@ def odd_media_na_linha(jogo, market_id, total_alvo, label):
     return sum(valores) / len(valores)
 
 
+def decidir_lado_linha(pred_total, linha, odd_over, odd_under, limiar_edge=0.0):
+    """Decide o lado (Over/Under) por edge (probabilidade do modelo menos
+    probabilidade implícita do mercado) na `linha` dada — SEM resolver
+    vitória/derrota (usado tanto por `simular_aposta_linha`, que já sabe
+    o resultado real, quanto por `previsao_dia.py`, que avalia jogos
+    futuros onde não existe resultado ainda).
+
+    Como as probabilidades de mercado/modelo são complementares
+    (`prob_under = 1 - prob_over` dos dois lados), `edge_under` é sempre
+    o negativo de `edge_over` — com `limiar_edge=0.0` (padrão, o que foi
+    usado em toda a validação empírica deste critério) a função SEMPRE
+    decide um lado, nunca pula o jogo.
+
+    Retorna `None` quando não há edge suficiente (só possível com
+    `limiar_edge > 0`). Caso contrário, `{"lado", "odd", "prob_modelo",
+    "prob_mercado", "edge"}`."""
+    prob_modelo_over = probabilidade_over(pred_total, linha=linha)
+    prob_mercado_over = probabilidade_implicita_2vias(odd_over, odd_under)
+    edge_over = prob_modelo_over - prob_mercado_over
+    edge_under = -edge_over
+
+    if edge_over >= limiar_edge and edge_over >= edge_under:
+        return dict(lado="Over", odd=odd_over, prob_modelo=prob_modelo_over,
+                     prob_mercado=prob_mercado_over, edge=edge_over)
+    if edge_under >= limiar_edge:
+        return dict(lado="Under", odd=odd_under, prob_modelo=1 - prob_modelo_over,
+                     prob_mercado=1 - prob_mercado_over, edge=edge_under)
+    return None
+
+
 def simular_aposta_linha(pred_total, linha, odd_over, odd_under, real_total, limiar_edge=0.0):
     """Decide o lado (Over/Under) por edge (probabilidade do modelo menos
     probabilidade implícita do mercado) na `linha` dada, e resolve o
@@ -111,15 +161,11 @@ def simular_aposta_linha(pred_total, linha, odd_over, odd_under, real_total, lim
     é líquido por unidade de stake (`odd - 1` se venceu, `-1` se
     perdeu), sem aplicar nenhuma redução de stake (isso é decisão de
     operação, não da simulação estatística)."""
-    prob_modelo_over = probabilidade_over(pred_total, linha=linha)
-    prob_mercado_over = probabilidade_implicita_2vias(odd_over, odd_under)
-    edge_over = prob_modelo_over - prob_mercado_over
-    edge_under = -edge_over
-
-    if edge_over >= limiar_edge and edge_over >= edge_under:
+    decisao = decidir_lado_linha(pred_total, linha, odd_over, odd_under, limiar_edge)
+    if decisao is None:
+        return None
+    if decisao["lado"] == "Over":
         venceu = real_total > linha
-        return dict(lado="Over", venceu=venceu, lucro=(odd_over - 1) if venceu else -1.0)
-    if edge_under >= limiar_edge:
+    else:
         venceu = real_total <= linha
-        return dict(lado="Under", venceu=venceu, lucro=(odd_under - 1) if venceu else -1.0)
-    return None
+    return dict(lado=decisao["lado"], venceu=venceu, lucro=(decisao["odd"] - 1) if venceu else -1.0)

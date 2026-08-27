@@ -1,7 +1,9 @@
 import pytest
 
 from cartoes_arbitro import (
+    decidir_lado_linha,
     linha_mais_liquida,
+    media_arbitro_atual,
     media_arbitro_walk_forward,
     odd_media_na_linha,
     prever_cartoes_combinado,
@@ -64,6 +66,28 @@ def test_media_arbitro_walk_forward_total_cartoes_ausente_nao_entra_no_historico
     # o 1º jogo (sem total_cartoes) não entra no histórico - só o 4º jogo
     # (quando o histórico já acumulou os 2 valores dos jogos 2 e 3) tem média
     assert medias == [None, None, None, pytest.approx((4 + 6) / 2)]
+
+
+def test_media_arbitro_atual_usa_todo_o_historico_sem_ordem():
+    jogos = [
+        {"referee_id": "X", "total_cartoes": 4},
+        {"referee_id": "Y", "total_cartoes": 10},
+        {"referee_id": "X", "total_cartoes": 6},
+        {"referee_id": "X", "total_cartoes": 8},
+    ]
+    medias = media_arbitro_atual(jogos, min_jogos_arbitro=3)
+    assert medias == {"X": pytest.approx((4 + 6 + 8) / 3)}  # Y só tem 1 jogo, abaixo do minimo
+
+
+def test_media_arbitro_atual_ignora_jogos_sem_referee_ou_total():
+    jogos = [
+        {"referee_id": None, "total_cartoes": 4},
+        {"referee_id": "X", "total_cartoes": None},
+        {"referee_id": "X", "total_cartoes": 6},
+        {"referee_id": "X", "total_cartoes": 8},
+    ]
+    medias = media_arbitro_atual(jogos, min_jogos_arbitro=2)
+    assert medias == {"X": pytest.approx((6 + 8) / 2)}
 
 
 def test_prever_cartoes_combinado_media_ponderada():
@@ -135,6 +159,20 @@ def test_simular_aposta_linha_limiar_zero_sempre_aposta_no_lado_favorecido():
     # sempre bate o limiar, a função nunca pula o jogo
     resultado = simular_aposta_linha(pred_total=2.5, linha=2.5, odd_over=2.0, odd_under=2.0, real_total=3)
     assert resultado is not None
+
+
+def test_decidir_lado_linha_nao_precisa_de_resultado_real():
+    # mesmo cenario do teste de simular_aposta_linha, mas sem informar
+    # real_total - usado pra jogos futuros (previsao_dia.py)
+    decisao = decidir_lado_linha(pred_total=6.0, linha=2.5, odd_over=1.9, odd_under=1.9)
+    assert decisao["lado"] == "Over"
+    assert decisao["odd"] == pytest.approx(1.9)
+    assert decisao["edge"] > 0
+
+
+def test_decidir_lado_linha_com_limiar_pula_sem_edge_minimo():
+    decisao = decidir_lado_linha(pred_total=2.6, linha=2.5, odd_over=2.0, odd_under=2.0, limiar_edge=0.5)
+    assert decisao is None
 
 
 def test_simular_aposta_linha_aposta_perdedora_tem_lucro_negativo():
