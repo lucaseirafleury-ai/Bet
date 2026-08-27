@@ -6,6 +6,7 @@ import requests
 import config
 
 CORE_BASE_URL = "https://api.sportmonks.com/v3/core"  # /types vive aqui, não em /football
+ODDS_BASE_URL = "https://api.sportmonks.com/v3/odds"  # odds vivem numa base própria, não em /football nem /core
 
 
 def _get(path, params=None, base_url=None):
@@ -109,3 +110,27 @@ def live_fixtures(include="statistics.type;participants;league;scores;periods"):
     """Fixtures atualmente ao vivo (dentro das ligas assinadas)."""
     data = _get("/livescores/inplay", {"include": include})
     return data.get("data", [])
+
+
+def odds_inplay_fixture(fixture_id):
+    """Linhas de odds AO VIVO (mercado x casa x label) de uma fixture, se existirem."""
+    data = _get(f"/odds/inplay/fixtures/{fixture_id}", base_url=ODDS_BASE_URL)
+    return data.get("data", [])
+
+
+_cache_bookmakers = {}
+
+
+def bookmakers_mapa():
+    """id -> nome da casa de apostas. Cacheado em memória (não muda durante a vida do processo)."""
+    if _cache_bookmakers:
+        return _cache_bookmakers
+    pagina = 1
+    while True:
+        data = _get("/bookmakers", {"per_page": 100, "page": pagina}, base_url=ODDS_BASE_URL)
+        for b in data.get("data", []):
+            _cache_bookmakers[b["id"]] = b["name"]
+        if not data.get("pagination", {}).get("has_more"):
+            break
+        pagina += 1
+    return _cache_bookmakers
