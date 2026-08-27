@@ -395,6 +395,89 @@ async function atualizarTudo() {
 atualizarTudo();
 setInterval(atualizarTudo, 15000); // atualiza a cada 15s
 
+// ── Aba Histórico & ROI ────────────────────────────────────────
+// Ao contrário da aba "Ao vivo" (atualiza sozinha a cada 15s), esta busca só
+// quando o usuário clica na aba — o histórico muda no máximo 1x/dia (rotina
+// diária), não faz sentido pollar junto com o resto.
+
+function mudarAba(nome) {
+  const abas = ["ao-vivo", "historico"];
+  for (const chave of abas) {
+    $(`#tab-${chave}`).style.display = chave === nome ? "" : "none";
+    $(`#tab-btn-${chave}`).classList.toggle("active", chave === nome);
+  }
+  if (nome === "historico") carregarHistorico();
+}
+
+function svgSparklineRoi(pontos, largura = 100, altura = 26) {
+  if (!pontos || pontos.length < 2) {
+    return `<div class="spark-vazio">precisa de 2+ sinais fechados pra desenhar a curva</div>`;
+  }
+  const pad = 3;
+  const minimo = Math.min(...pontos, 0);
+  const maximo = Math.max(...pontos, 0);
+  const amplitude = (maximo - minimo) || 1;
+  const n = pontos.length;
+  const xDe = (i) => pad + (i / (n - 1)) * (largura - 2 * pad);
+  const yDe = (v) => pad + (1 - (v - minimo) / amplitude) * (altura - 2 * pad);
+  const pts = pontos.map((v, i) => `${xDe(i).toFixed(1)},${yDe(v).toFixed(1)}`).join(" ");
+  const yZero = yDe(0);
+  const cor = pontos[pontos.length - 1] >= 0 ? "var(--accent-green)" : "var(--accent-red)";
+  const areaPts = `${xDe(0).toFixed(1)},${yZero.toFixed(1)} ${pts} ${xDe(n - 1).toFixed(1)},${yZero.toFixed(1)}`;
+  return `
+    <svg viewBox="0 0 ${largura} ${altura}" class="roi-spark" preserveAspectRatio="none" role="img" aria-label="ROI acumulado ao longo dos sinais fechados">
+      <line x1="${pad}" y1="${yZero.toFixed(1)}" x2="${largura - pad}" y2="${yZero.toFixed(1)}" class="spark-zero" />
+      <polygon points="${areaPts}" fill="${cor}" opacity="0.14" stroke="none" />
+      <polyline points="${pts}" fill="none" stroke="${cor}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" />
+      <circle cx="${xDe(n - 1).toFixed(1)}" cy="${yDe(pontos[n - 1]).toFixed(1)}" r="2.4" fill="${cor}" />
+    </svg>`;
+}
+
+function renderHistorico(data) {
+  const r = data.resumo;
+  $("#hist-kpis").innerHTML = `
+    <div class="kpi">
+      <div class="label">ROI (stake fixo 1u)</div>
+      <div class="valor ${r.roi_pct >= 0 ? "pos" : "neg"}">${r.roi_pct >= 0 ? "+" : ""}${r.roi_pct.toFixed(1)}%</div>
+      <div class="nota">${r.lucro_total_un >= 0 ? "+" : ""}${r.lucro_total_un.toFixed(2)}u em ${r.n_total} entrada${r.n_total !== 1 ? "s" : ""}</div>
+    </div>
+    <div class="kpi"><div class="label">Entradas fechadas</div><div class="valor">${r.n_total}</div></div>
+    <div class="kpi"><div class="label">Green</div><div class="valor pos">${r.greens}</div></div>
+    <div class="kpi"><div class="label">Red</div><div class="valor neg">${r.reds}</div></div>
+  `;
+
+  $("#hist-spark-valor").innerHTML = `<span class="${r.lucro_total_un >= 0 ? "pos" : "neg"}">${r.lucro_total_un >= 0 ? "+" : ""}${r.lucro_total_un.toFixed(2)}u</span>`;
+  $("#hist-spark-container").innerHTML = svgSparklineRoi(data.curva_roi, 560, 100);
+
+  const tiposHtml = (data.por_tipo || []).map((g) => `
+    <tr>
+      <td>${g.tipo}</td>
+      <td class="num">${g.n}</td>
+      <td class="num"><span class="pill-mini green">${g.greens}G</span> <span class="pill-mini red">${g.reds}R</span></td>
+      <td class="num">${g.taxa_pct.toFixed(1)}%</td>
+      <td class="num ${g.roi_pct >= 0 ? "pos" : "neg"}">${g.roi_pct >= 0 ? "+" : ""}${g.roi_pct.toFixed(1)}%</td>
+    </tr>`).join("") || `<tr><td colspan="5" class="vazio-linha">sem sinais fechados ainda</td></tr>`;
+  $("#hist-tabela-tipos").innerHTML = tiposHtml;
+
+  const completaHtml = (data.historico || []).map((h) => `
+    <tr>
+      <td class="mono">${h.data_jogo}</td>
+      <td>${h.jogo}<span class="liga-inline">${h.liga}</span></td>
+      <td>${h.tipo_aposta} ${parseFloat(h.linha)}</td>
+      <td class="num">${parseFloat(h.probabilidade_estimada).toFixed(1)}%</td>
+      <td class="num mono">${h.odd_usada.toFixed(2)}<span class="fonte-odd">${h.fonte_odd}</span></td>
+      <td class="num"><span class="pill-mini ${h.resultado}">${h.resultado}</span></td>
+      <td class="num ${h.lucro >= 0 ? "pos" : "neg"}">${h.lucro >= 0 ? "+" : ""}${h.lucro.toFixed(2)}u</td>
+    </tr>`).join("") || `<tr><td colspan="7" class="vazio-linha">sem sinais fechados ainda</td></tr>`;
+  $("#hist-tabela-completa").innerHTML = completaHtml;
+  $("#hist-contagem").textContent = `— ${(data.historico || []).length} sinal${(data.historico || []).length !== 1 ? "is" : ""} fechado${(data.historico || []).length !== 1 ? "s" : ""}, mais recente primeiro`;
+}
+
+async function carregarHistorico() {
+  const data = await getJSON("/api/historico-sinais");
+  renderHistorico(data);
+}
+
 // ── Notificações push (Web Push) ──────────────────────────────
 
 function urlBase64ToUint8Array(base64String) {

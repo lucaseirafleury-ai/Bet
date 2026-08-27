@@ -14,6 +14,7 @@ from datetime import datetime, timedelta, timezone
 from flask import Flask, jsonify, render_template, request
 
 import config
+import historico_analytics
 from live_monitor import _notificar_push
 
 HORA_PRELIVE_UTC = 6  # 06:00 UTC ~ manhã na Suécia/Lituânia (UTC+2 no verão)
@@ -98,6 +99,18 @@ def api_insights():
 @app.route("/api/jogos-anteriores")
 def api_jogos_anteriores():
     return jsonify(_ler_json(config.JOGOS_ANTERIORES_FILE, []))
+
+
+@app.route("/api/historico-sinais")
+def api_historico_sinais():
+    linhas = historico_analytics.carregar_linhas()
+    return jsonify({
+        "atualizado_em": datetime.now(timezone.utc).isoformat(),
+        "resumo": historico_analytics.resumo_geral(linhas),
+        "curva_roi": historico_analytics.curva_roi_acumulado(linhas),
+        "por_tipo": historico_analytics.agrupar_por_tipo(linhas),
+        "historico": list(reversed(linhas)),
+    })
 
 
 @app.route("/api/live-snapshots")
