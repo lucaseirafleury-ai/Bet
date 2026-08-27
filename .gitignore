@@ -6,3 +6,4 @@ ligas_live_app/data/*.csv
 pesquisa_gols/resultados/*.csv
 pesquisa_gols/dados/.checkpoint_*.json
 ligas_live_app/backtest_run.log
+ligas_live_app/painel_historico.html
