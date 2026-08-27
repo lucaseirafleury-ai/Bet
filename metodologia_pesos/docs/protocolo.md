@@ -421,7 +421,10 @@ sistemático do motor de gols reaproveitado; não vale insistir com
 grid. **Cartões: sem edge, mas por ruído** (agregado perto de zero,
 z cai conforme sobe o limiar de edge exigido — assinatura de ruído,
 não de sinal real) — provavelmente precisa do fator árbitro (não
-incorporado ainda) pra sair do ruído. Mantém a recomendação de usar só
+incorporado ainda) pra sair do ruído. **Confirmado também com os
+combos campeões de Over 2.5 e BTTS** (não só neutro) — escanteios
+negativo nas 6 combinações testadas (2 ligas × 3 configs), cartões
+perto de zero e inconsistente nas 6. Mantém a recomendação de usar só
 Over 2.5/BTTS por enquanto. Ver
 `docs/retrospectiva_escanteios_cartoes_2026-08-27.md`.
 

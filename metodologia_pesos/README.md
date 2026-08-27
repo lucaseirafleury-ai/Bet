@@ -372,8 +372,11 @@ atualizada, esta lista aqui não é mantida em detalhe:
    z=-2,80, todos os anos) — não é calibração, é viés sistemático.
    Cartões: sem edge, mas ruído (não viés) — provavelmente precisa do
    fator árbitro (Sportmonks expõe `referee_id`, mas não estatística
-   agregada pronta) pra sair do zero. Mantém recomendação de usar só
-   Over 2.5/BTTS. Ver
+   agregada pronta) pra sair do zero. **Confirmado também com os
+   parâmetros campeões de Over 2.5 e BTTS** (não só neutro) —
+   escanteios negativo nas 6 combinações testadas (2 ligas × 3
+   configs), cartões perto de zero e inconsistente nas 6. Mantém
+   recomendação de usar só Over 2.5/BTTS. Ver
    `docs/retrospectiva_escanteios_cartoes_2026-08-27.md`.
 
 ## O que ainda falta

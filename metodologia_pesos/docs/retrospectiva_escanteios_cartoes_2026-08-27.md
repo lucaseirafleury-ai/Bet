@@ -45,6 +45,34 @@ B edge≥0% z=+0,94 → edge≥8% z=+0,02) — assinatura clássica de ruído,
 não de edge real calibrado (se fosse edge de verdade, exigir mais edge
 deveria filtrar pro melhor, não pro pior).
 
+## Confirmação com os parâmetros já calibrados (Over 2.5 e BTTS)
+
+Lucas perguntou se o teste acima usou só parâmetros neutros ou também
+os combos já validados — resposta: só neutros na primeira rodada.
+Refeito com os dois combos campeões (`k=0.5,sem estilo,filtro=0.8,
+apertado,n_hist=15` do Over 2.5; `k=0.7,com estilo,filtros
+0.8/0.65,apertado,n_hist=10` do BTTS), mesma metodologia:
+
+| Mercado | Config | Série A (z) | Série B (z) |
+|---|---|---|---|
+| Escanteios | Neutro | -2,38 | -2,80 |
+| Escanteios | Over 2.5-campeão | -0,93 | **-3,14** |
+| Escanteios | BTTS-campeão | -2,13 | -2,32 |
+| Cartões | Neutro | -0,20 | +0,94 |
+| Cartões | Over 2.5-campeão | -0,51 | +0,42 |
+| Cartões | BTTS-campeão | +0,59 | -0,00 |
+
+**Escanteios continua negativo nas 6 combinações** (2 ligas × 3
+configs) — confirma que não é questão de calibração, nenhum parâmetro
+testado reverte o sinal.
+
+**Cartões continua perto de zero e inconsistente em todas as 6
+combinações** — o caso mais chamativo (Série A, parâmetros do BTTS,
+agregado z=+0,59) tem 2026 isolado em z=+2,77, mas 2024 z=+0,17 e 2025
+**z=-1,22** nos MESMOS parâmetros — um ano bom cercado de anos
+fracos/negativos, o padrão clássico de ruído (mesma lição do "casa" da
+Série B), não sinal calibrado.
+
 ## Interpretação
 
 **Escanteios**: o sinal negativo é forte demais e consistente demais
