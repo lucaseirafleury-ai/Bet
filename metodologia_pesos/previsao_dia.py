@@ -92,6 +92,7 @@ def avaliar_criterio_gols(criterio, linha, df_historico):
     return dict(
         criterio=criterio["nome"], stake=criterio["stake"], lado=criterio["mercado"],
         odd=odd, prob_modelo=prob_modelo, prob_mercado=prob_mercado, edge=edge,
+        fixture_id=linha.get("_fixture_id"), linha_aposta=None,
     )
 
 
@@ -129,7 +130,7 @@ def avaliar_cartoes_arbitro(linha, df_historico_serieb, medias_arbitro):
     return dict(
         criterio="Cartões+Árbitro", stake="reduzido", lado=f"{decisao['lado']} {linha_mercado} cartões",
         odd=decisao["odd"], prob_modelo=decisao["prob_modelo"], prob_mercado=decisao["prob_mercado"],
-        edge=decisao["edge"],
+        edge=decisao["edge"], fixture_id=linha.get("_fixture_id"), linha_aposta=linha_mercado,
     )
 
 
@@ -145,14 +146,14 @@ def gerar_sugestoes_do_dia(dias_a_frente=DIAS_A_FRENTE_PADRAO):
         for criterio in CRITERIOS_GOLS:
             r = avaliar_criterio_gols(criterio, linha, df_seriea)
             if r:
-                sugestoes.append({**r, "liga": "Série A", "jogo": f"{f['home_team']} x {f['away_team']}", "data": f["date"]})
+                sugestoes.append({**r, "liga": "Série A", "liga_chave": "seriea", "jogo": f"{f['home_team']} x {f['away_team']}", "data": f["date"]})
 
     medias_arbitro = media_arbitro_atual(_carregar_referees_cartoes(CAMINHO_HIST["serieb"]), min_jogos_arbitro=MIN_JOGOS_ARBITRO)
     for f in puxar_fixtures_futuros(tok, LEAGUE_IDS["serieb"], dias_a_frente):
         linha = flat_para_linha(f)
         r = avaliar_cartoes_arbitro(linha, df_serieb, medias_arbitro)
         if r:
-            sugestoes.append({**r, "liga": "Série B", "jogo": f"{f['home_team']} x {f['away_team']}", "data": f["date"]})
+            sugestoes.append({**r, "liga": "Série B", "liga_chave": "serieb", "jogo": f"{f['home_team']} x {f['away_team']}", "data": f["date"]})
 
     return sugestoes
 
