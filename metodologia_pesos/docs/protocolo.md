@@ -1,5 +1,29 @@
 # Protocolo de Apostas — Regras Persistentes
 
+**🔄 Migração em andamento (27/08/2026) — saindo do FootyStats (upload
+manual de CSV), indo 100% Sportmonks (API automatizada).** Lucas decidiu
+cancelar o FootyStats e montar um painel automatizado (rotina diária,
+sem planilha manual). Tudo abaixo desta nota que fala em "critério
+campeão"/`k_mando`/etc. foi calibrado em cima do FootyStats — os
+parâmetros NÃO transferem automaticamente pro Sportmonks (odds mais
+"afiadas", sem xG real, formato de dado diferente). **Estado atual da
+transição, revalidando cada critério 100% em cima do Sportmonks**:
+- ✅ **BTTS (Série A)** — confirma, z=+2,33 (praticamente igual ao
+  original). Vai pro painel com stake normal.
+- ❌ **Over 2.5 (Série A)** — não se sustenta (z caiu de +2,23 pra
+  +0,49); recalibração dedicada também não achou candidato defensável
+  (o que parecia promissor era artefato de amostra pequena da
+  temporada 2026 incompleta). NÃO entra no painel por enquanto.
+- ✅ **Cartões+Árbitro (Série B)** — já era nativamente Sportmonks, sem
+  mudança. Continua stake reduzido.
+- Série B Over 2.5/BTTS seguem sem edge, confirmado de novo.
+
+Ver `docs/retrospectiva_validacao_100_sportmonks_2026-08-27.md` e
+`docs/retrospectiva_over25_sportmonks_2026-08-27.md`. O conteúdo
+histórico abaixo (calibração em cima do FootyStats) fica preservado
+como registro — não é mais o critério de aposta vigente pra produção
+nova, mas explica o raciocínio que levou até aqui.
+
 **⚠️ Leitura obrigatória antes de qualquer outra coisa neste arquivo —
 seção "Grid completo: melhor achado da sessão (25/08/2026)" logo mais
 abaixo.** Os parâmetros de `k_mando`/`usar_estilo`/`filtro_aderencia` da

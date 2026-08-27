@@ -422,6 +422,24 @@ atualizada, esta lista aqui não é mantida em detalhe:
    aproximada), aqui a odd é real de mercado — confirma que o problema
    não é a fonte de dado, é o mercado de Under mesmo. Ver
    `docs/retrospectiva_under_odds_reais_2026-08-27.md`.
+30. **Migração pra 100% Sportmonks iniciada — BTTS confirma, Over 2.5
+   não.** Lucas decidiu cancelar o FootyStats e automatizar tudo numa
+   rotina + painel (sem planilha manual). Construído
+   `sportmonks_adapter.py` (traduz fixture do Sportmonks pro formato que
+   o motor já entende, sem tocar em `pesos.py`/`retrospectiva.py`/
+   `estilo.py`) — resolveu 2 problemas reais: xG não existe nessas ligas
+   no Sportmonks (usa gols reais como proxy) e ~5-16% dos jogos têm
+   estatística de detalhe faltando (reaproveita o sentinela de dado
+   ausente já existente). Rodando os 2 critérios campeões 100% em cima
+   do Sportmonks: **BTTS (Série A) confirma** (z=+2,33, quase igual ao
+   original) — vai pro painel com stake normal. **Over 2.5 (Série A)
+   não se sustenta** (z caiu pra +0,49) — recalibração dedicada (grid de
+   192 combinações) também não achou candidato defensável, o topo do
+   grid era inflado pela temporada 2026 incompleta (2025, ano completo
+   mais recente, fica em z≈0,3 em todos os candidatos testados). Não
+   entra no painel automatizado por enquanto. Ver
+   `docs/retrospectiva_validacao_100_sportmonks_2026-08-27.md` e
+   `docs/retrospectiva_over25_sportmonks_2026-08-27.md`.
 
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
