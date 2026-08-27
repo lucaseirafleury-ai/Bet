@@ -363,6 +363,18 @@ atualizada, esta lista aqui não é mantida em detalhe:
    histórico anterior), não um padrão recorrente a cada temporada. Não
    muda nenhuma recomendação. Ver
    `docs/retrospectiva_inicio_temporada_2026-08-26.md`.
+26. **Escanteios e cartões via odds reais do Sportmonks — testado, NÃO
+   USAR ainda** — Lucas queria diversificar além de Over 2.5/BTTS;
+   validamos que o Sportmonks tem odds reais de escanteios/cartões
+   (cobertura confirmada, dado consistente com FootyStats) e testamos
+   reaproveitando o motor de gols atual. Escanteios: sinal **negativo**
+   forte e consistente nas duas ligas (Série A z=-2,38, Série B
+   z=-2,80, todos os anos) — não é calibração, é viés sistemático.
+   Cartões: sem edge, mas ruído (não viés) — provavelmente precisa do
+   fator árbitro (Sportmonks expõe `referee_id`, mas não estatística
+   agregada pronta) pra sair do zero. Mantém recomendação de usar só
+   Over 2.5/BTTS. Ver
+   `docs/retrospectiva_escanteios_cartoes_2026-08-27.md`.
 
 ## O que ainda falta
 

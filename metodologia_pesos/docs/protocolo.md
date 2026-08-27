@@ -410,6 +410,21 @@ especificamente, o único momento em que faltava histórico anterior a
 2016-2022), não um padrão recorrente. Não muda nenhuma recomendação —
 ver `docs/retrospectiva_inicio_temporada_2026-08-26.md`.
 
+## Escanteios e cartões (Sportmonks) — testado, NÃO USAR ainda (27/08/2026)
+
+Buscando diversificar além de Over 2.5/BTTS (que dependem de um mesmo
+motor), testamos escanteios e cartões com odds reais do Sportmonks
+(2024-2026, cobertura confirmada nas duas ligas). **Escanteios: sinal
+NEGATIVO forte e consistente** (Série A z=-2,38, Série B z=-2,80,
+negativo em TODOS os anos) — não é falta de calibração, é viés
+sistemático do motor de gols reaproveitado; não vale insistir com
+grid. **Cartões: sem edge, mas por ruído** (agregado perto de zero,
+z cai conforme sobe o limiar de edge exigido — assinatura de ruído,
+não de sinal real) — provavelmente precisa do fator árbitro (não
+incorporado ainda) pra sair do ruído. Mantém a recomendação de usar só
+Over 2.5/BTTS por enquanto. Ver
+`docs/retrospectiva_escanteios_cartoes_2026-08-27.md`.
+
 ## Regras que nunca mudam
 
 1. **Não usar odds de memória** — sempre pesquisar odds reais (Betano e
