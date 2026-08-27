@@ -13,6 +13,8 @@ menos xG (não existe pra Série A/B no Sportmonks, ver
 """
 from __future__ import annotations
 
+import datetime
+import json
 import os
 import time
 
@@ -120,7 +122,7 @@ def puxar_fixtures_finalizados(tok, league_id, out_path):
                     flat = flatten_fixture(f)
                     if flat and flat["home_goals"] is not None and flat["away_goals"] is not None:
                         flat["season"] = nome_temp
-                        fh.write(__import__("json").dumps(flat) + "\n")
+                        fh.write(json.dumps(flat) + "\n")
                         total += 1
                 fh.flush()
                 pag = d.get("pagination", {})
@@ -131,13 +133,68 @@ def puxar_fixtures_finalizados(tok, league_id, out_path):
     return total
 
 
+def atualizar_fixtures_finalizados(tok, league_id, out_path, margem_dias=3):
+    """Atualiza `out_path` de forma incremental: se o arquivo já existir,
+    busca só os fixtures dos últimos dias via `/fixtures/between` (mesmo
+    endpoint usado pra jogos futuros) em vez de rebaixar as ~1000
+    fixtures históricas da liga inteira a cada rodada — é isso que fazia
+    a rotina diária demorar minutos só pra atualizar o dado. `margem_dias`
+    é uma folga de segurança pra recapturar jogos cuja odd/estatística
+    ainda não estava completa na última passada. Sem arquivo prévio (1ª
+    vez), faz o pull completo de sempre (`puxar_fixtures_finalizados`)."""
+    if not os.path.exists(out_path) or os.path.getsize(out_path) == 0:
+        return puxar_fixtures_finalizados(tok, league_id, out_path)
+
+    existentes = []
+    ids_existentes = set()
+    with open(out_path) as fh:
+        for l in fh:
+            d = json.loads(l)
+            existentes.append(d)
+            ids_existentes.add(d["fixture_id"])
+
+    data_mais_recente = max(d["date"] for d in existentes)[:10]
+    inicio = datetime.date.fromisoformat(data_mais_recente) - datetime.timedelta(days=margem_dias)
+    hoje = datetime.date.today()
+
+    novos = 0
+    page = 1
+    while True:
+        params = {
+            "api_token": tok,
+            "filters": f"fixtureLeagues:{league_id};markets:{MARKETS}",
+            "include": "scores;participants;statistics;referees;odds",
+            "per_page": 50, "page": page,
+        }
+        r = requests.get(f"{BASE}/fixtures/between/{inicio.isoformat()}/{hoje.isoformat()}", params=params, timeout=60)
+        r.raise_for_status()
+        d = r.json()
+        for f in d.get("data", []):
+            flat = flatten_fixture(f)
+            if (
+                flat and flat["home_goals"] is not None and flat["away_goals"] is not None
+                and flat["fixture_id"] not in ids_existentes
+            ):
+                flat["season"] = ""  # desconhecida pro pull incremental — só usada pra rótulo cosmético (__src)
+                existentes.append(flat)
+                ids_existentes.add(flat["fixture_id"])
+                novos += 1
+        pag = d.get("pagination", {})
+        if not pag.get("has_more"):
+            break
+        page += 1
+        time.sleep(0.2)
+
+    with open(out_path, "w") as fh:
+        for d in existentes:
+            fh.write(json.dumps(d) + "\n")
+    return novos
+
+
 def puxar_fixtures_futuros(tok, league_id, dias_a_frente=10):
     """Retorna (não grava em arquivo — é sempre "fresco") a lista de
     fixtures ainda não jogados nos próximos `dias_a_frente` dias, já
     achatados (`flatten_fixture`), com as odds pré-jogo disponíveis."""
-    import datetime
-    import json as json_mod
-
     hoje = datetime.date.today()
     ate = hoje + datetime.timedelta(days=dias_a_frente)
     resultado = []
