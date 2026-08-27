@@ -564,16 +564,20 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
         linha_mercado = melhor_regra["mercado"]["linha"]
 
         # Odd REAL de casa de apostas, quando o mercado existir na liga (hoje: escanteios
-        # nas nórdicas; escanteios/chutes no Brasil — ver odds_ao_vivo.py). Nunca bloqueia
-        # o sinal se não achar — é um complemento ao odd mínima sintético, não requisito.
+        # nas nórdicas; escanteios/chutes no Brasil — ver odds_ao_vivo.py). Quando NÃO acha
+        # (mercado sem cobertura nessa liga/linha), não bloqueia — segue com o odd mínima
+        # sintético, como antes. Quando ACHA, só publica se o EV contra essa odd real for
+        # positivo — sem valor real contra o preço de mercado, a confirmação por
+        # persistência sozinha não basta.
         odd_real_info = odds_ao_vivo.buscar_odd_real(relatorio["fixture_id"], alvo, direcao, linha_mercado)
         texto_odd_real = ""
         if odd_real_info:
             ev_pct = (melhor_stats["p_condicao"] * odd_real_info["odd"] - 1) * 100
+            if ev_pct < 0:
+                continue  # odd real conhecida e sem valor — não publica, mesmo já confirmado por persistência
             texto_odd_real = (
                 f" Odd real ao vivo ({odd_real_info['casa']}): {odd_real_info['odd']:.2f} (implica "
-                f"{odd_real_info['probabilidade_implicita']*100:.1f}%) — valor esperado "
-                f"{'positivo' if ev_pct >= 0 else 'negativo'} de {ev_pct:+.1f}%."
+                f"{odd_real_info['probabilidade_implicita']*100:.1f}%) — valor esperado positivo de {ev_pct:+.1f}%."
             )
 
         mensagem = (
