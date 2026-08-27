@@ -39,13 +39,14 @@ CAMINHO_HIST = {
 MARKET_NUMBER_OF_CARDS = 255
 DIAS_A_FRENTE_PADRAO = 3
 
+# Over 2.5 recalibrado foi REMOVIDO daqui em 27/08/2026 — só se sustentava
+# com a média de todas as casas do Sportmonks; com odds só do bet365 (a
+# casa real que o Lucas usa), 2025 vira negativo (z=-0,72) e o agregado
+# cai de z=+2,28 pra z=+1,31. Ver docs/retrospectiva_bookmaker_bet365_2026-08-27.md.
 CRITERIOS_GOLS = [
     dict(nome="BTTS", liga="seriea", mercado="btts", stake="normal", limiar_edge=0.05, n_historico=10,
          params=dict(k_mando=0.7, usar_estilo=True, filtro_estilo=0.8, filtro_favoritismo=0.65,
                      multiplicador_dp=1.5, limite_unilateral=2)),
-    dict(nome="Over 2.5", liga="seriea", mercado="over25", stake="reduzido", limiar_edge=0.08, n_historico=15,
-         params=dict(k_mando=0.35, usar_estilo=False, filtro_aderencia=0.65,
-                     multiplicador_dp=1.5, limite_unilateral=4)),
 ]
 
 # Cartões + Árbitro (Série B) — mesmos parâmetros de checar_decaimento.py

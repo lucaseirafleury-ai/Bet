@@ -30,9 +30,8 @@ CAMINHO_LEDGER = "data/ledger_sugestoes.json"
 DIAS_RESULTADOS_RECENTES = 14
 
 CRITERIOS_INFO = [
-    dict(nome="BTTS", stake="cheio", stake_label="stake normal", evidencia="Série A · z=+2,33 · sem ano negativo"),
-    dict(nome="Over 2.5", stake="reduzido", stake_label="stake reduzido", evidencia="Série A · holdout 2026 z=+2,83 (n=23)"),
-    dict(nome="Cartões+Árbitro", stake="reduzido", stake_label="stake reduzido", evidencia="Série B · z≈+1,73 · positivo nos 3 anos"),
+    dict(nome="BTTS", stake="cheio", stake_label="stake normal", evidencia="Série A · bet365 z=+2,89 · sem ano negativo"),
+    dict(nome="Cartões+Árbitro", stake="reduzido", stake_label="stake reduzido", evidencia="Série B · bet365 z=+2,08 · positivo nos 3 anos"),
 ]
 
 _NOME_LADO = {"btts": "BTTS · Sim", "over25": "Over 2.5"}

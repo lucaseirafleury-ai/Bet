@@ -5,18 +5,28 @@ de CSV), foi pra 100% Sportmonks com painel automatizado.** Lucas
 cancelou o FootyStats. Tudo abaixo desta nota que fala em "critério
 campeão"/`k_mando`/etc. foi calibrado em cima do FootyStats — histórico
 de como se chegou aos parâmetros atuais, não mais a fonte de dado em
-produção. **3 critérios rodando no painel diário**:
-- ✅ **BTTS (Série A)** — stake normal. z=+2,33 100% Sportmonks
-  (praticamente igual ao original em FootyStats).
-- ⚠️ **Over 2.5 recalibrado (Série A)** — stake reduzido. Parâmetros
-  antigos não se sustentam no Sportmonks (z caiu de +2,23 pra +0,49);
-  recalibração dedicada (`k=0.35, sem estilo, filtro=0.65, mult_dp=1.5,
-  uni=4, edge=8%`) validada com treino honesto em 2024+2025 (z=+1,15,
-  escolhido sem olhar 2026) + holdout real em 2026 (z=+2,83, n=23) —
-  mesmo padrão "positivo todo ano, ainda não z≈2" do Cartões+Árbitro.
-- ⚠️ **Cartões+Árbitro (Série B)** — stake reduzido, sem mudança
-  (já era nativamente Sportmonks).
+produção. **2 critérios rodando no painel diário** (odds restritas ao
+**bet365** — ver nota abaixo sobre por quê):
+- ✅ **BTTS (Série A)** — stake normal. z=+2,89 com odd real do bet365
+  (mais forte até que a média de todas as casas do Sportmonks, z=+2,33).
+- ✅ **Cartões+Árbitro (Série B)** — stake reduzido. z=+2,08 com odd
+  real do bet365 (também mais forte que a média, z=+1,19).
+- ❌ **Over 2.5 recalibrado (Série A) — REMOVIDO do painel (27/08/2026).**
+  Só parecia "positivo todo ano" na média de todas as casas do
+  Sportmonks (z=+2,28); com a odd real do bet365, 2025 vira
+  NEGATIVO (z=−0,72) e o agregado cai pra z=+1,31. Não usar.
 - Série B Over 2.5/BTTS seguem sem edge, confirmado de novo.
+
+**⚠️ Odds restritas ao bet365 (bookmaker_id=2), não mais média de
+todas as casas do Sportmonks (27/08/2026).** Lucas reportou uma
+sugestão de cartões que não existia em nenhuma casa que ele usa —
+investigando, o Sportmonks agrega dezenas de casas internacionais
+(Unibet, Pinnacle, 10Bet...) que ele não tem acesso; Betano nem existe
+no catálogo pro Brasil. bet365 é a única casa real dele coberta de
+forma confiável (999/999 Série A, 998/1000 Série B). Revalidação
+completa com bet365-só mudou a recomendação: BTTS e Cartões+Árbitro
+ficaram MAIS fortes, Over 2.5 recalibrado ficou mais fraco e foi
+removido. Ver `docs/retrospectiva_bookmaker_bet365_2026-08-27.md`.
 
 **Painel automatizado**: `metodologia_pesos/previsao_dia.py` (previsão
 ao vivo, reaproveitando `retrospectiva.prever_jogo` via linha sintética
@@ -27,8 +37,9 @@ configurado como variável de ambiente persistente no ambiente do
 Claude Code (não em arquivo/sessão — precisa sobreviver entre
 disparos da rotina).
 
-Ver `docs/retrospectiva_validacao_100_sportmonks_2026-08-27.md` e
-`docs/retrospectiva_over25_sportmonks_2026-08-27.md`. O conteúdo
+Ver `docs/retrospectiva_validacao_100_sportmonks_2026-08-27.md`,
+`docs/retrospectiva_over25_sportmonks_2026-08-27.md` e
+`docs/retrospectiva_bookmaker_bet365_2026-08-27.md`. O conteúdo
 histórico abaixo (calibração em cima do FootyStats) fica preservado
 como registro — não é mais o critério de aposta vigente pra produção
 nova, mas explica o raciocínio que levou até aqui.
@@ -128,6 +139,16 @@ se decair, reduzir mais ou descartar (mesmo tratamento que qualquer
 outro critério deste documento).
 
 ## Quarto critério (stake reduzido) — Over 2.5 recalibrado, Série A (27/08/2026)
+
+**❌ REMOVIDO em 27/08/2026 (mesmo dia) — não se sustenta com a odd
+real do bet365.** Toda a seção abaixo foi validada com a MÉDIA de
+todas as casas do Sportmonks. Ao restringir pra bet365 (a casa real
+que o Lucas usa — ver seção "Odds restritas ao bet365" no topo deste
+arquivo), 2025 vira negativo (z=−0,72) e o agregado cai de z=+2,28 pra
+z=+1,31. Não é mais um critério ativo — mantido aqui só como registro
+do raciocínio (útil se uma recalibração futura, com dado de mais anos,
+encontrar algo que também se sustente no bet365). Ver
+`docs/retrospectiva_bookmaker_bet365_2026-08-27.md`.
 
 Os parâmetros antigos de Over 2.5 (calibrados em cima do FootyStats)
 não se sustentam 100% em cima do Sportmonks (z caiu de +2,23 pra

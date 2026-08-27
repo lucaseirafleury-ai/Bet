@@ -465,16 +465,41 @@ atualizada, esta lista aqui não é mantida em detalhe:
    proativa) — depende de `SPORTMONKS_TOKEN` como variável de ambiente
    persistente no ambiente do Claude Code (configuração pendente do
    Lucas, fora do que dá pra fazer via ferramentas desta sessão).
+33. **Painel ganha registro de resultados (Green/Red) e resumo de
+   ROI na lateral** — novo `ledger_apostas.py`: cada sugestão vira uma
+   entrada `pendente` (persistida em `data/ledger_sugestoes.json`,
+   versionado no git), resolvida pra Green/Red assim que o jogo aparece
+   como finalizado no histórico já atualizado do Sportmonks. Stake fixo
+   de gestão de banca (BTTS=1u, os outros=0,5u — diferente do "stake
+   normal/reduzido" de confiança estatística). Painel ganha uma seção
+   "Resultados recentes" (últimos 14 dias) e uma barra lateral com
+   entradas/green/red/ROI, geral e por critério.
+34. **Bug real reportado pelo Lucas: sugestão de cartões numa linha que
+   não existia em nenhuma casa que ele usa — corrigido restringindo
+   tudo ao bet365.** Investigação encontrou 2 causas: (1)
+   `linha_mais_liquida` escolhia a linha com mais casas cotando, mas o
+   Sportmonks agrega dezenas de casas internacionais (Unibet, Pinnacle
+   etc.) que o Lucas não tem acesso — um empate entre linhas de 1 casa
+   cada foi resolvido de forma arbitrária; (2) Betano não existe no
+   catálogo do Sportmonks pro Brasil. bet365 é a única casa real dele
+   coberta de forma confiável (999/999 Série A, 998/1000 Série B).
+   Revalidação completa com bet365-só (não mais a média de todas as
+   casas) mudou a recomendação: **BTTS (z=+2,89) e Cartões+Árbitro
+   (z=+2,08) ficaram MAIS fortes; Over 2.5 recalibrado (item 31) ficou
+   mais fraco e teve 2025 virar negativo (z=−0,72 nesse ano) — removido
+   do painel.** Ver `docs/retrospectiva_bookmaker_bet365_2026-08-27.md`.
 
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
   sem qualquer edge defensável — não apostar por este critério.
-- Cartões+Árbitro (Série B, item 28) e Over 2.5 recalibrado (item 31)
-  estão em stake reduzido porque ainda não passam de z≈2 de forma
-  robusta — acompanhar (`checar_decaimento.py` cobre Cartões+Árbitro;
-  Over 2.5 recalibrado ainda não entrou nessa checagem semanal) e
-  promover pra stake normal só se o z se sustentar acima de 2 com mais
-  dado de 2026/2027, não com um ano isolado.
+- Cartões+Árbitro (Série B, item 28) está em stake reduzido — mesmo com
+  bet365 (z=+2,08, item 34) ainda vale acompanhar
+  (`checar_decaimento.py`, precisa migrar pra ler odds só do bet365
+  também) antes de promover pra stake normal.
+- Over 2.5 (Série A) segue sem candidato que se sustente com odd real
+  do bet365 (item 34) — reavaliar só se uma recalibração futura, com
+  mais temporadas completas, achar algo que também funcione com
+  bet365-só, não só com a média de todas as casas.
 - **Configurar `SPORTMONKS_TOKEN` como variável de ambiente persistente
   no ambiente do Claude Code** — passo manual pendente do Lucas, sem
   isso a rotina diária do painel (item 32) falha.

@@ -13,14 +13,14 @@ def _flat_base(**overrides):
         yellowcards_home=2, yellowcards_away=3, redcards_home=0, redcards_away=0,
         referee_id=999, season="2026",
         odds={
-            "1": [{"bookmaker_id": 1, "label": "Home", "total": None, "value": "1.80"},
-                  {"bookmaker_id": 1, "label": "Draw", "total": None, "value": "3.50"},
-                  {"bookmaker_id": 1, "label": "Away", "total": None, "value": "4.50"}],
-            "80": [{"bookmaker_id": 1, "label": "Over", "total": "2.5", "value": "2.10"},
-                   {"bookmaker_id": 1, "label": "Under", "total": "2.5", "value": "1.70"}],
-            "14": [{"bookmaker_id": 1, "label": "Yes", "total": None, "value": "1.95"},
-                   {"bookmaker_id": 1, "label": "No", "total": None, "value": "1.85"}],
-            "255": [{"bookmaker_id": 1, "label": "Over", "total": "9.5", "value": "1.90"}],
+            "1": [{"bookmaker_id": 2, "label": "Home", "total": None, "value": "1.80"},
+                  {"bookmaker_id": 2, "label": "Draw", "total": None, "value": "3.50"},
+                  {"bookmaker_id": 2, "label": "Away", "total": None, "value": "4.50"}],
+            "80": [{"bookmaker_id": 2, "label": "Over", "total": "2.5", "value": "2.10"},
+                   {"bookmaker_id": 2, "label": "Under", "total": "2.5", "value": "1.70"}],
+            "14": [{"bookmaker_id": 2, "label": "Yes", "total": None, "value": "1.95"},
+                   {"bookmaker_id": 2, "label": "No", "total": None, "value": "1.85"}],
+            "255": [{"bookmaker_id": 2, "label": "Over", "total": "9.5", "value": "1.90"}],
         },
     )
     base.update(overrides)
@@ -79,3 +79,41 @@ def test_flat_para_linha_sem_odd_retorna_none_na_coluna():
     linha = flat_para_linha(_flat_base(odds={}))
     assert linha["odds_ft_home_team_win"] is None
     assert linha["odds_btts_yes"] is None
+
+
+def test_flat_para_linha_ignora_odd_de_outra_casa_por_padrao():
+    # mesmo jogo, mas só tem odd de uma casa que NÃO é bet365 (id=2, o
+    # default) - o caso real que motivou essa mudança: não dá pra sugerir
+    # uma odd de uma casa que o Lucas não usa/não tem acesso
+    flat = _flat_base(odds={
+        "1": [{"bookmaker_id": 999, "label": "Home", "total": None, "value": "1.80"},
+              {"bookmaker_id": 999, "label": "Draw", "total": None, "value": "3.50"},
+              {"bookmaker_id": 999, "label": "Away", "total": None, "value": "4.50"}],
+    })
+    linha = flat_para_linha(flat)
+    assert linha["odds_ft_home_team_win"] is None
+
+
+def test_flat_para_linha_com_bookmaker_id_none_usa_media_de_todas_as_casas():
+    # comportamento antigo, usado só pra revalidar/comparar com os
+    # números documentados antes da restrição a bet365
+    flat = _flat_base(odds={
+        "1": [{"bookmaker_id": 2, "label": "Home", "total": None, "value": "1.80"},
+              {"bookmaker_id": 999, "label": "Home", "total": None, "value": "2.00"},
+              {"bookmaker_id": 2, "label": "Draw", "total": None, "value": "3.50"},
+              {"bookmaker_id": 2, "label": "Away", "total": None, "value": "4.50"}],
+    })
+    linha = flat_para_linha(flat, bookmaker_id=None)
+    assert linha["odds_ft_home_team_win"] == pytest.approx((1.80 + 2.00) / 2)
+
+
+def test_flat_para_linha_odds_cartoes_filtra_por_bookmaker():
+    flat = _flat_base(odds={
+        "255": [
+            {"bookmaker_id": 2, "label": "Over", "total": "4.5", "value": "1.90"},
+            {"bookmaker_id": 999, "label": "Over", "total": "5.5", "value": "1.60"},
+        ],
+    })
+    linha = flat_para_linha(flat)
+    linhas_vistas = {e["total"] for e in linha["_odds_cartoes"]}
+    assert linhas_vistas == {"4.5"}  # a linha da casa 999 (não-bet365) não entra
