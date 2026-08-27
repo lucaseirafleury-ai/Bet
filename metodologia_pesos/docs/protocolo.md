@@ -375,6 +375,17 @@ conclusões independentes na mesma direção: **não usar nenhum critério
 de Under pra apostar dinheiro real**, até conseguirmos uma fonte com
 odd REAL desse lado. Ver `docs/retrospectiva_under_margem_2026-08-25.md`.
 
+**✅ Reteste 27/08/2026 com odd REAL do Sportmonks — CONFIRMA, fecha a
+dúvida.** Agora com odd real de mercado (não mais aproximação), testado
+com os 2 conjuntos de params já campeões (Over 2.5 e BTTS) × 2 ligas ×
+4 linhas (1.5/2.5/3.5/4.5) = 16 células: **as 16 são negativas**, e 47
+dos 48 recortes ano-a-ano dentro delas também são negativos (a única
+exceção, Série A/BTTS/Under 3.5/2024, é ruído — nem a célula agregada é
+positiva). Fecha a questão: não é limitação da fonte de dado nem da
+aproximação de margem, é o mercado de Under mesmo que não deixa edge
+pro nosso modelo, com odd de qualquer fonte testada até aqui. Ver
+`docs/retrospectiva_under_odds_reais_2026-08-27.md`.
+
 ## 1x2 e Dupla Chance de mandante/visitante — testado, NÃO USAR (25/08/2026)
 
 Testamos casa/empate/fora (1x2, odd REAL, margem removida via

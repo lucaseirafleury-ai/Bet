@@ -413,6 +413,16 @@ atualizada, esta lista aqui não é mantida em detalhe:
    ~1/3 do normal (não paridade com Over 2.5/BTTS) — ver seção
    "Terceiro critério (stake reduzido)" em `docs/protocolo.md`.
 
+29. **Under retestado com odd REAL do Sportmonks — confirma, fecha a
+   questão** — usando os 2 conjuntos de params já campeões (Over 2.5 e
+   BTTS) × 2 ligas × 4 linhas (1.5/2.5/3.5/4.5) = 16 células, **todas
+   as 16 deram negativo**, e 47 dos 48 recortes ano-a-ano dentro delas
+   também (a única exceção é ruído, nem a célula agregada é positiva).
+   Diferente das rodadas anteriores (item 14/15, que usavam odd
+   aproximada), aqui a odd é real de mercado — confirma que o problema
+   não é a fonte de dado, é o mercado de Under mesmo. Ver
+   `docs/retrospectiva_under_odds_reais_2026-08-27.md`.
+
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
   sem qualquer edge defensável — não apostar por este critério.
@@ -424,10 +434,9 @@ atualizada, esta lista aqui não é mantida em detalhe:
 - Escanteios (Série A + Série B) seguem sem qualquer edge com o motor
   atual, mesmo com odd real do Sportmonks (item 26) — não vale
   insistir sem repensar o motor de previsão desse mercado especificamente.
-- Under (1.5/2.5/3.5/4.5) segue sem odd real na fonte de dado atual —
-  testado com aproximação simples (viés, item 14) e com margem de casa
-  assumida (item 15, viés corrigido mas sem edge real); só dá pra testar
-  Under de verdade com uma fonte que traga a odd real desse lado.
+- Under: encerrado (item 29) — testado com odd aproximada, com margem
+  corrigida e com odd real, sempre sem edge. Não reabrir sem uma
+  mudança de motor de verdade.
 - Os proxies de Pressão Alta/Transição/Bola Parada em `estilo.py` não
   estão se mostrando úteis em nenhum mercado testado — candidatos a
   redesenho (dado mais rico) antes de reavaliar a contribuição do estilo.
