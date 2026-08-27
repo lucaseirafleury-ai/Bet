@@ -36,6 +36,8 @@
 <nav class="tab-nav">
   <button class="tab-btn active" id="tab-btn-ao-vivo" onclick="mudarAba('ao-vivo')">Ao vivo</button>
   <button class="tab-btn" id="tab-btn-historico" onclick="mudarAba('historico')">Histórico &amp; ROI</button>
+  <button class="tab-btn" id="tab-btn-proximos" onclick="mudarAba('proximos')">Próximos jogos</button>
+  <button class="tab-btn" id="tab-btn-anteriores" onclick="mudarAba('anteriores')">Jogos anteriores</button>
 </nav>
 
 <main class="layout tab-panel" id="tab-ao-vivo">
@@ -56,25 +58,29 @@
         <p class="empty-state">Nenhum jogo ao vivo monitorado no momento.</p>
       </div>
     </div>
-
-    <div class="panel" style="margin-top:16px">
-      <h2>Próximos jogos <span class="muted" id="prelive-gerado-em"></span></h2>
-      <div id="prelive-lista" class="card-grid">
-        <p class="empty-state">Nenhuma análise pré-live ainda.</p>
-      </div>
-    </div>
-
-    <div class="panel" style="margin-top:16px">
-      <h2>Jogos anteriores <span class="muted">— últimos 7 dias</span></h2>
-      <div id="jogos-anteriores-lista" class="card-grid">
-        <p class="empty-state">Nenhum jogo encerrado ainda.</p>
-      </div>
-    </div>
   </section>
 
 </main>
 
-<div class="tab-panel" id="tab-historico" style="display:none">
+<div class="tab-panel single-col" id="tab-proximos" style="display:none">
+  <div class="panel">
+    <h2>Próximos jogos <span class="muted" id="prelive-gerado-em"></span></h2>
+    <div id="prelive-lista" class="card-grid">
+      <p class="empty-state">Nenhuma análise pré-live ainda.</p>
+    </div>
+  </div>
+</div>
+
+<div class="tab-panel single-col" id="tab-anteriores" style="display:none">
+  <div class="panel">
+    <h2>Jogos anteriores <span class="muted">— últimos 7 dias</span></h2>
+    <div id="jogos-anteriores-lista" class="card-grid">
+      <p class="empty-state">Nenhum jogo encerrado ainda.</p>
+    </div>
+  </div>
+</div>
+
+<div class="tab-panel single-col" id="tab-historico" style="display:none">
   <div class="hist-kpis" id="hist-kpis"></div>
   <div class="panel hist-spark-panel">
     <div class="hist-spark-titulo">

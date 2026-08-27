@@ -401,7 +401,7 @@ setInterval(atualizarTudo, 15000); // atualiza a cada 15s
 // diária), não faz sentido pollar junto com o resto.
 
 function mudarAba(nome) {
-  const abas = ["ao-vivo", "historico"];
+  const abas = ["ao-vivo", "historico", "proximos", "anteriores"];
   for (const chave of abas) {
     $(`#tab-${chave}`).style.display = chave === nome ? "" : "none";
     $(`#tab-btn-${chave}`).classList.toggle("active", chave === nome);
