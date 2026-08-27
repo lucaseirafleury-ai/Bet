@@ -215,7 +215,44 @@ for item in brutas:
 
 sinais = [max(itens, key=lambda x: x["impacto"]) for itens in grupos.values()]
 
-fortes = [s for s in sinais if s["amostra"] >= AMOSTRA_MINIMA and s["impacto"] >= IMPACTO_MINIMO_PP]
+
+def _carregar_confirmadas_brasil():
+    """
+    (alvo_id, minuto, gols_momento, mercado '+/-N', frozenset de (stat,operador,limite))
+    confirmadas contra Série A + Série B (pesquisa_gols/confirmar_brasil.py) — mesmo teste
+    estatístico formal (duas proporções + Benjamini-Hochberg) usado na confirmação nórdica,
+    só que rodado de novo contra o Brasil como dataset de confirmação. Exigir as duas
+    (nórdicas E Brasil) garante que uma regra só entra no painel se já se provou fora de
+    UMA amostra (nórdicas -> Allsvenskan) E de uma REGIÃO inteira diferente (Brasil), não só
+    de mais jogos da mesma vizinhança de ligas.
+    """
+    chaves = set()
+    for alvo_id in ALVOS:
+        for r in ler_csv(f"{BASE}/{alvo_id}_confirmacao_brasil_1stat.csv"):
+            condset = frozenset({(r["stat"], r["operador"], float(r["limite"]))})
+            chaves.add((alvo_id, int(r["minuto"]), int(r["gols_momento"]), r["mercado"], condset))
+        for r in ler_csv(f"{BASE}/{alvo_id}_confirmacao_brasil_2stats.csv"):
+            condset = frozenset({
+                (r["stat1"], r["operador1"], float(r["limite1"])),
+                (r["stat2"], r["operador2"], float(r["limite2"])),
+            })
+            chaves.add((alvo_id, int(r["minuto"]), int(r["gols_momento"]), r["mercado"], condset))
+    return chaves
+
+
+def _chave_brasil(item):
+    condset = frozenset((c["stat"], c["operador"], c["limite"]) for c in item["condicoes"])
+    mercado = f"{item['sinal_mercado']}{item['linha_mercado']:g}"
+    return (item["alvo_id"], item["minuto"], item["gols_momento"], mercado, condset)
+
+
+CONFIRMADAS_BRASIL = _carregar_confirmadas_brasil()
+
+fortes = [
+    s for s in sinais
+    if s["amostra"] >= AMOSTRA_MINIMA and s["impacto"] >= IMPACTO_MINIMO_PP
+    and _chave_brasil(s) in CONFIRMADAS_BRASIL
+]
 fortes.sort(key=lambda x: (x["alvo_id"], -x["impacto"]))
 
 print(f"sinais totais: {len(sinais)} | subconjunto forte (amostra>={AMOSTRA_MINIMA}, impacto>={IMPACTO_MINIMO_PP}pp): {len(fortes)}")
@@ -280,9 +317,11 @@ print(f"  cobertura: {sum(coberturas)/len(coberturas):.1f} valores distintos por
 print(f"  amostra usada por valor: pior caso = {min(amostras_min)} jogos (após fallback pro vizinho)")
 
 payload = {
-    "criterio": f"amostra_confirmacao >= {AMOSTRA_MINIMA} e impacto_pp >= {IMPACTO_MINIMO_PP}",
-    "fonte": "pesquisa_gols/resultados/*_confirmacao_*.csv (confirmado_bh=True) + recalibração por valor atual "
-             "do alvo sobre as 5 ligas (ver recalibrar_por_valor_atual em gerar_regras_sinais.py)",
+    "criterio": f"amostra_confirmacao >= {AMOSTRA_MINIMA} e impacto_pp >= {IMPACTO_MINIMO_PP}, "
+                "confirmado nas nórdicas E no Brasil (Série A + Série B)",
+    "fonte": "pesquisa_gols/resultados/*_confirmacao_*.csv (confirmado_bh=True) + "
+             "*_confirmacao_brasil_*.csv (confirmado_bh=True) + recalibração por valor atual "
+             "do alvo sobre as 7 ligas (ver recalibrar_por_valor_atual em gerar_regras_sinais.py)",
     "total_regras": len(regras),
     "regras": regras,
 }
