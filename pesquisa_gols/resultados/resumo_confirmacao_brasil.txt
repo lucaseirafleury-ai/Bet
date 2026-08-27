@@ -1,0 +1,63 @@
+======================================================================
+Resumo geral
+======================================================================
+Gols            :    4+  38 testadas no Brasil (amostra suficiente) ->   0+  0 confirmadas
+Escanteios      :  260+1434 testadas no Brasil (amostra suficiente) -> 246+1100 confirmadas
+Cartões         :   32+ 128 testadas no Brasil (amostra suficiente) ->  28+ 72 confirmadas
+Chutes totais   :  378+1024 testadas no Brasil (amostra suficiente) -> 356+858 confirmadas
+Chutes no alvo  :   68+  98 testadas no Brasil (amostra suficiente) ->  64+ 84 confirmadas
+
+Das 85 regras hoje ativas no painel, 85 tiveram amostra suficiente no Brasil pra testar. Dessas:
+  52 se confirmaram (mesma direção + significativas, BH) no Brasil
+    [escanteios] Chutes totais ≥ 21 aos 90' (3 gol(s) no jogo) → Mais de 8.5 escanteios (p=0.0001, n=330)
+    [escanteios] Chutes totais ≥ 6 aos 30' (1 gol(s) no jogo) → Mais de 10.5 escanteios (p=0.0108, n=507)
+    [escanteios] Chutes totais ≥ 7 aos 30' (1 gol(s) no jogo) → Mais de 11.5 escanteios (p=0.0001, n=408)
+    [escanteios] Chutes totais ≤ 7 aos 30' (1 gol(s) no jogo) → Menos de 9.5 escanteios (p=0.0002, n=397)
+    [escanteios] Chutes totais ≥ 11 aos 45' (1 gol(s) no jogo) → Mais de 11.5 escanteios (p=0.0001, n=405)
+    [escanteios] Chutes no alvo ≤ 7 aos 75' (2 gol(s) no jogo) → Menos de 10.5 escanteios (p=0.0191, n=334)
+    [escanteios] Chutes no alvo ≤ 8 aos 90' (2 gol(s) no jogo) → Menos de 10.5 escanteios (p=0.0007, n=349)
+    [escanteios] Faltas ≤ 8 E Chutes totais ≥ 7 aos 30' (1 gol(s) no jogo) → Mais de 9.5 escanteios (p=0.0000, n=314)
+    [escanteios] Impedimentos ≤ 1 E Chutes totais ≥ 6 aos 30' (1 gol(s) no jogo) → Mais de 9.5 escanteios (p=0.0237, n=384)
+    [escanteios] Impedimentos ≤ 1 E Chutes totais ≥ 7 aos 30' (1 gol(s) no jogo) → Mais de 9.5 escanteios (p=0.0002, n=312)
+    [escanteios] Ataques ≥ 56 E Chutes totais ≤ 8 aos 30' (1 gol(s) no jogo) → Menos de 9.5 escanteios (p=0.0002, n=261)
+    [escanteios] Chutes no alvo ≤ 6 E Cruzamentos ≤ 27 aos 60' (2 gol(s) no jogo) → Menos de 10.5 escanteios (p=0.0000, n=251)
+    [escanteios] Chutes no alvo ≤ 6 E Cruzamentos ≤ 27 aos 60' (2 gol(s) no jogo) → Menos de 11.5 escanteios (p=0.0000, n=251)
+    [escanteios] Defesas ≤ 5 E Chutes no alvo ≤ 7 aos 75' (2 gol(s) no jogo) → Menos de 9.5 escanteios (p=0.0137, n=321)
+    [escanteios] Chutes de dentro da área ≤ 14 E Chutes no alvo ≤ 7 aos 75' (2 gol(s) no jogo) → Menos de 9.5 escanteios (p=0.0015, n=298)
+    [escanteios] Defesas ≤ 5 E Chutes no alvo ≤ 7 aos 75' (2 gol(s) no jogo) → Menos de 10.5 escanteios (p=0.0044, n=321)
+    [escanteios] Chutes de dentro da área ≤ 14 E Chutes no alvo ≤ 7 aos 75' (2 gol(s) no jogo) → Menos de 10.5 escanteios (p=0.0004, n=298)
+    [escanteios] Chutes no alvo ≤ 7 E Chutes totais ≤ 22 aos 75' (2 gol(s) no jogo) → Menos de 10.5 escanteios (p=0.0019, n=272)
+    [escanteios] Chutes totais ≥ 18 E Desarmes ≤ 30 aos 75' (2 gol(s) no jogo) → Mais de 11.5 escanteios (p=0.0013, n=321)
+    [escanteios] Chutes no alvo ≤ 6 E Chutes totais ≤ 22 aos 75' (2 gol(s) no jogo) → Menos de 11.5 escanteios (p=0.0020, n=206)
+    [escanteios] Chutes no alvo ≤ 7 E Chutes totais ≤ 22 aos 75' (2 gol(s) no jogo) → Menos de 11.5 escanteios (p=0.0002, n=272)
+    [escanteios] Ataques ≥ 34 E Chutes totais ≤ 2 aos 15' (0 gol(s) no jogo) → Menos de 7.5 escanteios (p=0.0154, n=210)
+    [escanteios] Ataques ≥ 34 E Passes-chave ≤ 2 aos 15' (0 gol(s) no jogo) → Menos de 8.5 escanteios (p=0.0321, n=317)
+    [escanteios] Ataques ≥ 31 E Cruzamentos ≤ 4 aos 15' (0 gol(s) no jogo) → Menos de 9.5 escanteios (p=0.0002, n=334)
+    [escanteios] Ataques ≥ 31 E Cruzamentos ≤ 5 aos 15' (0 gol(s) no jogo) → Menos de 9.5 escanteios (p=0.0005, n=454)
+    [escanteios] Ataques ≥ 31 E Cruzamentos ≤ 6 aos 15' (0 gol(s) no jogo) → Menos de 9.5 escanteios (p=0.0067, n=547)
+    [escanteios] Ataques ≥ 34 E Cruzamentos ≤ 4 aos 15' (0 gol(s) no jogo) → Menos de 9.5 escanteios (p=0.0017, n=248)
+    [escanteios] Ataques ≥ 34 E Cruzamentos ≤ 4 aos 15' (0 gol(s) no jogo) → Menos de 11.5 escanteios (p=0.0006, n=248)
+    [escanteios] Ataques ≥ 57 E Passes-chave ≤ 5 aos 30' (0 gol(s) no jogo) → Menos de 9.5 escanteios (p=0.0324, n=406)
+    [escanteios] Ataques ≥ 65 E Chutes totais ≤ 9 aos 30' (0 gol(s) no jogo) → Menos de 8.5 escanteios (p=0.0040, n=261)
+    [escanteios] Ataques ≥ 65 E Cruzamentos ≤ 15 aos 30' (0 gol(s) no jogo) → Menos de 8.5 escanteios (p=0.0024, n=275)
+    [escanteios] Ataques ≥ 86 E Cruzamentos ≤ 18 aos 45' (0 gol(s) no jogo) → Menos de 11.5 escanteios (p=0.0006, n=259)
+    [escanteios] Ataques perigosos ≥ 43 E Chutes totais ≥ 10 aos 45' (1 gol(s) no jogo) → Mais de 9.5 escanteios (p=0.0007, n=153)
+    [escanteios] Ataques perigosos ≥ 39 E Chutes totais ≥ 10 aos 45' (1 gol(s) no jogo) → Mais de 10.5 escanteios (p=0.0012, n=225)
+    [escanteios] Ataques perigosos ≥ 43 E Chutes totais ≥ 10 aos 45' (1 gol(s) no jogo) → Mais de 10.5 escanteios (p=0.0002, n=153)
+    [escanteios] Faltas ≤ 12 E Chutes totais ≥ 10 aos 45' (1 gol(s) no jogo) → Mais de 11.5 escanteios (p=0.0042, n=323)
+    [escanteios] Chutes no alvo ≥ 3 E Chutes totais ≥ 11 aos 45' (1 gol(s) no jogo) → Mais de 11.5 escanteios (p=0.0011, n=341)
+    [escanteios] Chutes totais ≥ 10 E % dribles certos ≤ 133 aos 45' (1 gol(s) no jogo) → Mais de 11.5 escanteios (p=0.0082, n=388)
+    [escanteios] Chutes totais ≥ 11 E % dribles certos ≤ 133 aos 45' (1 gol(s) no jogo) → Mais de 11.5 escanteios (p=0.0006, n=305)
+    [escanteios] Duelos vencidos ≤ 61 E Chutes totais ≥ 13 aos 60' (1 gol(s) no jogo) → Mais de 7.5 escanteios (p=0.0027, n=426)
+    [escanteios] Faltas ≤ 17 E Chutes totais ≥ 13 aos 60' (1 gol(s) no jogo) → Mais de 8.5 escanteios (p=0.0000, n=345)
+    [escanteios] Ataques perigosos ≤ 65 E Chutes totais ≤ 18 aos 60' (1 gol(s) no jogo) → Menos de 8.5 escanteios (p=0.0015, n=482)
+    [escanteios] Faltas ≤ 17 E Chutes totais ≥ 13 aos 60' (1 gol(s) no jogo) → Mais de 11.5 escanteios (p=0.0000, n=345)
+    [escanteios] Chutes no alvo ≥ 4 E Chutes totais ≥ 13 aos 60' (1 gol(s) no jogo) → Mais de 11.5 escanteios (p=0.0001, n=466)
+    [chutes_totais] Escanteios ≤ 6 aos 60' (1 gol(s) no jogo) → Menos de 20.5 chutes totais (p=0.0008, n=394)
+    [chutes_totais] Escanteios ≤ 10 aos 90' (2 gol(s) no jogo) → Menos de 24.5 chutes totais (p=0.0000, n=383)
+    [chutes_totais] Escanteios ≤ 1 E Ataques perigosos ≤ 16 aos 15' (0 gol(s) no jogo) → Menos de 20.5 chutes totais (p=0.0005, n=822)
+    [chutes_totais] Escanteios ≤ 2 E Ataques perigosos ≤ 16 aos 15' (0 gol(s) no jogo) → Menos de 20.5 chutes totais (p=0.0004, n=1103)
+    [chutes_totais] Escanteios ≤ 1 E Ataques perigosos ≤ 16 aos 15' (0 gol(s) no jogo) → Menos de 24.5 chutes totais (p=0.0015, n=822)
+    [chutes_totais] Ataques perigosos ≤ 26 E Passes-chave ≤ 6 aos 30' (0 gol(s) no jogo) → Menos de 18.5 chutes totais (p=0.0000, n=625)
+    [chutes_totais] Ataques perigosos ≤ 26 E Passes-chave ≤ 6 aos 30' (0 gol(s) no jogo) → Menos de 26.5 chutes totais (p=0.0000, n=625)
+    [chutes_no_alvo] Ataques perigosos ≤ 26 E Passes-chave ≤ 6 aos 30' (0 gol(s) no jogo) → Menos de 8.5 chutes no alvo (p=0.0000, n=625)
