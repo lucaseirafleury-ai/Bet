@@ -15,6 +15,8 @@ LIGAS_MONITORADAS = {
     579: "Superettan",
     573: "Allsvenskan",
     447: "1. Division",
+    648: "Série A",
+    651: "Série B",
 }
 
 # ── Janela de análise pré-live ────────────────────────────────
