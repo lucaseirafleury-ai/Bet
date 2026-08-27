@@ -47,6 +47,7 @@ def carregar_condicoes_1stat(alvo_id):
             "minuto": int(float(r["minuto"])), "gols_momento": int(float(r["gols_momento"])),
             "stat": r["stat"], "operador": r["operador"], "limite": float(r["limite"]),
             "mercado": r["mercado"], "impacto_treino_pp": float(r["impacto_treino_pp"]),
+            "impacto_teste_pp": float(r["impacto_teste_pp"]),
         }
         for r in linhas
     ]
