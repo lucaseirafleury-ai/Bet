@@ -187,6 +187,17 @@ forma consistente (não só um ano isolado), promover pra stake normal;
 se decair, reduzir mais ou descartar (mesmo tratamento que qualquer
 outro critério deste documento).
 
+**Ferramenta nova (28/08/2026) — `recalcular_pendentes.py`**: depois do
+caso do Goiás (corrigido manualmente, ver abaixo), Lucas perguntou se o
+ledger nunca recalcula uma entrada quando precisa — resposta: por
+design, nunca sozinho (protege contra o painel mudar a odd de uma
+aposta já feita), mas agora existe um comando manual explícito pra
+quando um bug de cálculo for corrigido e alguma sugestão pendente (jogo
+ainda não começado) precisar ser reconferida: `python3
+recalcular_pendentes.py` — busca fixtures futuros frescos, recalcula só
+as entradas pendentes afetadas, imprime o que mudou. Nunca roda sozinho
+na rotina diária — só sob demanda, depois de uma correção de código.
+
 **Correção 2 — painel ficava preso na sugestão antiga perto do início do
 jogo (28/08/2026)**: mesmo depois da correção de linha abaixo, o
 painel continuava mostrando a sugestão errada pro jogo do Goiás. Causa

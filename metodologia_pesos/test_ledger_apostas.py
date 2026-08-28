@@ -2,6 +2,7 @@ import pytest
 
 from ledger_apostas import (
     calcular_resumo,
+    recalcular_pendentes,
     registrar_novas_sugestoes,
     resolver_pendentes,
 )
@@ -47,6 +48,48 @@ def test_registrar_novas_sugestoes_criterios_diferentes_mesmo_jogo_sao_entradas_
 def test_registrar_novas_sugestoes_ignora_sem_fixture_id():
     ledger = registrar_novas_sugestoes([], [_sugestao(fixture_id=None)], data_registro="2026-08-27")
     assert ledger == []
+
+
+def test_recalcular_pendentes_corrige_entrada_com_valor_errado():
+    ledger = registrar_novas_sugestoes(
+        [], [_sugestao(criterio="Cartões+Árbitro", lado="Under 4.5 cartões", linha_aposta=4.5, odd=1.8, edge=0.199)],
+        data_registro="2026-08-27",
+    )
+    sugestoes_frescas = [_sugestao(criterio="Cartões+Árbitro", lado="Under 3.5 cartões", linha_aposta=3.5, odd=1.83, edge=0.031)]
+    ledger, alteracoes = recalcular_pendentes(ledger, sugestoes_frescas)
+
+    assert ledger[0]["lado"] == "Under 3.5 cartões"
+    assert ledger[0]["linha_aposta"] == 3.5
+    assert ledger[0]["odd"] == 1.83
+    assert ledger[0]["edge"] == 0.031
+    assert len(alteracoes) == 1
+    assert alteracoes[0]["antes"]["lado"] == "Under 4.5 cartões"
+    assert alteracoes[0]["depois"]["lado"] == "Under 3.5 cartões"
+
+
+def test_recalcular_pendentes_nao_mexe_no_que_nao_mudou():
+    ledger = registrar_novas_sugestoes([], [_sugestao()], data_registro="2026-08-27")
+    ledger, alteracoes = recalcular_pendentes(ledger, [_sugestao()])
+    assert alteracoes == []
+    assert ledger[0]["odd"] == 1.8
+
+
+def test_recalcular_pendentes_ignora_entrada_ja_resolvida():
+    ledger = registrar_novas_sugestoes([], [_sugestao()], data_registro="2026-08-27")
+    ledger[0]["resultado"] = "green"
+    ledger[0]["lucro"] = 0.8
+    sugestoes_frescas = [_sugestao(odd=2.5, edge=0.5)]
+    ledger, alteracoes = recalcular_pendentes(ledger, sugestoes_frescas)
+    assert alteracoes == []
+    assert ledger[0]["odd"] == 1.8  # não mudou - já resolvida, imutável
+
+
+def test_recalcular_pendentes_sem_sugestao_fresca_correspondente_mantem_entrada():
+    # jogo já começou (não aparece mais em puxar_fixtures_futuros) - fica como estava
+    ledger = registrar_novas_sugestoes([], [_sugestao()], data_registro="2026-08-27")
+    ledger, alteracoes = recalcular_pendentes(ledger, [])
+    assert alteracoes == []
+    assert ledger[0]["odd"] == 1.8
 
 
 def test_resolver_pendentes_btts_green():

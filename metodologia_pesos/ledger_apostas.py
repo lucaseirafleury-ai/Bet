@@ -56,6 +56,59 @@ def registrar_novas_sugestoes(ledger, sugestoes, data_registro):
     return ledger
 
 
+def recalcular_pendentes(ledger, sugestoes_frescas):
+    """Atualiza `lado`/`linha_aposta`/`odd`/`edge` das entradas ainda
+    PENDENTES cujo `(fixture_id, criterio)` também aparece em
+    `sugestoes_frescas` (saída de `previsao_dia.gerar_sugestoes_do_dia`,
+    computada com a lógica ATUAL) — mantém `data_registro`,
+    `fixture_id`, `criterio` etc. intactos, só corrige os campos
+    calculados.
+
+    Uso: SÓ manual/pontual (nunca chamado pela rotina diária
+    automática) — depois de corrigir um bug que pode ter afetado
+    sugestões já registradas cujo jogo ainda não começou.
+    `registrar_novas_sugestoes` propositalmente nunca sobrescreve uma
+    entrada já registrada (protege contra o painel mudar a odd de uma
+    aposta que o Lucas já tenha feito com base num valor correto) — mas
+    isso significa que uma entrada registrada com um valor ERRADO por
+    bug nunca se autocorrige sozinha. Rodar esta função é o jeito
+    deliberado de corrigir isso quando (e só quando) houver um motivo
+    real (ver `docs/retrospectiva_estado_fixture_bug_2026-08-28.md`,
+    onde a entrada do Goiás x São Bernardo foi corrigida manualmente
+    porque não havia essa função ainda).
+
+    `sugestoes_frescas` só contém jogos que ainda não começaram (vem de
+    `puxar_fixtures_futuros`, que já filtra por `state_id`) — uma
+    entrada cujo jogo já começou simplesmente não aparece lá e fica
+    intocada aqui, o que é o comportamento certo (não faz sentido
+    "recalcular" um jogo em andamento).
+
+    Retorna `(ledger, alteracoes)` — `alteracoes` é a lista de dicts
+    `{fixture_id, criterio, antes, depois}` só das entradas que
+    realmente mudaram, pra dar visibilidade do que foi corrigido (não
+    é silencioso)."""
+    sugestoes_por_chave = {
+        (s["fixture_id"], s["criterio"]): s for s in sugestoes_frescas if s.get("fixture_id") is not None
+    }
+    alteracoes = []
+    for entrada in ledger:
+        if entrada["resultado"] != "pendente":
+            continue
+        fresca = sugestoes_por_chave.get(_chave(entrada))
+        if fresca is None:
+            continue
+        antes = dict(lado=entrada["lado"], linha_aposta=entrada.get("linha_aposta"),
+                     odd=entrada["odd"], edge=entrada["edge"])
+        depois = dict(lado=fresca["lado"], linha_aposta=fresca.get("linha_aposta"),
+                      odd=fresca["odd"], edge=fresca["edge"])
+        if antes != depois:
+            alteracoes.append(dict(fixture_id=entrada["fixture_id"], criterio=entrada["criterio"],
+                                    jogo=entrada.get("jogo"), antes=antes, depois=depois))
+        entrada["lado"], entrada["linha_aposta"] = depois["lado"], depois["linha_aposta"]
+        entrada["odd"], entrada["edge"] = depois["odd"], depois["edge"]
+    return ledger, alteracoes
+
+
 def _resolver_um(entrada, row):
     total_gols = row["home_team_goal_count"] + row["away_team_goal_count"]
     if entrada["criterio"] == "BTTS":

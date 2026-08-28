@@ -674,6 +674,22 @@ atualizada, esta lista aqui não é mantida em detalhe:
    odd/edge com movimento normal de mercado, não bug), não mexi
    nelas. Ver `docs/retrospectiva_estado_fixture_bug_2026-08-28.md`.
 
+45. **`recalcular_pendentes.py` — comando manual pra corrigir sugestões
+   pendentes depois de um bug consertado** — Lucas perguntou se o
+   ledger nunca recalcula uma entrada quando precisa (resposta:
+   nunca sozinho, por design — protege contra o painel mudar a odd de
+   uma aposta já feita). Implementado `ledger_apostas.recalcular_pendentes`
+   (busca sugestões frescas via `previsao_dia.gerar_sugestoes_do_dia`,
+   atualiza só as entradas `pendente` cujo `(fixture_id, criterio)`
+   aparece nas sugestões frescas — um jogo que já começou simplesmente
+   não aparece lá, fica intocado; entradas já resolvidas nunca mudam)
+   + script fino `recalcular_pendentes.py` pra rodar manualmente.
+   Nunca é chamado pela rotina diária automática — só sob demanda,
+   depois de uma correção de código que possa ter afetado sugestões já
+   registradas. Testes novos em `test_ledger_apostas.py` (corrige
+   entrada errada, não mexe no que já está certo, ignora resolvidas,
+   ignora jogo que já começou).
+
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
   sem qualquer edge defensável — não apostar por este critério.
