@@ -19,14 +19,52 @@ import sportmonks_client as sm
 # total=linha, value=odd decimal) — descoberto inspecionando /odds/pre-match
 # em jogos reais (Allsvenskan/Superettan/1.Division + Série A).
 MARKET_ID_POR_ALVO = {
-    "escanteios": 67,       # "Corners Over Under"
+    "escanteios": 67,       # "Corners Over Under" (linha .5 — mercado principal)
     "chutes_totais": 292,   # "Match Shots"
     "chutes_no_alvo": 291,  # "Match Shots on Target"
 }
 
+# Fallback só pra escanteios: "Match Corners" (linha INTEIRA, 3 vias
+# Over/Exactly/Under) — descoberto testando um jogo real da Série B (Goiás x
+# São Bernardo) que só tinha esse mercado ao vivo, não o "Corners Over Under"
+# de linha .5. Conversão pra ficar equivalente à nossa linha .5:
+#   mais_de X.5  == Over  X    (final >= X+1, mesma coisa que mais_de X.5)
+#   menos_de X.5 == Under X+1  (final <= X,   mesma coisa que menos_de X.5)
+MARKET_ID_FALLBACK_ESCANTEIOS = 68  # "Match Corners"
+
 # Ordem de preferência por confiabilidade/profundidade observada (bet365 é a
 # mais completa nas ligas já checadas) — usa a primeira que tiver a linha exata.
 CASAS_PREFERENCIA = ["bet365", "Unibet", "10Bet", "1xbet"]
+
+
+def _candidatas_no_mercado(linhas, market_id, label, total_alvo):
+    candidatas = []
+    for o in linhas:
+        if o.get("market_id") != market_id or o.get("label") != label:
+            continue
+        try:
+            if float(o.get("total")) != float(total_alvo):
+                continue
+            odd = float(o.get("value"))
+        except (TypeError, ValueError):
+            continue
+        if odd > 0:
+            candidatas.append({**o, "_odd": odd})
+    return candidatas
+
+
+def _tentativas_mercado(alvo, direcao, linha):
+    """(market_id, label, total) a tentar em ordem — linha .5 exata primeiro,
+    fallback de linha inteira pra escanteios quando a liga só tiver esse."""
+    market_id = MARKET_ID_POR_ALVO.get(alvo)
+    if market_id is None:
+        return []
+    label = "Over" if direcao == "mais_de" else "Under"
+    tentativas = [(market_id, label, linha)]
+    if alvo == "escanteios":
+        total_inteiro = int(linha - 0.5) if direcao == "mais_de" else int(linha + 0.5)
+        tentativas.append((MARKET_ID_FALLBACK_ESCANTEIOS, label, total_inteiro))
+    return tentativas
 
 
 def buscar_odd_real(fixture_id, alvo, direcao, linha):
@@ -34,10 +72,9 @@ def buscar_odd_real(fixture_id, alvo, direcao, linha):
     Devolve {"odd", "casa", "probabilidade_implicita", "atualizado_em"} para
     o mercado/linha exatos do sinal, ou None se não achar.
     """
-    market_id = MARKET_ID_POR_ALVO.get(alvo)
-    if market_id is None:
+    tentativas = _tentativas_mercado(alvo, direcao, linha)
+    if not tentativas:
         return None
-    label_alvo = "Over" if direcao == "mais_de" else "Under"
 
     try:
         linhas = sm.odds_inplay_fixture(fixture_id)
@@ -48,17 +85,10 @@ def buscar_odd_real(fixture_id, alvo, direcao, linha):
         return None
 
     candidatas = []
-    for o in linhas:
-        if o.get("market_id") != market_id or o.get("label") != label_alvo:
-            continue
-        try:
-            if float(o.get("total")) != float(linha):
-                continue
-            odd = float(o.get("value"))
-        except (TypeError, ValueError):
-            continue
-        if odd > 0:
-            candidatas.append({**o, "_odd": odd})
+    for market_id, label, total_alvo in tentativas:
+        candidatas = _candidatas_no_mercado(linhas, market_id, label, total_alvo)
+        if candidatas:
+            break
     if not candidatas:
         return None
 
