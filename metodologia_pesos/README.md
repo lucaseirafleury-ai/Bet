@@ -577,6 +577,18 @@ atualizada, esta lista aqui não é mantida em detalhe:
    em 2024/2025) pra confiar — não adotada. Implementado em
    `previsao_dia.CRITERIOS_GOLS` (`odd_maxima=2.20` +
    `limiar_favoritismo=0.7484`).
+40. **Testei se o mesmo filtro rende edge no Under 2.5 Série A —
+   não rende** — Lucas notou que favorito claro/odd alta de Over
+   "fecham" o jogo (menos gols) e perguntou se isso também dá edge pro
+   lado Under (mercado já descartado antes, item 29). Rodei o motor
+   com os parâmetros de produção do Over 2.5 e odd REAL de Under 2.5
+   (bet365, 999/999 fixtures) — negativo em toda a amostra (n=497,
+   ROI−12,6%) e em todo corte testado, inclusive o quadrante exato da
+   hipótese (favorito claro E Over-odd alta, n=77, ROI−15,1% — PIOR
+   que a base). Nuance explicada: "Over foi pior nesses jogos" ≠
+   "existe edge pra Under" — a odd real de Under já precifica essa
+   tendência, não sobra vantagem pro modelo capturar. Fechado. Ver
+   `docs/retrospectiva_filtro_under25_favoritismo_2026-08-27.md`.
 
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
