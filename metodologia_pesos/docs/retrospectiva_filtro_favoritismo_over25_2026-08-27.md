@@ -1,4 +1,15 @@
-# Filtro de favoritismo (1x2) no Over 2.5-Sbo: sinal real, mas não empilhar
+# Filtro de favoritismo (1x2) no Over 2.5-Sbo: sinal real, adotado via regra "União"
+
+**Atualização (mesmo dia)**: a seção "Recomendação" abaixo (não
+empilhar) segue válida pra INTERSEÇÃO (exigir os dois sinais ao mesmo
+tempo). Mas Lucas perguntou sobre a UNIÃO (bastar um dos dois) — testei
+os 4 quadrantes completos e a União se mostrou a melhor opção de
+todas testadas até aqui (mais volume E mais lucro absoluto que
+qualquer filtro isolado, com os 3 anos bem representados). **Adotada
+em produção** — ver `docs/protocolo.md` (seção "Filtro de
+favoritismo... regra União") pra os números finais e
+`previsao_dia.CRITERIOS_GOLS` (`limiar_favoritismo=0.7484`) pra a
+implementação.
 
 ## Contexto
 

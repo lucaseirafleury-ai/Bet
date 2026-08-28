@@ -10,25 +10,29 @@ produção. **3 critérios rodando no painel diário**:
   do bet365 (mais forte até que a média de todas as casas do
   Sportmonks, z=+2,33).
 - ✅ **Over 2.5 recalibrado (Série A)** — stake reduzido, odd **Sbo**
-  (bookmaker_id=34), não bet365, **com teto de odd 2,20**. Foi removido
-  em 27/08/2026 (com odd do bet365, 2025 vira negativo — z 2,28→1,31) e
-  READICIONADO no mesmo dia depois de testar 12 bookmakers: Sbo é o
-  único acima de z≈2 sem nenhum ano negativo (z=+2,00, n=80,
-  ROI+23,6%; 2024 z=+1,38, 2025 z=+0,28, 2026 z=+2,07). Execução real:
-  tentar a Betfair Exchange primeiro (Lucas relata odd geralmente
-  melhor nesse mercado — não validável no dado do Sportmonks, que só
-  tem a Betfair Sportsbook cadastrada e com cobertura/margem piores que
-  o bet365), caindo pra Sbo como preço já confirmado. Ver
-  `docs/retrospectiva_over25_sbo_betfair_2026-08-27.md`.
-  **Teto de odd 2,20 adotado em 27/08/2026** (mesmo dia) depois de uma
-  análise green/red das 80 apostas: odd baixa prevê acerto melhor de
-  forma monotônica em qualquer limiar testado (odd≤2,20: 69,6% acerto/
-  ROI+39,3%, n=46; odd>2,20: 44,1%/+2,4%, n=34). Comparando lucro
-  ABSOLUTO com stake=1 nos dois grupos (mesmos 80 jogos): praticamente
-  empatado em $ (+18,88u sem teto vs +18,07u com teto), mas o teto
-  consegue o mesmo dinheiro com 43% menos capital em jogo — Lucas
-  decidiu adotar por isso (mesmo retorno, bem menos exposição). Ver
-  `docs/retrospectiva_filtro_over25_green_red_2026-08-27.md`.
+  (bookmaker_id=34), não bet365, **com filtro "União" (odd/favoritismo,
+  ver abaixo)**. Foi removido em 27/08/2026 (com odd do bet365, 2025
+  vira negativo — z 2,28→1,31) e READICIONADO no mesmo dia depois de
+  testar 12 bookmakers: Sbo é o único acima de z≈2 sem nenhum ano
+  negativo (z=+2,00, n=80, ROI+23,6%; 2024 z=+1,38, 2025 z=+0,28, 2026
+  z=+2,07). Execução real: tentar a Betfair Exchange primeiro (Lucas
+  relata odd geralmente melhor nesse mercado — não validável no dado do
+  Sportmonks, que só tem a Betfair Sportsbook cadastrada e com
+  cobertura/margem piores que o bet365), caindo pra Sbo como preço já
+  confirmado. Ver `docs/retrospectiva_over25_sbo_betfair_2026-08-27.md`.
+  **Filtro "União" adotado em 27/08/2026** (mesmo dia, versão final —
+  substitui o teto de odd sozinho testado antes): cruzando o teto de
+  odd (≤2,20) com um segundo sinal achado depois — favoritismo pela
+  odd 1x2 (`prob_mercado_favorito_dc` ≤ 0,7484, jogo equilibrado) — nos
+  mesmos 80 jogos, só o quadrante "odd alta E favorito claro" (n=10) é
+  ruim (ROI−32,3%); os outros 3 quadrantes (n=70 no total) são todos
+  positivos. Regra final: só pula a sugestão quando os DOIS sinais
+  forem desfavoráveis ao mesmo tempo. Gera mais volume E mais lucro
+  absoluto que o teto de odd sozinho (n=70 ROI+31,6%/+22,11u vs n=46
+  ROI+39,3%/+18,07u, stake=1), com os 3 anos bem representados
+  (n=18/29/23, todos positivos). Ver
+  `docs/retrospectiva_filtro_over25_green_red_2026-08-27.md` e
+  `docs/retrospectiva_filtro_favoritismo_over25_2026-08-27.md`.
 - ✅ **Cartões+Árbitro (Série B)** — stake reduzido, odd bet365. z=+2,08
   com odd real do bet365 (também mais forte que a média, z=+1,19).
 - Série B Over 2.5/BTTS seguem sem edge, confirmado de novo.
@@ -201,11 +205,32 @@ qualquer um isolado). Antes de adotar, comparei o lucro ABSOLUTO com
 stake=1 pros dois grupos: **praticamente empatado em $** (+18,88u sem
 teto vs +18,07u com teto, nos mesmos 3 anos) — o teto atinge quase o
 mesmo retorno com 43% menos capital exposto (46 apostas em vez de 80)
-e taxa de acerto bem maior. Lucas decidiu adotar o teto por isso.
-`previsao_dia.CRITERIOS_GOLS` agora tem `odd_maxima=2.20` no critério
-de Over 2.5 — `avaliar_criterio_gols` pula a sugestão se a odd real do
-dia vier acima disso. Ver
+e taxa de acerto bem maior. Lucas decidiu adotar o teto por isso. Ver
 `docs/retrospectiva_filtro_over25_green_red_2026-08-27.md`.
+
+**Filtro de favoritismo, e a regra "União" que substituiu o teto
+sozinho (mesmo dia)**: numa varredura pedida pelo Lucas por outras
+análises antigas de amostra grande, testei se o favoritismo pela odd
+1x2 (`prob_mercado_favorito_dc`) também filtra o Over 2.5-Sbo — jogos
+EQUILIBRADOS (≤ mediana, 0,7484) rendem muito mais que jogos com
+favorito claro (65,0%/ROI+41,8% vs 52,5%/+5,4%, os 3 anos positivos do
+lado equilibrado). Cruzando os dois sinais (odd≤2,20 × equilibrado) nos
+mesmos 80 jogos, em 4 quadrantes: só "odd alta E favorito claro"
+(n=10) é ruim (ROI−32,3%) — os outros 3 (n=70 no total, incluindo
+"odd alta MAS equilibrado" e "odd baixa MAS favorito claro") são todos
+positivos. Testar exigir os DOIS sinais ao mesmo tempo (interseção,
+n=16) dá o ROI mais alto no papel (+79,3%) mas fica fino demais por
+ano (`n=3` em 2024/2025) pra confiar. A regra que Lucas escolheu foi a
+**União**: só pular a sugestão quando os DOIS sinais forem
+desfavoráveis (odd>2,20 E favorito claro) — mais volume E mais lucro
+absoluto que o teto sozinho (n=70 ROI+31,6%/lucro+22,11u vs n=46
+ROI+39,3%/+18,07u, stake=1), com os 3 anos bem representados
+(2024 n=18, 2025 n=29, 2026 n=23, todos positivos).
+`previsao_dia.CRITERIOS_GOLS` tem `odd_maxima=2.20` E
+`limiar_favoritismo=0.7484` no critério de Over 2.5 —
+`avaliar_criterio_gols` só pula a sugestão quando a odd do dia vier
+acima do teto E o jogo tiver favorito claro pela odd 1x2 ao mesmo
+tempo. Ver `docs/retrospectiva_filtro_favoritismo_over25_2026-08-27.md`.
 
 Os parâmetros antigos de Over 2.5 (calibrados em cima do FootyStats)
 não se sustentam 100% em cima do Sportmonks (z caiu de +2,23 pra

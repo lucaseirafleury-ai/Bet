@@ -562,6 +562,21 @@ atualizada, esta lista aqui não é mantida em detalhe:
    varredura (Escanteios, Under, Over1.5/3.5/4.5, Favorito DC) agendado
    numa rotina semanal (quartas-feiras, 3 candidatos por vez) — ver
    `docs/varredura_filtros_checklist.md`.
+39. **Regra "União" substitui o teto de odd sozinho (item 37) no
+   Over 2.5-Sbo, em produção** — Lucas perguntou como ficaria juntar o
+   teto de odd com o favoritismo (item 38) de forma menos restritiva
+   (bastar UM dos dois sinais, não os dois). Cruzando os 80 jogos em 4
+   quadrantes (odd baixa/alta × equilibrado/favorito claro): só "odd
+   alta E favorito claro" (n=10) é ruim (ROI−32,3%) — os outros 3
+   quadrantes (n=70) são todos positivos. A União (pular só quando os
+   DOIS sinais forem desfavoráveis) gera mais volume E mais lucro
+   absoluto que o teto sozinho (n=70 ROI+31,6%/lucro+22,11u vs n=46
+   ROI+39,3%/+18,07u, stake=1), com os 3 anos bem representados (n=18,
+   29, 23). A interseção (exigir os dois ao mesmo tempo, n=16) tem ROI
+   ainda maior no papel (+79,3%) mas fica fina demais por ano (`n=3`
+   em 2024/2025) pra confiar — não adotada. Implementado em
+   `previsao_dia.CRITERIOS_GOLS` (`odd_maxima=2.20` +
+   `limiar_favoritismo=0.7484`).
 
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
@@ -571,12 +586,14 @@ atualizada, esta lista aqui não é mantida em detalhe:
   (`checar_decaimento.py`, precisa migrar pra ler odds só do bet365
   também) antes de promover pra stake normal.
 - Over 2.5 (Série A, item 35) está em stake reduzido com odd da Sbo e
-  teto de odd 2,20 (item 37) — testar 12 bookmakers é uma comparação
-  múltipla em menor escala; reavaliar conforme mais dado (2027) entra
-  na amostra, mesmo tratamento do Cartões+Árbitro. Concordância com o
-  `predictions` do Sportmonks (item 36) NÃO foi adotada — força quase
-  idêntica ao teto de odd, mas dependeria de manter um pull novo
-  rodando; teto de odd sozinho já captura praticamente o mesmo sinal.
+  filtro "União" (odd/favoritismo, item 39) — testar 12 bookmakers é
+  uma comparação múltipla em menor escala; reavaliar conforme mais
+  dado (2027) entra na amostra, mesmo tratamento do Cartões+Árbitro.
+  Concordância com o `predictions` do Sportmonks (item 36) NÃO foi
+  adotada — força quase idêntica ao teto de odd sozinho, mas
+  dependeria de manter um pull novo rodando. A interseção do filtro
+  União (exigir odd baixa E favoritismo ao mesmo tempo, item 39) tem
+  amostra fina demais por ano — reavaliar quando 2027 entrar.
 - `SPORTMONKS_TOKEN` já configurado como variável de ambiente
   persistente (resolvido em 27/08/2026, após 3 tentativas — aspas
   curvas do teclado do iPhone corrompendo o valor) — rotina diária do

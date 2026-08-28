@@ -58,17 +58,27 @@ DIAS_A_FRENTE_PADRAO = 3
 # apostas do backtest achou que odd baixa prevê acerto melhor de forma
 # monotônica em todo limiar testado — acima de 2,20 o ROI cai perto de
 # zero (docs/retrospectiva_filtro_over25_green_red_2026-08-27.md).
-# Lucas decidiu adotar depois de comparar lucro absoluto (stake=1 pros
-# dois): praticamente empatado em $ (+18,88u sem filtro vs +18,07u com
-# o teto), mas o teto consegue o mesmo dinheiro com 43% menos capital
-# em jogo e taxa de acerto bem maior (69,6% vs 58,8%).
+#
+# limiar_favoritismo=0.7484 adicionado no mesmo dia (regra "União"):
+# uma segunda análise achou que jogos EQUILIBRADOS pela odd 1x2
+# (prob_mercado_favorito_dc ≤ mediana) também preveem acerto melhor no
+# Over 2.5, sinal parcialmente independente do teto de odd
+# (docs/retrospectiva_filtro_favoritismo_over25_2026-08-27.md). Cruzando
+# os dois sinais nos mesmos 80 jogos: só o quadrante "odd alta E
+# favorito claro" (n=10) é ruim (ROI−32,3%) — os outros 3 quadrantes
+# (n=70 no total) são todos positivos. `avaliar_criterio_gols` por isso
+# só PULA a sugestão quando os DOIS sinais forem desfavoráveis ao mesmo
+# tempo (odd>2,20 E favorito claro) — não quando só um dos dois for. Essa
+# regra "União" gera mais volume E mais lucro absoluto que o teto de odd
+# sozinho (n=70 ROI+31,6%/+22,11u vs n=46 ROI+39,3%/+18,07u, stake=1),
+# com os 3 anos bem representados (n=18/29/23) — Lucas decidiu adotar.
 CRITERIOS_GOLS = [
     dict(nome="BTTS", liga="seriea", mercado="btts", stake="normal", limiar_edge=0.05, n_historico=10,
          bookmaker_id=BOOKMAKER_BET365, casa_ref="bet365",
          params=dict(k_mando=0.7, usar_estilo=True, filtro_estilo=0.8, filtro_favoritismo=0.65,
                      multiplicador_dp=1.5, limite_unilateral=2)),
     dict(nome="Over 2.5", liga="seriea", mercado="over25", stake="reduzido", limiar_edge=0.08, n_historico=15,
-         bookmaker_id=BOOKMAKER_SBO, casa_ref="Sbo", odd_maxima=2.20,
+         bookmaker_id=BOOKMAKER_SBO, casa_ref="Sbo", odd_maxima=2.20, limiar_favoritismo=0.7484,
          params=dict(k_mando=0.35, usar_estilo=False, filtro_aderencia=0.65,
                      multiplicador_dp=1.5, limite_unilateral=4)),
 ]
@@ -115,8 +125,19 @@ def avaliar_criterio_gols(criterio, linha, df_historico):
     if edge < criterio["limiar_edge"]:
         return None
     odd_maxima = criterio.get("odd_maxima")
+    limiar_favoritismo = criterio.get("limiar_favoritismo")
     if odd_maxima is not None and odd > odd_maxima:
-        return None
+        # "União": só pula quando os DOIS sinais forem desfavoráveis (odd
+        # alta E jogo com favorito claro pela odd 1x2) — se o jogo for
+        # equilibrado, a sugestão passa mesmo com odd acima do teto. Sem
+        # limiar_favoritismo configurado, ou sem odd 1x2 disponível pro
+        # jogo, cai pro comportamento antigo (só o teto de odd decide).
+        favoritismo = resultado.get("prob_mercado_favorito_dc")
+        equilibrado = (
+            limiar_favoritismo is not None and favoritismo is not None and favoritismo <= limiar_favoritismo
+        )
+        if not equilibrado:
+            return None
     return dict(
         criterio=criterio["nome"], stake=criterio["stake"], lado=criterio["mercado"],
         odd=odd, prob_modelo=prob_modelo, prob_mercado=prob_mercado, edge=edge,
