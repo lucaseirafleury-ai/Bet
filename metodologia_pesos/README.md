@@ -504,6 +504,22 @@ atualizada, esta lista aqui não é mantida em detalhe:
    no dado do Sportmonks; painel documenta a Sbo como odd de referência
    e recomenda tentar a Betfair Exchange primeiro na execução real. Ver
    `docs/retrospectiva_over25_sbo_betfair_2026-08-27.md`.
+36. **Análise exploratória green/red do Over 2.5-Sbo (item 35), à
+   procura de um filtro adicional** — separando as 80 apostas em
+   green/red e comparando 11 features (odd, edge, probabilidades,
+   `gf_pred`/`ga_pred`/`total_pred` do modelo, e pela primeira vez o
+   `predictions` do próprio Sportmonks, `type_id=235`, confirmado
+   disponível retroativo com cobertura completa). Dois candidatos reais
+   (consistentes nos 3 anos, `n≥27`): **odd mais baixa** (odd≤2,20:
+   69,6% acerto/ROI+78,6% vs odd>2,20: 44,1%/+4,8%, monotônico em todo
+   limiar testado) e **concordância com o `predictions` do Sportmonks**
+   (67,5%/+78,5% vs 50,0%/+15,9%) — combinados, o grupo "nem odd baixa
+   nem Sportmonks concorda" é o único com ROI NEGATIVO da análise
+   (n=27, −12,3%). Também um alerta: edge mais alto teve acerto PIOR
+   nesta amostra, com o padrão invertendo de sinal entre 2024 e
+   2025/2026 — não usar como filtro, é ruído. Nenhum filtro promovido a
+   produção ainda — fica documentado à espera de decisão do Lucas. Ver
+   `docs/retrospectiva_filtro_over25_green_red_2026-08-27.md`.
 
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
@@ -515,10 +531,13 @@ atualizada, esta lista aqui não é mantida em detalhe:
 - Over 2.5 (Série A, item 35) está em stake reduzido com odd da Sbo —
   testar 12 bookmakers é uma comparação múltipla em menor escala;
   reavaliar conforme mais dado (2027) entra na amostra, mesmo
-  tratamento do Cartões+Árbitro.
-- **Configurar `SPORTMONKS_TOKEN` como variável de ambiente persistente
-  no ambiente do Claude Code** — passo manual pendente do Lucas, sem
-  isso a rotina diária do painel (item 32) falha.
+  tratamento do Cartões+Árbitro. Candidatos de filtro adicional (item
+  36 — teto de odd, concordância com `predictions` do Sportmonks) ainda
+  não aplicados à produção, aguardando decisão do Lucas.
+- `SPORTMONKS_TOKEN` já configurado como variável de ambiente
+  persistente (resolvido em 27/08/2026, após 3 tentativas — aspas
+  curvas do teclado do iPhone corrompendo o valor) — rotina diária do
+  painel (item 32) rodando sozinha.
 - Consolidar as duas fontes de dado Sportmonks que existem em paralelo
   (`data/sportmonks_serieb_cartoes/` do item 28, mais estreita, só pro
   `checar_decaimento.py`; `data/sportmonks_{seriea,serieb}/` do item 32,
