@@ -31,7 +31,7 @@ DIAS_RESULTADOS_RECENTES = 14
 
 CRITERIOS_INFO = [
     dict(nome="BTTS", stake="cheio", stake_label="stake normal", evidencia="Série A · bet365 z=+2,89 · sem ano negativo"),
-    dict(nome="Over 2.5", stake="reduzido", stake_label="stake reduzido", evidencia="Série A · Sbo z=+2,00 · sem ano negativo"),
+    dict(nome="Over 2.5", stake="reduzido", stake_label="stake reduzido", evidencia="Série A · Sbo z=+2,00 · odd máx. 2,20 · sem ano negativo"),
     dict(nome="Cartões+Árbitro", stake="reduzido", stake_label="stake reduzido", evidencia="Série B · bet365 z=+2,08 · positivo nos 3 anos"),
 ]
 

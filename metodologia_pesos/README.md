@@ -523,9 +523,15 @@ atualizada, esta lista aqui não é mantida em detalhe:
    filtro, é ruído. (Nota: a primeira versão desta análise reportava
    ROI em dobro por um bug de stake inconsistente no script ad-hoc,
    corrigido no mesmo dia — taxas de acerto e `n` não foram afetados.)
-   Nenhum filtro promovido a produção ainda — fica documentado à espera
-   de decisão do Lucas. Ver
-   `docs/retrospectiva_filtro_over25_green_red_2026-08-27.md`.
+37. **Teto de odd 2,20 adotado pro Over 2.5-Sbo (item 36), em
+   produção** — antes de decidir, comparei o lucro ABSOLUTO com stake=1
+   pros dois grupos (mesmos 80 jogos): praticamente empatado em $
+   (+18,88u sem teto vs +18,07u com teto) — o teto atinge quase o mesmo
+   retorno com 43% menos capital exposto (46 apostas em vez de 80) e
+   taxa de acerto bem maior (69,6% vs 58,8%). Lucas decidiu adotar por
+   isso. Implementado em `previsao_dia.CRITERIOS_GOLS`
+   (`odd_maxima=2.20` no critério de Over 2.5) — `avaliar_criterio_gols`
+   pula a sugestão se a odd real do dia vier acima disso.
 
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
@@ -534,12 +540,13 @@ atualizada, esta lista aqui não é mantida em detalhe:
   bet365 (z=+2,08, item 34) ainda vale acompanhar
   (`checar_decaimento.py`, precisa migrar pra ler odds só do bet365
   também) antes de promover pra stake normal.
-- Over 2.5 (Série A, item 35) está em stake reduzido com odd da Sbo —
-  testar 12 bookmakers é uma comparação múltipla em menor escala;
-  reavaliar conforme mais dado (2027) entra na amostra, mesmo
-  tratamento do Cartões+Árbitro. Candidatos de filtro adicional (item
-  36 — teto de odd, concordância com `predictions` do Sportmonks) ainda
-  não aplicados à produção, aguardando decisão do Lucas.
+- Over 2.5 (Série A, item 35) está em stake reduzido com odd da Sbo e
+  teto de odd 2,20 (item 37) — testar 12 bookmakers é uma comparação
+  múltipla em menor escala; reavaliar conforme mais dado (2027) entra
+  na amostra, mesmo tratamento do Cartões+Árbitro. Concordância com o
+  `predictions` do Sportmonks (item 36) NÃO foi adotada — força quase
+  idêntica ao teto de odd, mas dependeria de manter um pull novo
+  rodando; teto de odd sozinho já captura praticamente o mesmo sinal.
 - `SPORTMONKS_TOKEN` já configurado como variável de ambiente
   persistente (resolvido em 27/08/2026, após 3 tentativas — aspas
   curvas do teclado do iPhone corrompendo o valor) — rotina diária do

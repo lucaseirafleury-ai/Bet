@@ -10,16 +10,25 @@ produção. **3 critérios rodando no painel diário**:
   do bet365 (mais forte até que a média de todas as casas do
   Sportmonks, z=+2,33).
 - ✅ **Over 2.5 recalibrado (Série A)** — stake reduzido, odd **Sbo**
-  (bookmaker_id=34), não bet365. Foi removido em 27/08/2026 (com odd do
-  bet365, 2025 vira negativo — z 2,28→1,31) e READICIONADO no mesmo dia
-  depois de testar 12 bookmakers: Sbo é o único acima de z≈2 sem
-  nenhum ano negativo (z=+2,00, n=80, ROI+23,6%; 2024 z=+1,38, 2025
-  z=+0,28, 2026 z=+2,07). Execução real: tentar a Betfair Exchange
-  primeiro (Lucas relata odd geralmente melhor nesse mercado — não
-  validável no dado do Sportmonks, que só tem a Betfair Sportsbook
-  cadastrada e com cobertura/margem piores que o bet365), caindo pra
-  Sbo como preço já confirmado. Ver
+  (bookmaker_id=34), não bet365, **com teto de odd 2,20**. Foi removido
+  em 27/08/2026 (com odd do bet365, 2025 vira negativo — z 2,28→1,31) e
+  READICIONADO no mesmo dia depois de testar 12 bookmakers: Sbo é o
+  único acima de z≈2 sem nenhum ano negativo (z=+2,00, n=80,
+  ROI+23,6%; 2024 z=+1,38, 2025 z=+0,28, 2026 z=+2,07). Execução real:
+  tentar a Betfair Exchange primeiro (Lucas relata odd geralmente
+  melhor nesse mercado — não validável no dado do Sportmonks, que só
+  tem a Betfair Sportsbook cadastrada e com cobertura/margem piores que
+  o bet365), caindo pra Sbo como preço já confirmado. Ver
   `docs/retrospectiva_over25_sbo_betfair_2026-08-27.md`.
+  **Teto de odd 2,20 adotado em 27/08/2026** (mesmo dia) depois de uma
+  análise green/red das 80 apostas: odd baixa prevê acerto melhor de
+  forma monotônica em qualquer limiar testado (odd≤2,20: 69,6% acerto/
+  ROI+39,3%, n=46; odd>2,20: 44,1%/+2,4%, n=34). Comparando lucro
+  ABSOLUTO com stake=1 nos dois grupos (mesmos 80 jogos): praticamente
+  empatado em $ (+18,88u sem teto vs +18,07u com teto), mas o teto
+  consegue o mesmo dinheiro com 43% menos capital em jogo — Lucas
+  decidiu adotar por isso (mesmo retorno, bem menos exposição). Ver
+  `docs/retrospectiva_filtro_over25_green_red_2026-08-27.md`.
 - ✅ **Cartões+Árbitro (Série B)** — stake reduzido, odd bet365. z=+2,08
   com odd real do bet365 (também mais forte que a média, z=+1,19).
 - Série B Over 2.5/BTTS seguem sem edge, confirmado de novo.
@@ -180,6 +189,23 @@ critério (garante que o preço mínimo aceitável existe de verdade);
 na execução real, tentar a Betfair Exchange primeiro (se a linha
 existir e a odd for igual ou melhor), caindo pra Sbo como preço já
 confirmado.
+
+**Teto de odd 2,20 (mesmo dia, depois da análise green/red)**: separei
+as 80 apostas do backtest em green/red procurando um filtro adicional.
+Odd baixa prevê acerto melhor de forma monotônica em todo limiar
+testado — odd≤2,20 (n=46) acerta 69,6% com ROI+39,3%; odd>2,20 (n=34)
+cai pra 44,1%/+2,4%. Testei também concordância com o `predictions` do
+Sportmonks (força quase idêntica, ROI+39,2%) — combinar os dois sinais
+NÃO ajuda (correlacionados entre si, a interseção fica pior que
+qualquer um isolado). Antes de adotar, comparei o lucro ABSOLUTO com
+stake=1 pros dois grupos: **praticamente empatado em $** (+18,88u sem
+teto vs +18,07u com teto, nos mesmos 3 anos) — o teto atinge quase o
+mesmo retorno com 43% menos capital exposto (46 apostas em vez de 80)
+e taxa de acerto bem maior. Lucas decidiu adotar o teto por isso.
+`previsao_dia.CRITERIOS_GOLS` agora tem `odd_maxima=2.20` no critério
+de Over 2.5 — `avaliar_criterio_gols` pula a sugestão se a odd real do
+dia vier acima disso. Ver
+`docs/retrospectiva_filtro_over25_green_red_2026-08-27.md`.
 
 Os parâmetros antigos de Over 2.5 (calibrados em cima do FootyStats)
 não se sustentam 100% em cima do Sportmonks (z caiu de +2,23 pra
