@@ -160,15 +160,35 @@ limite_unilateral=2, limite_unilateral_por_campo={cartoes_pro: 3.8,
 cartoes_contra: 3.8}, n_historico=10`), combinado com a média histórica
 de cartões do árbitro (walk-forward, mínimo de 10 jogos antes de
 confiar nela) via `pred = pred_time×0,7 + media_arbitro×0,3`. Aposta no
-mercado real "Number of Cards" (odds do Sportmonks, não do FootyStats)
-sem limiar de edge mínimo (`limiar_edge=0.0` — os números abaixo foram
-medidos assim, mudar isso exige revalidar).
+mercado real "Number of Cards" (odds do Sportmonks, não do FootyStats).
 
-**Evidência**: z≈1,73 combinado nos 2 anos mais recentes e menos
-inflados (2025 z=+0,73 n=186; 2026 z=+1,75 n=167), positivo isoladamente
-nos 3 anos com dado disponível (2024/2025/2026). O agregado completo
-(incluindo 2024, que tem só n=28 e infla o z) chega a z≈2,3 — não tratar
-esse número isolado como prova, o z≈1,73 é a leitura mais honesta.
+**Piso de edge mínimo — 10% (adotado 28/08/2026)**: até 28/08/2026 não
+havia piso (`limiar_edge=0.0` — sempre apostava no lado favorecido,
+qualquer tamanho de edge). Lucas notou que este era o único dos 3
+critérios sem piso (BTTS=5%, Over 2.5=8%) e pediu pra testar. Cortando
+o backtest completo (n=386) por faixa de edge: apostas abaixo de 10%
+(quase metade da amostra) são ruído (ROI perto de zero/negativo,
+faixa 5-10% chega a ser negativa); acima de 10% são consistentemente
+melhores. Testando cortes mínimos redondos, **≥10% é o pico**: n=211,
+ROI+16,2%, z=+2,62 (vs. baseline z=+2,02/ROI+9,4%), **3 anos
+positivos** (2024 z=+2,73, 2025 z=+1,28, 2026 z=+1,56) — passa a mesma
+barra "sem ano negativo" dos outros critérios; não é um pico isolado
+(8%/12% também melhoram sobre o baseline). Em dinheiro absoluto (stake
+igual em cada aposta), porém, o SEM CORTE rende mais (+36,18u vs.
++34,12u com o corte) — as apostas de edge fino descartadas ainda somam
+positivo, só não tão forte; ROI% melhor não significa lucro total
+maior com volume menor. Lucas decidiu adotar o corte de qualquer forma
+(prioriza qualidade/consistência por entrada sobre volume). Parâmetro
+em produção: `previsao_dia.LIMIAR_EDGE_CARTOES = 0.10`. Ver
+`docs/retrospectiva_edge_minimo_cartoes_2026-08-28.md`.
+
+**Evidência (histórica, sem o corte de edge — referência)**: z≈1,73
+combinado nos 2 anos mais recentes e menos inflados (2025 z=+0,73
+n=186; 2026 z=+1,75 n=167), positivo isoladamente nos 3 anos com dado
+disponível (2024/2025/2026). O agregado completo (incluindo 2024, que
+tem só n=28 e infla o z) chega a z≈2,3 — não tratar esse número
+isolado como prova, o z≈1,73 é a leitura mais honesta. **Número
+vigente hoje é o do corte de edge 10% acima (z=+2,62, n=211).**
 
 **Implementação em produção**: `metodologia_pesos/cartoes_arbitro.py`
 (funções puras, testadas em `test_cartoes_arbitro.py`). **Atualização

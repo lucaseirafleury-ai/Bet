@@ -36,7 +36,16 @@ from cartoes_arbitro import (
     prever_cartoes_combinado,
     simular_aposta_linha,
 )
-from previsao_dia import CAMINHO_HIST, CRITERIOS_GOLS, MIN_JOGOS_ARBITRO, N_HISTORICO_CARTOES, PARAMS_CARTOES_TIME, PESO_ARBITRO, passa_filtros_gols
+from previsao_dia import (
+    CAMINHO_HIST,
+    CRITERIOS_GOLS,
+    LIMIAR_EDGE_CARTOES,
+    MIN_JOGOS_ARBITRO,
+    N_HISTORICO_CARTOES,
+    PARAMS_CARTOES_TIME,
+    PESO_ARBITRO,
+    passa_filtros_gols,
+)
 from retrospectiva import rodar_retrospectiva, simular_apostas
 from sportmonks_adapter import BOOKMAKER_BET365, carregar_liga_sportmonks
 
@@ -163,7 +172,7 @@ def _checagem_cartoes_arbitro(corte_recente):
         if odd_over is None or odd_under is None:
             continue
 
-        aposta = simular_aposta_linha(pred_combinado, linha, odd_over, odd_under, real_total)
+        aposta = simular_aposta_linha(pred_combinado, linha, odd_over, odd_under, real_total, limiar_edge=LIMIAR_EDGE_CARTOES)
         if aposta is not None:
             aposta["data"] = jogo["data"]
             apostas.append(aposta)

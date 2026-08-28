@@ -32,7 +32,7 @@ DIAS_RESULTADOS_RECENTES = 14
 CRITERIOS_INFO = [
     dict(nome="BTTS", stake="cheio", stake_label="stake normal", evidencia="Série A · bet365 z=+2,89 · sem ano negativo"),
     dict(nome="Over 2.5", stake="reduzido", stake_label="stake reduzido", evidencia="Série A · Sbo z=+2,00 · filtro União (odd/favoritismo) · sem ano negativo"),
-    dict(nome="Cartões+Árbitro", stake="reduzido", stake_label="stake reduzido", evidencia="Série B · bet365 z=+2,08 · positivo nos 3 anos"),
+    dict(nome="Cartões+Árbitro", stake="reduzido", stake_label="stake reduzido", evidencia="Série B · bet365 z=+2,61 · edge mín. 10% · positivo nos 3 anos"),
 ]
 
 _NOME_LADO = {"btts": "BTTS · Sim", "over25": "Over 2.5"}

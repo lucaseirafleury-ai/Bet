@@ -150,13 +150,14 @@ def decidir_lado_linha(pred_total, linha, odd_over, odd_under, limiar_edge=0.0):
 
     Como as probabilidades de mercado/modelo são complementares
     (`prob_under = 1 - prob_over` dos dois lados), `edge_under` é sempre
-    o negativo de `edge_over` — com `limiar_edge=0.0` (padrão, o que foi
-    usado em toda a validação empírica deste critério) a função SEMPRE
-    decide um lado, nunca pula o jogo.
+    o negativo de `edge_over` — com `limiar_edge=0.0` (o default desta
+    função, mas NÃO o que a produção usa desde 28/08/2026 — ver
+    `previsao_dia.LIMIAR_EDGE_CARTOES=0.10`) a função SEMPRE decide um
+    lado, nunca pula o jogo.
 
-    Retorna `None` quando não há edge suficiente (só possível com
-    `limiar_edge > 0`). Caso contrário, `{"lado", "odd", "prob_modelo",
-    "prob_mercado", "edge"}`."""
+    Retorna `None` quando não há edge suficiente (com `limiar_edge >
+    0`, inclusive o `0.10` usado em produção hoje). Caso contrário,
+    `{"lado", "odd", "prob_modelo", "prob_mercado", "edge"}`."""
     prob_modelo_over = probabilidade_over(pred_total, linha=linha)
     prob_mercado_over = probabilidade_implicita_2vias(odd_over, odd_under)
     edge_over = prob_modelo_over - prob_mercado_over
@@ -178,13 +179,17 @@ def simular_aposta_linha(pred_total, linha, odd_over, odd_under, real_total, lim
 
     Como as probabilidades de mercado/modelo são complementares
     (`prob_under = 1 - prob_over` dos dois lados), `edge_under` é sempre
-    o negativo de `edge_over` — ou seja, com `limiar_edge=0.0` (padrão,
-    o que foi usado em toda a validação empírica deste critério) a
-    função SEMPRE aposta no lado que o modelo favorece, nunca pula o
-    jogo. `limiar_edge > 0` exige uma vantagem mínima antes de apostar
-    (pode fazer a função retornar `None`) — não usar um valor diferente
-    de `0.0` sem revalidar o ROI/z, já que os números documentados em
-    `docs/protocolo.md` foram medidos sem esse filtro.
+    o negativo de `edge_over` — ou seja, com `limiar_edge=0.0` (o
+    default desta função) ela SEMPRE aposta no lado que o modelo
+    favorece, nunca pula o jogo. `limiar_edge > 0` exige uma vantagem
+    mínima antes de apostar (pode fazer a função retornar `None`).
+    **Produção usa `limiar_edge=0.10` desde 28/08/2026**
+    (`previsao_dia.LIMIAR_EDGE_CARTOES`) — apostas de edge < 10% são
+    ruído (ROI perto de zero/negativo, ver
+    `docs/retrospectiva_edge_minimo_cartoes_2026-08-28.md`); o número
+    histórico sem filtro (n=386, ROI+9,4%) continua documentado em
+    `docs/protocolo.md` como referência, mas não é mais o
+    comportamento vigente.
 
     Retorna `None` quando não há aposta (só possível com `limiar_edge >
     0`). Caso contrário, retorna `{"lado", "venceu", "lucro", "edge"}`

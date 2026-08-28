@@ -706,13 +706,26 @@ atualizada, esta lista aqui não é mantida em detalhe:
    decidir, mesmo padrão do teto de odd do Over 2.5. Ver
    `docs/retrospectiva_edge_minimo_cartoes_2026-08-28.md`.
 
+47. **Lucas confirmou: adotado o corte de edge≥10% no Cartões+Árbitro
+   em produção** — perguntou primeiro qual versão rendia mais $ com
+   stake igual (o corte tem ROI% melhor mas lucro absoluto MENOR:
+   +34,12u vs +36,18u sem corte, porque o volume descartado ainda soma
+   positivo) e decidiu adotar mesmo assim, priorizando
+   qualidade/consistência por entrada. `previsao_dia.LIMIAR_EDGE_CARTOES`
+   mudou de `0.0` pra `0.10`; `checar_decaimento.py` atualizado pra usar
+   o mesmo piso (antes ignorava, chamava `simular_aposta_linha` sem
+   passar `limiar_edge` — corrigido pra nunca divergir da produção);
+   evidência do painel atualizada (`gerar_painel_dia.py`). Revalidado
+   com `checar_decaimento.py`: n=211 ROI+16,2% z=+2,61 acumulado, n=59
+   ROI+13,6% z=+1,17 últimos 90 dias — bate com a análise. `pytest`
+   197/197.
+
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
   sem qualquer edge defensável — não apostar por este critério.
 - Cartões+Árbitro (Série B, item 28) está em stake reduzido — mesmo com
-  bet365 (z=+2,08, item 34) ainda vale acompanhar
-  (`checar_decaimento.py`, precisa migrar pra ler odds só do bet365
-  também) antes de promover pra stake normal.
+  bet365 + edge mínimo 10% (z=+2,61, item 47) ainda vale acompanhar via
+  `checar_decaimento.py` (mensal) antes de promover pra stake normal.
 - Over 2.5 (Série A, item 35) está em stake reduzido com odd da Sbo e
   filtro "União" (odd/favoritismo, item 39) — testar 12 bookmakers é
   uma comparação múltipla em menor escala; reavaliar conforme mais

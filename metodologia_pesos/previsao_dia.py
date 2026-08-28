@@ -92,7 +92,15 @@ PARAMS_CARTOES_TIME = dict(
 N_HISTORICO_CARTOES = 10
 MIN_JOGOS_ARBITRO = 10
 PESO_ARBITRO = 0.3
-LIMIAR_EDGE_CARTOES = 0.0
+# Piso de edge adotado em 28/08/2026 (decisão do Lucas) — antes era 0.0
+# (sempre apostava no lado favorecido, edge de qualquer tamanho). Cortar
+# apostas de edge < 10% melhora ROI%/z (n=386 ROI+9,4% z=+2,02 -> n=211
+# ROI+16,2% z=+2,62, 3 anos positivos) mas rende MENOS lucro absoluto em
+# unidades com stake igual (+36,18u sem corte vs +34,12u com corte) — o
+# volume descartado (175 apostas de edge fino) ainda soma positivo no
+# agregado, só não é tão forte. Ver
+# docs/retrospectiva_edge_minimo_cartoes_2026-08-28.md.
+LIMIAR_EDGE_CARTOES = 0.10
 
 
 def _carregar_referees_cartoes(path):
