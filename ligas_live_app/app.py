@@ -52,7 +52,6 @@ def home():
     return render_template(
         "dashboard.html",
         ligas=config.LIGAS_MONITORADAS,
-        margem_valor=config.LIMIAR_MARGEM_VALOR,
         vapid_public_key=config.VAPID_PUBLIC_KEY,
     )
 

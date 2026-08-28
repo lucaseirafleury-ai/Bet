@@ -67,8 +67,6 @@ function rotuloOverUnder(fonte) {
 }
 
 function linhaValor(label, prob, comp) {
-  const margem = window.MARGEM_VALOR ?? 0.05;
-  const oddMinima = prob > 0 ? ((1 + margem) / prob).toFixed(2) : "—";
   const probPct = (prob * 100).toFixed(1);
   return `
     <div class="valor-row">
@@ -76,7 +74,6 @@ function linhaValor(label, prob, comp) {
         <span class="valor-label">${label}</span>
         <span class="valor-prob">nosso modelo: ${probPct}%</span>
       </div>
-      <div class="odd-minima">${oddMinima}</div>
       <span class="situacao-badge ${classeSituacao(comp)}">${rotuloSituacao(comp)}</span>
     </div>
   `;
@@ -240,7 +237,7 @@ function renderLive(snapshots, insights) {
         </table>
 
         <div class="valor-box">
-          <div class="valor-titulo">Odd mínima para valer a entrada (margem ${((window.MARGEM_VALOR ?? 0.05) * 100).toFixed(0)}%)</div>
+          <div class="valor-titulo">Probabilidade do modelo vs. esperado pré-live</div>
           ${linhaValor(`Vitória ${j.home}`, p.prob_casa, comp.prob_casa)}
           ${linhaValor("Empate", p.prob_empate, comp.prob_empate)}
           ${linhaValor(`Vitória ${j.away}`, p.prob_fora, comp.prob_fora)}
