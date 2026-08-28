@@ -119,6 +119,37 @@ def test_linha_mais_liquida_mercado_ausente_retorna_none():
     assert linha_mais_liquida({"odds": {}}, 255) is None
 
 
+def test_linha_mais_liquida_empate_de_um_bookmaker_desempata_por_paridade():
+    # caso real pós-restrição a bet365: um único bookmaker cota várias
+    # linhas alternativas, todas empatadas em "1 bookmaker" - a linha
+    # 4.5 vem DEPOIS na ordem de inserção (então a lógica antiga, que
+    # devolvia a primeira chave do dict em caso de empate, escolheria
+    # 3.5 aqui só por coincidência de ordem) - o desempate correto deve
+    # escolher pela paridade (odd Over/Under mais próxima), não pela
+    # ordem: 4.5 tem odds bem desequilibradas (1.20/4.50), 5.5 tem odds
+    # quase 50/50 (1.95/1.95) - 5.5 deve vencer mesmo aparecendo por
+    # último na lista.
+    jogo = {"odds": {"255": [
+        {"bookmaker_id": 2, "label": "Over", "total": "4.5", "value": 1.20},
+        {"bookmaker_id": 2, "label": "Under", "total": "4.5", "value": 4.50},
+        {"bookmaker_id": 2, "label": "Over", "total": "5.5", "value": 1.95},
+        {"bookmaker_id": 2, "label": "Under", "total": "5.5", "value": 1.95},
+    ]}}
+    assert linha_mais_liquida(jogo, 255) == 5.5
+
+
+def test_linha_mais_liquida_empate_prefere_linha_com_os_dois_lados_cotados():
+    # 3.5 só tem o lado Over cotado (sem Under pra medir paridade) -
+    # mesmo empatada em bookmakers, não deve vencer uma linha com os
+    # dois lados presentes e paridade mensurável.
+    jogo = {"odds": {"255": [
+        {"bookmaker_id": 2, "label": "Over", "total": "3.5", "value": 1.10},
+        {"bookmaker_id": 2, "label": "Over", "total": "4.5", "value": 2.10},
+        {"bookmaker_id": 2, "label": "Under", "total": "4.5", "value": 1.75},
+    ]}}
+    assert linha_mais_liquida(jogo, 255) == 4.5
+
+
 def test_odd_media_na_linha_calcula_media_correta():
     jogo = {"odds": {"255": [
         {"bookmaker_id": 1, "label": "Over", "total": "9.5", "value": 1.9},

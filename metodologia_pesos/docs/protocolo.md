@@ -33,8 +33,13 @@ produção. **3 critérios rodando no painel diário**:
   (n=18/29/23, todos positivos). Ver
   `docs/retrospectiva_filtro_over25_green_red_2026-08-27.md` e
   `docs/retrospectiva_filtro_favoritismo_over25_2026-08-27.md`.
-- ✅ **Cartões+Árbitro (Série B)** — stake reduzido, odd bet365. z=+2,08
+- ✅ **Cartões+Árbitro (Série B)** — stake reduzido, odd bet365. z=+2,01
   com odd real do bet365 (também mais forte que a média, z=+1,19).
+  Revalidado em 28/08/2026 depois de corrigir um bug real de seleção de
+  linha (`linha_mais_liquida` escolhia a linha de cartões de forma
+  arbitrária quando restrita a bet365 — ver "Correção da seleção de
+  linha" na seção do critério abaixo); o número mudou pouco (z=+2,08→
+  +2,01), o edge se sustenta.
 - Série B Over 2.5/BTTS seguem sem edge, confirmado de novo.
 
 **🔁 Revalidação mensal dos critérios (27/08/2026)**: Lucas pediu um
@@ -176,11 +181,32 @@ DESCONTINUADOS e removidos — `checar_decaimento.py` (agora mensal) lê
 painel diário já mantém atualizado sozinho — não depende mais de
 nenhum pull manual/separado.
 
-**Acompanhamento**: a checagem semanal vai recalculando o z conforme
+**Acompanhamento**: a checagem mensal vai recalculando o z conforme
 mais jogos de 2026 entram — se subir e se sustentar acima de z≈2 de
 forma consistente (não só um ano isolado), promover pra stake normal;
 se decair, reduzir mais ou descartar (mesmo tratamento que qualquer
 outro critério deste documento).
+
+**Correção da seleção de linha (28/08/2026)**: Lucas reportou um jogo
+do Goiás onde o painel sugeriu "Under 4,5" cartões, mas a casa dele só
+oferecia "Under 3,5". Causa raiz: `cartoes_arbitro.linha_mais_liquida`
+escolhia a linha cotada por mais bookmakers distintos — fazia sentido
+antes da restrição a bet365 (topo deste arquivo), mas depois dela
+`jogo['odds']` sempre tem UM bookmaker só, então toda linha alternativa
+que o bet365 cota (cartões costuma ter várias: 3,5/4,5/5,5...) empata
+em "1 bookmaker", e o desempate caía pra ordem arbitrária de
+serialização do Sportmonks — não pra linha realmente relevante.
+Corrigido: em caso de empate, a função agora escolhe a linha com odd
+Over/Under mais próxima da paridade (proxy padrão de mercado pra
+"linha principal" — linhas alternativas tendem a se afastar da
+paridade). **Limite explícito**: o Sportmonks não expõe nenhum campo
+de "linha em destaque" nos dados — essa é uma heurística, não uma
+garantia; sempre conferir a linha exata na casa antes de apostar,
+especialmente em cartões. Revalidação com a correção: z=+2,08→+2,01
+(acumulado 2024+, n=386, ROI+9,7%→+9,4%, acerto 59%) e z=+1,48→+1,60
+(últimos 90 dias, n=107, ROI+12,9%→+13,8%, acerto 62%→63%) — o edge se
+sustenta, a correção não inverteu o sinal. Ver
+`docs/retrospectiva_linha_cartoes_bug_2026-08-28.md`.
 
 ## Quarto critério (stake reduzido) — Over 2.5 recalibrado, Série A (27/08/2026)
 

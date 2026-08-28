@@ -610,6 +610,27 @@ atualizada, esta lista aqui não é mantida em detalhe:
    (substitui `docs/decaimento_semanal.md`, mantido como registro
    histórico da era FootyStats).
 
+42. **Bug real: painel sugeria linha de cartões que não existia na casa
+   do Lucas (Goiás, "Under 4,5" vs. a casa só tinha "Under 3,5")** —
+   causa raiz: `cartoes_arbitro.linha_mais_liquida` escolhia a linha
+   quotada por mais bookmakers distintos, o que fazia sentido antes da
+   restrição a bet365 (item anterior/`docs/retrospectiva_bookmaker_bet365_2026-08-27.md`)
+   mas depois dela `jogo['odds']` sempre tem 1 bookmaker só — toda linha
+   alternativa que o bet365 cota (cartões tem várias: 3,5/4,5/5,5...)
+   empatava em "1 bookmaker", e o desempate caía pra ordem arbitrária de
+   serialização do Sportmonks, não pra linha relevante. Confirmado com
+   exemplo real (Cuiabá x Goiás, 22/08: 4,5 e 5,5 empatados, ordem bruta
+   favorecia 5,5). Sportmonks não expõe campo de "linha principal" nos
+   dados — corrigido com heurística: em empate, escolhe a linha com odd
+   Over/Under mais próxima da paridade (proxy padrão de mercado pra
+   linha destacada). Revalidação (`checar_decaimento.py`, que reusa a
+   mesma função): z=+2,08→+2,01 acumulado, z=+1,48→+1,60 últimos 90
+   dias — edge se sustenta, correção não inverteu o sinal. BTTS/Over 2.5
+   não usam essa função, não afetados. Ver
+   `docs/retrospectiva_linha_cartoes_bug_2026-08-28.md`. **Ressalva
+   permanente**: é heurística, não garantia — sempre conferir a linha
+   exata na casa antes de apostar em cartões.
+
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
   sem qualquer edge defensável — não apostar por este critério.

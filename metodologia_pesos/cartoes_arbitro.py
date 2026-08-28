@@ -84,17 +84,45 @@ def linha_mais_liquida(jogo, market_id):
     """Entre as linhas (`total`) cotadas pro `market_id` em `jogo['odds']`
     (dict `{market_id: [{bookmaker_id, label, total, value}, ...]}`),
     retorna a linha cotada por mais bookmakers distintos (maior amostra
-    pra tirar a média de odd) — `None` se o mercado não estiver presente."""
+    pra tirar a média de odd) — `None` se o mercado não estiver presente.
+
+    Como a produção restringe as odds a um único bookmaker (bet365 —
+    ver `docs/retrospectiva_bookmaker_bet365_2026-08-27.md`), toda linha
+    que ele cota empata em "1 bookmaker" (cartões costuma ter várias
+    linhas alternativas do mesmo bookmaker: 3.5/4.5/5.5...). Nesse
+    empate (o caso normal hoje, não uma exceção), o desempate cai pra
+    a linha com odd Over/Under mais próxima da paridade — proxy padrão
+    de mercado pra "linha principal" (linhas alternativas tendem a se
+    afastar da paridade quanto mais longe da linha central). Sem esse
+    desempate, `max()` devolveria a primeira linha na ordem arbitrária
+    de serialização do Sportmonks, não a mais relevante — foi assim que
+    o painel sugeriu uma linha que não existia na casa real do usuário
+    (ver `docs/retrospectiva_linha_cartoes_bug_2026-08-28.md`)."""
     entradas = jogo.get("odds", {}).get(str(market_id)) or jogo.get("odds", {}).get(market_id)
     if not entradas:
         return None
     contagem = defaultdict(set)
+    odds_por_total = defaultdict(lambda: defaultdict(list))
     for e in entradas:
-        contagem[e["total"]].add(e.get("bookmaker_id"))
+        total = float(e["total"])
+        contagem[total].add(e.get("bookmaker_id"))
+        if e.get("value") is not None:
+            odds_por_total[total][e["label"]].append(float(e["value"]))
     if not contagem:
         return None
-    melhor_total = max(contagem, key=lambda t: len(contagem[t]))
-    return float(melhor_total)
+    max_bookmakers = max(len(s) for s in contagem.values())
+    candidatos = [t for t, s in contagem.items() if len(s) == max_bookmakers]
+    if len(candidatos) == 1:
+        return candidatos[0]
+
+    def distancia_paridade(total):
+        overs = odds_por_total[total].get("Over") or []
+        unders = odds_por_total[total].get("Under") or []
+        if not overs or not unders:
+            return float("inf")
+        return abs(sum(overs) / len(overs) - sum(unders) / len(unders))
+
+    return min(candidatos, key=distancia_paridade)
 
 
 def odd_media_na_linha(jogo, market_id, total_alvo, label):

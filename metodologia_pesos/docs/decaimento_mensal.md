@@ -6,4 +6,7 @@ Checagem recorrente (rotina mensal) do ROI/z/acerto dos 3 critérios em produç�
 |---|---|---|---|
 | 2026-08-28 | BTTS | n=187 ROI=+20.9% z=+2.89 acerto=60% | n=12 ROI=+13.8% z=+0.47 acerto=58% |
 | 2026-08-28 | Over 2.5 | n=70 ROI=+31.6% z=+2.56 acerto=63% | n=6 ROI=-36.0% z=-0.89 acerto=33% |
-| 2026-08-28 | Cartões+Árbitro (Série B, stake reduzido) | n=386 ROI=+9.7% z=+2.08 acerto=59% | n=107 ROI=+12.9% z=+1.48 acerto=62% |
+| 2026-08-28 | Cartões+Árbitro (Série B, stake reduzido) — **pré-correção `linha_mais_liquida`** | n=386 ROI=+9.7% z=+2.08 acerto=59% | n=107 ROI=+12.9% z=+1.48 acerto=62% |
+| 2026-08-28 | BTTS (reexecução, não afetada pela correção abaixo) | n=187 ROI=+20.9% z=+2.89 acerto=60% | n=12 ROI=+13.8% z=+0.47 acerto=58% |
+| 2026-08-28 | Over 2.5 (reexecução, não afetada pela correção abaixo) | n=70 ROI=+31.6% z=+2.56 acerto=63% | n=6 ROI=-36.0% z=-0.89 acerto=33% |
+| 2026-08-28 | Cartões+Árbitro (Série B, stake reduzido) — **pós-correção `linha_mais_liquida`** (ver `docs/retrospectiva_linha_cartoes_bug_2026-08-28.md`) | n=386 ROI=+9.4% z=+2.01 acerto=59% | n=107 ROI=+13.8% z=+1.60 acerto=63% |
