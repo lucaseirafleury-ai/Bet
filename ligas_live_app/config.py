@@ -35,7 +35,6 @@ MAX_GOLS_GRADE = 6  # grade de 0 a 6 gols por time para achar o placar mais prov
 MINUTO_MINIMO_ALERTA = 15         # só gera insight a partir desse minuto
 LIMIAR_DELTA_GOLS = 0.50          # 50% de desvio percentual
 LIMIAR_ABS_GOLS = 1.0             # E pelo menos 1 gol de diferença
-LIMIAR_MARGEM_VALOR = 0.05        # margem mínima de vantagem exigida no cálculo de odd mínima (5%)
 LINHA_ESCANTEIROS = 9.5           # linha usada no mercado de Over/Under total de escanteios
 INTERVALO_POLLING_SEGUNDOS = 60   # frequência de checagem durante o jogo
 RETENCAO_JOGOS_ANTERIORES_DIAS = 7  # quantos dias manter um jogo encerrado arquivado
