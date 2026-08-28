@@ -24,6 +24,18 @@ BASE = "https://api.sportmonks.com/v3/football"
 LEAGUE_IDS = {"seriea": 648, "serieb": 651}
 MARKETS = "1,80,14,255"
 
+# `state_id` (sempre presente no fixture, não depende de nenhum `include`)
+# — únicas fontes confiáveis de "ainda não começou"/"terminou de verdade".
+# NUNCA usar `home_goals is None`/`is not None` pra isso: o Sportmonks às
+# vezes já publica um placeholder "CURRENT" 0-0 pouco antes do jogo
+# começar (confirmado em produção, jogo Goiás x São Bernardo 28/08/2026
+# — `state_id` continuava 1/NS, mas `scores` já tinha entrada CURRENT com
+# `goals: 0` pros dois lados), o que faz `home_goals`/`away_goals` virarem
+# 0 (não None) mesmo pro jogo ainda não ter começado. Ver
+# `docs/retrospectiva_estado_fixture_bug_2026-08-28.md`.
+ESTADO_NAO_INICIADO = 1  # NS
+ESTADOS_FINALIZADOS = {5, 7, 8}  # FT, AET, FT_PEN — resultado final de verdade
+
 STAT_TYPE_MAP = {
     34: "corners", 84: "yellowcards", 83: "redcards",
     42: "shots", 86: "shots_on_target", 45: "possession", 56: "fouls",
@@ -95,7 +107,7 @@ def flatten_fixture(f):
         fixture_id=f["id"], date=f["starting_at"], home_team=home["name"], away_team=away["name"],
         home_goals=ft.get(home["id"]), away_goals=ft.get(away["id"]),
         home_goals_ht=ht.get(home["id"]), away_goals_ht=ht.get(away["id"]),
-        referee_id=referee_id, odds=odds, **stats,
+        referee_id=referee_id, odds=odds, state_id=f.get("state_id"), **stats,
     )
 
 
@@ -120,7 +132,7 @@ def puxar_fixtures_finalizados(tok, league_id, out_path):
                 d = r.json()
                 for f in d.get("data", []):
                     flat = flatten_fixture(f)
-                    if flat and flat["home_goals"] is not None and flat["away_goals"] is not None:
+                    if flat and flat.get("state_id") in ESTADOS_FINALIZADOS:
                         flat["season"] = nome_temp
                         fh.write(json.dumps(flat) + "\n")
                         total += 1
@@ -172,7 +184,7 @@ def atualizar_fixtures_finalizados(tok, league_id, out_path, margem_dias=3):
         for f in d.get("data", []):
             flat = flatten_fixture(f)
             if (
-                flat and flat["home_goals"] is not None and flat["away_goals"] is not None
+                flat and flat.get("state_id") in ESTADOS_FINALIZADOS
                 and flat["fixture_id"] not in ids_existentes
             ):
                 flat["season"] = ""  # desconhecida pro pull incremental — só usada pra rótulo cosmético (__src)
@@ -211,7 +223,7 @@ def puxar_fixtures_futuros(tok, league_id, dias_a_frente=10):
         d = r.json()
         for f in d.get("data", []):
             flat = flatten_fixture(f)
-            if flat and flat["home_goals"] is None:  # ainda não jogado
+            if flat and flat.get("state_id") == ESTADO_NAO_INICIADO:
                 resultado.append(flat)
         pag = d.get("pagination", {})
         if not pag.get("has_more"):

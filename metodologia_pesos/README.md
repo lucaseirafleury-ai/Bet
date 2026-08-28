@@ -631,6 +631,33 @@ atualizada, esta lista aqui não é mantida em detalhe:
    permanente**: é heurística, não garantia — sempre conferir a linha
    exata na casa antes de apostar em cartões.
 
+43. **2º bug no mesmo caso: o painel ficava "preso" mostrando a
+   sugestão antiga mesmo depois da correção acima** — Lucas confirmou
+   que o Goiás x São Bernardo continuava com "Under 4,5" mesmo depois
+   de rodar a rotina de novo com o código já corrigido. Causa raiz
+   diferente: `sportmonks_client.puxar_fixtures_futuros` decidia "jogo
+   ainda não jogado" checando `home_goals is None` — mas o Sportmonks
+   publica um placeholder `CURRENT` 0-0 pouco antes do jogo começar
+   (confirmado: `state_id` continuava 1/NS quando isso aconteceu), o
+   que faz `home_goals` virar 0 (não `None`) e o jogo simplesmente
+   desaparecer da lista de jogos futuros — o painel para de reavaliar
+   esse jogo, ficando preso na última sugestão computada antes do
+   placeholder aparecer. Risco mais sério (não confirmado como já
+   tendo ocorrido): a mesma lógica em `puxar_fixtures_finalizados`/
+   `atualizar_fixtures_finalizados` (histórico do motor) podia gravar
+   esse placar fantasma 0-0 PERMANENTEMENTE no histórico (o pull
+   incremental só adiciona `fixture_id` novo, nunca corrige um
+   existente). Corrigido: `flatten_fixture` agora extrai `state_id`
+   (campo sempre presente, confirmado via `/states` da própria API:
+   1=NS, 5=FT, 7=AET, 8=FT_PEN), e as 3 funções passam a decidir
+   "ainda não jogado"/"finalizado" por `state_id`, nunca mais por
+   presença de gols. Testes novos cobrindo o caso exato (fixture NS
+   com placeholder 0-0) em `test_sportmonks_client.py`. Verificado ao
+   vivo: com a correção, `puxar_fixtures_futuros` volta a trazer o
+   jogo do Goiás (9 fixtures em vez de 8), e a linha de cartões
+   escolhida bate com a bet365 real (3,5, odd 1,83/1,83). Ver
+   `docs/retrospectiva_estado_fixture_bug_2026-08-28.md`.
+
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
   sem qualquer edge defensável — não apostar por este critério.

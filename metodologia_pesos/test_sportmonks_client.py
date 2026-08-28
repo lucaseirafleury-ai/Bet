@@ -4,10 +4,11 @@ from unittest.mock import MagicMock, patch
 import sportmonks_client as sm
 
 
-def _fixture_bruto(fixture_id, home_goals, away_goals, date="2026-08-20 20:00:00"):
+def _fixture_bruto(fixture_id, home_goals, away_goals, date="2026-08-20 20:00:00", state_id=5):
     return {
         "id": fixture_id,
         "starting_at": date,
+        "state_id": state_id,
         "participants": [
             {"id": 1, "name": "Time A", "meta": {"location": "home"}},
             {"id": 2, "name": "Time B", "meta": {"location": "away"}},
@@ -66,7 +67,7 @@ def test_atualizar_fixtures_finalizados_ignora_fixture_ainda_nao_jogado(tmp_path
                       referee_id=None, odds={}, season="2026")
     out_path.write_text(json.dumps(existente) + "\n")
 
-    fixture_futuro = _fixture_bruto(3, None, None, date="2026-08-25 20:00:00")
+    fixture_futuro = _fixture_bruto(3, None, None, date="2026-08-25 20:00:00", state_id=sm.ESTADO_NAO_INICIADO)
     fixture_futuro["scores"] = []
     resposta = _resposta([fixture_futuro])
     with patch.object(sm.requests, "get", return_value=resposta):
@@ -75,3 +76,49 @@ def test_atualizar_fixtures_finalizados_ignora_fixture_ainda_nao_jogado(tmp_path
     assert novos == 0
     linhas = [json.loads(l) for l in out_path.read_text().splitlines()]
     assert len(linhas) == 1
+
+
+def test_atualizar_fixtures_finalizados_ignora_placeholder_zero_a_zero_pre_jogo(tmp_path):
+    # bug real (28/08/2026, Goiás x São Bernardo): o Sportmonks às vezes
+    # já publica uma entrada "CURRENT" 0-0 minutos antes do jogo começar,
+    # mesmo com state_id ainda 1 (NS) - usar só "scores tem CURRENT" ou
+    # "home_goals is not None" pra decidir "terminou" classificaria esse
+    # jogo (que nem começou) como finalizado, com placar fantasma 0-0.
+    out_path = tmp_path / "fixtures.jsonl"
+    existente = dict(fixture_id=1, date="2026-08-20 20:00:00", home_team="Time A", away_team="Time B",
+                      home_goals=1, away_goals=1, home_goals_ht=0, away_goals_ht=0,
+                      referee_id=None, odds={}, season="2026")
+    out_path.write_text(json.dumps(existente) + "\n")
+
+    fixture_com_placeholder = _fixture_bruto(9, 0, 0, date="2026-08-28 20:00:00", state_id=sm.ESTADO_NAO_INICIADO)
+    resposta = _resposta([fixture_com_placeholder])
+    with patch.object(sm.requests, "get", return_value=resposta):
+        novos = sm.atualizar_fixtures_finalizados("tok", 648, str(out_path), margem_dias=10)
+
+    assert novos == 0
+    linhas = [json.loads(l) for l in out_path.read_text().splitlines()]
+    assert [l["fixture_id"] for l in linhas] == [1]
+
+
+def test_puxar_fixtures_futuros_inclui_jogo_com_placeholder_zero_a_zero_pre_jogo():
+    # mesmo bug do teste acima, do lado do painel de sugestões: um jogo
+    # NS com placeholder 0-0 precisa continuar aparecendo como "ainda não
+    # jogado" pro painel conseguir sugerir aposta nele - se cair no ramo
+    # "já jogado" ele simplesmente some da lista de sugestões (foi o que
+    # aconteceu de verdade: o jogo sumiu de puxar_fixtures_futuros e o
+    # painel ficou preso mostrando a última sugestão antiga).
+    fixture_com_placeholder = _fixture_bruto(9, 0, 0, date="2026-08-28 22:30:00", state_id=sm.ESTADO_NAO_INICIADO)
+    resposta = _resposta([fixture_com_placeholder])
+    with patch.object(sm.requests, "get", return_value=resposta):
+        futuros = sm.puxar_fixtures_futuros("tok", 648, dias_a_frente=3)
+
+    assert [f["fixture_id"] for f in futuros] == [9]
+
+
+def test_puxar_fixtures_futuros_exclui_jogo_em_andamento():
+    fixture_em_andamento = _fixture_bruto(9, 1, 0, date="2026-08-28 20:00:00", state_id=22)  # INPLAY_2ND_HALF
+    resposta = _resposta([fixture_em_andamento])
+    with patch.object(sm.requests, "get", return_value=resposta):
+        futuros = sm.puxar_fixtures_futuros("tok", 648, dias_a_frente=3)
+
+    assert futuros == []

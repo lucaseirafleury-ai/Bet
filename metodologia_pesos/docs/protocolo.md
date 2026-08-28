@@ -187,6 +187,22 @@ forma consistente (não só um ano isolado), promover pra stake normal;
 se decair, reduzir mais ou descartar (mesmo tratamento que qualquer
 outro critério deste documento).
 
+**Correção 2 — painel ficava preso na sugestão antiga perto do início do
+jogo (28/08/2026)**: mesmo depois da correção de linha abaixo, o
+painel continuava mostrando a sugestão errada pro jogo do Goiás. Causa
+raiz diferente: `sportmonks_client.puxar_fixtures_futuros` decidia
+"jogo ainda não começou" checando se havia gol registrado
+(`home_goals is None`) — mas o Sportmonks publica um placeholder
+0-0 pouco antes do jogo começar (`state_id` continua 1/NS nesse
+momento), fazendo o jogo sumir da lista de jogos futuros e o painel
+parar de reavaliá-lo. Corrigido: agora usa `state_id` (1=NS, sempre
+presente no fixture) pra decidir "ainda não jogado", em vez de
+presença de gols — mesma correção aplicada em
+`puxar_fixtures_finalizados`/`atualizar_fixtures_finalizados` (que
+tinham o problema espelhado: risco, não confirmado como já ocorrido,
+de gravar um placar fantasma 0-0 permanente no histórico). Ver
+`docs/retrospectiva_estado_fixture_bug_2026-08-28.md`.
+
 **Correção da seleção de linha (28/08/2026)**: Lucas reportou um jogo
 do Goiás onde o painel sugeriu "Under 4,5" cartões, mas a casa dele só
 oferecia "Under 3,5". Causa raiz: `cartoes_arbitro.linha_mais_liquida`
