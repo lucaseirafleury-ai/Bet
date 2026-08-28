@@ -549,6 +549,19 @@ atualizada, esta lista aqui não é mantida em detalhe:
    Confirma eficiência de mercado genuína, não ruído — não vale
    reabrir sem mudança estrutural no motor. Ver
    `docs/retrospectiva_filtro_casa_serieb_2026-08-27.md`.
+   Terceira e quarta rodadas (mesmo dia): **1x2 casa Série A** (z=+0,27
+   original) e **mandante_dc Série B** (z=+0,09) — os "menos ruins"
+   restantes na família 1x2/DC, escolhidos por não serem correlacionados
+   com o Over Série A. Diferença chave: esses partem de z≈0 (nunca
+   tiveram edge real), não de um sinal que decaiu — filtro-mineração
+   com as mesmas 7 features não produziu NENHUM subgrupo com os 3 anos
+   positivos em nenhum dos dois. Fecha a família 1x2/DC inteira como
+   "sem edge, mesmo com filtro" — os demais (empate/fora/visitante_dc,
+   já negativos de forma mais clara) não valem retestar. Ver
+   `docs/retrospectiva_filtro_1x2_ruido_2026-08-27.md`. Restante da
+   varredura (Escanteios, Under, Over1.5/3.5/4.5, Favorito DC) agendado
+   numa rotina semanal (quartas-feiras, 3 candidatos por vez) — ver
+   `docs/varredura_filtros_checklist.md`.
 
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
