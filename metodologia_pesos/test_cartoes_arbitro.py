@@ -211,3 +211,9 @@ def test_simular_aposta_linha_aposta_perdedora_tem_lucro_negativo():
     assert resultado["lado"] == "Over"
     assert resultado["venceu"] is False
     assert resultado["lucro"] == -1.0
+
+
+def test_simular_aposta_linha_retorna_edge_igual_ao_de_decidir_lado_linha():
+    resultado = simular_aposta_linha(pred_total=6.0, linha=2.5, odd_over=1.9, odd_under=1.9, real_total=4)
+    decisao = decidir_lado_linha(pred_total=6.0, linha=2.5, odd_over=1.9, odd_under=1.9)
+    assert resultado["edge"] == pytest.approx(decisao["edge"])

@@ -187,10 +187,13 @@ def simular_aposta_linha(pred_total, linha, odd_over, odd_under, real_total, lim
     `docs/protocolo.md` foram medidos sem esse filtro.
 
     Retorna `None` quando não há aposta (só possível com `limiar_edge >
-    0`). Caso contrário, retorna `{"lado", "venceu", "lucro"}` — `lucro`
-    é líquido por unidade de stake (`odd - 1` se venceu, `-1` se
-    perdeu), sem aplicar nenhuma redução de stake (isso é decisão de
-    operação, não da simulação estatística)."""
+    0`). Caso contrário, retorna `{"lado", "venceu", "lucro", "edge"}`
+    — `lucro` é líquido por unidade de stake (`odd - 1` se venceu, `-1`
+    se perdeu), sem aplicar nenhuma redução de stake (isso é decisão de
+    operação, não da simulação estatística); `edge` é o repassado de
+    `decidir_lado_linha` (útil pra analisar, depois do fato, se cortar
+    por tamanho de edge teria mudado o resultado — ver
+    `docs/retrospectiva_edge_minimo_cartoes_2026-08-28.md`)."""
     decisao = decidir_lado_linha(pred_total, linha, odd_over, odd_under, limiar_edge)
     if decisao is None:
         return None
@@ -198,4 +201,5 @@ def simular_aposta_linha(pred_total, linha, odd_over, odd_under, real_total, lim
         venceu = real_total > linha
     else:
         venceu = real_total <= linha
-    return dict(lado=decisao["lado"], venceu=venceu, lucro=(decisao["odd"] - 1) if venceu else -1.0)
+    return dict(lado=decisao["lado"], venceu=venceu, lucro=(decisao["odd"] - 1) if venceu else -1.0,
+                edge=decisao["edge"])

@@ -690,6 +690,22 @@ atualizada, esta lista aqui não é mantida em detalhe:
    entrada errada, não mexe no que já está certo, ignora resolvidas,
    ignora jogo que já começou).
 
+46. **Analisei se Cartões+Árbitro precisa de edge mínimo — sim,
+   candidato real em 10%** — Lucas notou que esse é o único critério
+   sem piso de edge (BTTS=5%, Over 2.5=8%, Cartões=0%, sempre aposta
+   no lado favorecido não importa quão fino o edge). Expus `edge` no
+   retorno de `cartoes_arbitro.simular_aposta_linha` (campo novo, não
+   existia) e rodei o backtest completo (n=386, mesma função do
+   `checar_decaimento.py`) cortando por faixa de edge: 0-2%/5-10% são
+   RUÍDO (ROI negativo/perto de zero), 10-20%/20%+ são consistentemente
+   melhores. Testando cortes mínimos redondos, **≥10% é o pico**: n=211,
+   ROI+16,2%, z=+2,62 (vs. baseline z=+2,02/ROI+9,4%), com os 3 anos
+   positivos (2024/2025/2026) — passa a mesma barra "sem ano negativo"
+   dos outros critérios, não é um pico isolado (8%/12% também melhoram
+   sobre o baseline). Não apliquei a produção — reportado pro Lucas
+   decidir, mesmo padrão do teto de odd do Over 2.5. Ver
+   `docs/retrospectiva_edge_minimo_cartoes_2026-08-28.md`.
+
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
   sem qualquer edge defensável — não apostar por este critério.
