@@ -113,5 +113,22 @@
     "casa_ref": "bet365",
     "resultado": "pendente",
     "lucro": null
+  },
+  {
+    "fixture_id": 19667193,
+    "criterio": "Cartões+Árbitro",
+    "stake": "reduzido",
+    "liga": "Série B",
+    "liga_chave": "serieb",
+    "jogo": "Fortaleza x Operário PR",
+    "data_jogo": "2026-08-31 22:30:00",
+    "lado": "Under 5.5 cartões",
+    "linha_aposta": 5.5,
+    "odd": 1.66,
+    "edge": 0.16060404265747696,
+    "data_registro": "2026-08-28",
+    "casa_ref": "bet365",
+    "resultado": "pendente",
+    "lucro": null
   }
 ]
