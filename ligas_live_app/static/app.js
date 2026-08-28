@@ -44,41 +44,6 @@ function classeDivergencia(v) {
   return "divergencia-neutro";
 }
 
-function classeSituacao(comp) {
-  if (!comp || comp.situacao === "equilibrado") return "situacao-equilibrado";
-  const base = comp.situacao === "acima" ? "situacao-acima" : "situacao-abaixo";
-  return comp.forte ? `${base} situacao-forte` : base;
-}
-
-function rotuloSituacao(comp) {
-  if (!comp || comp.situacao === "equilibrado") return "≈ equilibrado";
-  const seta = comp.situacao === "acima" ? "▲" : "▼";
-  return `${seta} ${comp.situacao} do esperado`;
-}
-
-function rotuloOverUnder(fonte) {
-  if (fonte === "calibrado_somente_minuto") {
-    return { texto: " ⚠ só relógio — sem edge informacional", classe: "tag-sem-edge" };
-  }
-  if (fonte && fonte.startsWith("calibrado_")) {
-    return { texto: " ✓ calibrado", classe: "tag-calibrado" };
-  }
-  return { texto: "", classe: "" };
-}
-
-function linhaValor(label, prob, comp) {
-  const probPct = (prob * 100).toFixed(1);
-  return `
-    <div class="valor-row">
-      <div class="valor-info">
-        <span class="valor-label">${label}</span>
-        <span class="valor-prob">nosso modelo: ${probPct}%</span>
-      </div>
-      <span class="situacao-badge ${classeSituacao(comp)}">${rotuloSituacao(comp)}</span>
-    </div>
-  `;
-}
-
 const cardsExpandidos = new Set();
 
 function toggleCard(fixtureId) {
@@ -183,8 +148,6 @@ function renderLive(snapshots, insights) {
   }
 
   lista.innerHTML = jogos.map((j) => {
-    const p = j.probabilidades || {};
-    const comp = p.comparacao || {};
     const sc = j.stats_completas_home || {};
     const sa = j.stats_completas_away || {};
     const expandido = cardsExpandidos.has(j.fixture_id);
@@ -235,26 +198,6 @@ function renderLive(snapshots, insights) {
           <tr><td class="label-col">Defesas</td><td>${sc.defesas ?? "—"}</td><td>${sa.defesas ?? "—"}</td></tr>
           <tr><td class="label-col">Eficiência de finalização</td><td>${j.eficiencia_home != null ? j.eficiencia_home + "%" : "—"}</td><td>${j.eficiencia_away != null ? j.eficiencia_away + "%" : "—"}</td></tr>
         </table>
-
-        <div class="valor-box">
-          <div class="valor-titulo">Probabilidade do modelo vs. esperado pré-live</div>
-          ${linhaValor(`Vitória ${j.home}`, p.prob_casa, comp.prob_casa)}
-          ${linhaValor("Empate", p.prob_empate, comp.prob_empate)}
-          ${linhaValor(`Vitória ${j.away}`, p.prob_fora, comp.prob_fora)}
-          ${linhaValor(`Over 2.5 gols<span class="${rotuloOverUnder(p.over_under_fonte).classe}">${rotuloOverUnder(p.over_under_fonte).texto}</span>`, p.prob_over25, comp.prob_over25)}
-          ${linhaValor(`Under 2.5 gols<span class="${rotuloOverUnder(p.over_under_fonte).classe}">${rotuloOverUnder(p.over_under_fonte).texto}</span>`, p.prob_under25, comp.prob_under25)}
-          ${linhaValor("Ambas marcam - Sim", p.prob_btts_sim, comp.prob_btts_sim)}
-          ${linhaValor("Ambas marcam - Não", p.prob_btts_nao, comp.prob_btts_nao)}
-        </div>
-
-        <div class="valor-box">
-          <div class="valor-titulo">
-            Escanteios — linha ${p.linha_escanteios ?? "9.5"}
-            <span class="aviso-confianca">confiança menor, não calibrado ainda</span>
-          </div>
-          ${linhaValor(`Over ${p.linha_escanteios ?? "9.5"}`, p.prob_over_escanteios, comp.prob_over_escanteios)}
-          ${linhaValor(`Under ${p.linha_escanteios ?? "9.5"}`, p.prob_under_escanteios, comp.prob_under_escanteios)}
-        </div>
       </div>
     </div>
   `;
