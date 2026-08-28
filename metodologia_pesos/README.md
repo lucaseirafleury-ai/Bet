@@ -510,15 +510,21 @@ atualizada, esta lista aqui não é mantida em detalhe:
    `gf_pred`/`ga_pred`/`total_pred` do modelo, e pela primeira vez o
    `predictions` do próprio Sportmonks, `type_id=235`, confirmado
    disponível retroativo com cobertura completa). Dois candidatos reais
-   (consistentes nos 3 anos, `n≥27`): **odd mais baixa** (odd≤2,20:
-   69,6% acerto/ROI+78,6% vs odd>2,20: 44,1%/+4,8%, monotônico em todo
-   limiar testado) e **concordância com o `predictions` do Sportmonks**
-   (67,5%/+78,5% vs 50,0%/+15,9%) — combinados, o grupo "nem odd baixa
-   nem Sportmonks concorda" é o único com ROI NEGATIVO da análise
-   (n=27, −12,3%). Também um alerta: edge mais alto teve acerto PIOR
-   nesta amostra, com o padrão invertendo de sinal entre 2024 e
-   2025/2026 — não usar como filtro, é ruído. Nenhum filtro promovido a
-   produção ainda — fica documentado à espera de decisão do Lucas. Ver
+   (consistentes nos 3 anos, `n≥27`, força quase idêntica entre os
+   dois): **odd mais baixa** (odd≤2,20: 69,6% acerto/ROI+39,3% vs
+   odd>2,20: 44,1%/+2,4%, monotônico em todo limiar testado) e
+   **concordância com o `predictions` do Sportmonks** (67,5%/+39,2%
+   vs 50,0%/+8,0%) — combinar os dois NÃO ajuda (interseção fica com
+   ROI+30,6%, pior que qualquer um isolado — sinais correlacionados,
+   não independentes); o grupo "nem odd baixa nem Sportmonks concorda"
+   é o único com ROI NEGATIVO da análise (n=27, −6,1%). Também um
+   alerta: edge mais alto teve acerto E ROI PIORES nesta amostra, com o
+   padrão invertendo de sinal entre 2024 e 2025/2026 — não usar como
+   filtro, é ruído. (Nota: a primeira versão desta análise reportava
+   ROI em dobro por um bug de stake inconsistente no script ad-hoc,
+   corrigido no mesmo dia — taxas de acerto e `n` não foram afetados.)
+   Nenhum filtro promovido a produção ainda — fica documentado à espera
+   de decisão do Lucas. Ver
    `docs/retrospectiva_filtro_over25_green_red_2026-08-27.md`.
 
 ## O que ainda falta
