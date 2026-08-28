@@ -532,6 +532,23 @@ atualizada, esta lista aqui não é mantida em detalhe:
    isso. Implementado em `previsao_dia.CRITERIOS_GOLS`
    (`odd_maxima=2.20` no critério de Over 2.5) — `avaliar_criterio_gols`
    pula a sugestão se a odd real do dia vier acima disso.
+38. **Varredura de achados antigos de amostra grande, não positivos ou
+   fracos, atrás de filtro (pedido do Lucas)** — primeira rodada:
+   **favoritismo (1x2) no Over 2.5-Sbo** — jogos equilibrados rendem
+   muito mais que favoritos claros (65,0%/ROI+41,8% vs 52,5%/+5,4%, 3
+   anos limpos do lado equilibrado). Sinal real, mas NÃO empilhado com
+   o teto de odd (item 37) — a combinação tripla teria `n=5`/ano,
+   insuficiente. Ver
+   `docs/retrospectiva_filtro_favoritismo_over25_2026-08-27.md`.
+   Segunda rodada: **1x2 "casa" Série B** (o maior z já achado na
+   Série B, mas já sabido "morto" por decaimento — item 20/21)
+   revalidado com dado atual (Sportmonks/bet365): mesmo decaimento
+   (2024 ROI+31,0% → 2025 +4,1% → 2026 −18,3%). Testei 7 características
+   restringindo só a 2025+2026 (o período já morto) — **nenhum corte
+   resgata o sinal, 2026 fica negativo em todo subgrupo testado**.
+   Confirma eficiência de mercado genuína, não ruído — não vale
+   reabrir sem mudança estrutural no motor. Ver
+   `docs/retrospectiva_filtro_casa_serieb_2026-08-27.md`.
 
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
