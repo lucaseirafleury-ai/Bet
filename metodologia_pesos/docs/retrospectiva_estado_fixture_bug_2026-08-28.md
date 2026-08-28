@@ -85,11 +85,55 @@ Goiás x São Bernardo aparece com `state_id=1`, e a linha de cartões
 escolhida é **3,5** (odd 1,83 nos dois lados), batendo com o que a
 bet365 real mostra.
 
+## 3º achado — o painel continuava preso mesmo com as duas correções
+
+Depois de corrigir e revalidar as duas causas acima, o painel
+CONTINUOU mostrando "Goiás x São Bernardo — Under 4,5" em 3 execuções
+seguidas da rotina (18:10, 18:45 e 19:14 BRT), mesmo já com o código
+corrigido disponível no repo. Investigando `gerar_painel_dia.py`/
+`ledger_apostas.py`: o painel não recalcula as sugestões pendentes a
+cada execução — `registrar_novas_sugestoes` só ACRESCENTA sugestões
+novas ao `data/ledger_sugestoes.json` quando a combinação
+`(fixture_id, critério)` ainda não existe lá; se já existe (pendente
+ou resolvida), nunca é sobrescrita. O card do Goiás tinha sido
+registrado em **27/08/2026** (`data_registro`), bem antes das duas
+correções de hoje — ficou congelado com o valor errado (Under 4,5, odd
+1,80, edge 19,9%) e nenhuma rotina nova, mesmo com o código certo,
+jamais o corrigiria sozinho, porque o design do ledger deliberadamente
+nunca reescreve uma entrada pendente já registrada (proteção contra
+mudar a odd de uma aposta que o Lucas talvez já tenha feito).
+
+Esse design continua correto — o problema foi só ter uma entrada
+registrada com dado errado ANTES da correção existir. Recomputei os 5
+jogos "Cartões+Árbitro" pendentes no ledger com o código já corrigido:
+só o Goiás realmente mudava de LINHA (era o único caso de empate
+`linha_mais_liquida` de verdade); os outros 4 mudaram só um pouco de
+odd/edge (movimento normal de mercado entre o registro e agora, não
+bug) — não mexi neles, o ledger deve refletir a odd real no momento em
+que a sugestão foi feita, não ficar "atualizando" toda vez que a odd
+de mercado se move.
+
+**Correção manual, pontual**: editei
+`data/ledger_sugestoes.json` só a entrada do Goiás (fixture_id
+19667192) pra "Under 3,5 cartões, odd 1,83, edge 3,08%" (recalculado
+com o pipeline já corrigido, contra a odd real da bet365 no momento),
+com uma nota (`nota_correcao`) explicando a correção manual — não fiz
+isso via rotina porque o jogo começava em minutos, sem tempo pra mais
+um ciclo completo. **Nota importante**: o edge caiu de 19,9% pra
+3,08% — a linha 4,5 (errada) tinha uma odd claramente mais generosa
+(por ser desequilibrada) que a linha 3,5 (real, quase 50/50); a
+sugestão original não só apontava pra uma linha inexistente, como
+inflava a atratividade aparente da aposta.
+
 ## Recomendação final
 
-As duas correções (`linha_mais_liquida` + detecção de estado do
-fixture) juntas resolvem o caso relatado. `pytest metodologia_pesos/`
-passando (192 testes). Nenhuma mudança nos parâmetros/critérios em si
-— só correção de dado/seleção, que afeta qualquer critério que dependa
-de `puxar_fixtures_futuros`/`puxar_fixtures_finalizados` (ou seja,
-todo o painel), não só cartões.
+As duas correções de código (`linha_mais_liquida` + detecção de estado
+do fixture) resolvem a causa raiz pra sugestões NOVAS a partir de
+agora. `pytest metodologia_pesos/` passando (192 testes). Nenhuma
+mudança nos parâmetros/critérios em si — só correção de dado/seleção,
+que afeta qualquer critério que dependa de
+`puxar_fixtures_futuros`/`puxar_fixtures_finalizados` (ou seja, todo o
+painel), não só cartões. A entrada específica do Goiás no ledger foi
+corrigida manualmente (documentado acima) porque já estava congelada
+antes da correção existir — não é um padrão recorrente, é um resíduo
+pontual de um bug já fechado.

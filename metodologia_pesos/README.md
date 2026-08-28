@@ -658,6 +658,22 @@ atualizada, esta lista aqui não é mantida em detalhe:
    escolhida bate com a bet365 real (3,5, odd 1,83/1,83). Ver
    `docs/retrospectiva_estado_fixture_bug_2026-08-28.md`.
 
+44. **3º achado no mesmo caso: painel não recalcula sugestão já
+   registrada** — mesmo com as 2 correções acima, o painel continuou
+   preso mostrando "Goiás Under 4,5" por 3 execuções seguidas. Causa:
+   `ledger_apostas.registrar_novas_sugestoes` nunca sobrescreve uma
+   entrada `(fixture_id, critério)` já registrada — a do Goiás tinha
+   sido gravada em 27/08, antes de qualquer correção existir, e ficou
+   congelada com o valor errado pra sempre (design correto em geral —
+   evita mudar a odd de uma aposta já feita — só falhou porque o
+   valor original nasceu errado). Corrigi manualmente essa UMA entrada
+   no `data/ledger_sugestoes.json` (Under 3,5, odd 1,83, edge 3,08% —
+   caiu de 19,9% porque a linha errada tinha odd mais generosa por ser
+   desequilibrada). Recomputei as outras 4 entradas de Cartões
+   pendentes pra checar se tinham o mesmo problema — não tinham (só
+   odd/edge com movimento normal de mercado, não bug), não mexi
+   nelas. Ver `docs/retrospectiva_estado_fixture_bug_2026-08-28.md`.
+
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
   sem qualquer edge defensável — não apostar por este critério.
