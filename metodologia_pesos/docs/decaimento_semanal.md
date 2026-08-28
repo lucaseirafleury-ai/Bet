@@ -1,5 +1,13 @@
 # Decaimento semanal — Over 2.5 / BTTS (Série A) + Cartões+Árbitro (Série B)
 
+**⚠️ DESCONTINUADO (27/08/2026)** — substituído por
+`docs/decaimento_mensal.md` (`checar_decaimento.py` reconstruído, 100%
+Sportmonks, sem dependência de CSV manual/pull separado). Mantido aqui
+só como registro histórico da era FootyStats (os números abaixo usavam
+a MÉDIA de todas as casas do Sportmonks, não bet365/Sbo restrito — não
+comparáveis diretamente aos números atuais). Não adicionar novas linhas
+neste arquivo.
+
 Checagem recorrente (rotina semanal) do ROI/z dos critérios campeões (`docs/protocolo.md`), acumulado vs. janela móvel dos últimos 90 dias — a janela recente é o que importa pra pegar decaimento cedo, o acumulado se move devagar demais pra isso. "Cartões+Árbitro (Série B)" é o 3º critério, adotado com stake reduzido (~1/3 do normal) por ainda não ter passado do limiar de significância z≈2 — só aparece quando `data/sportmonks_serieb_cartoes/fixtures.jsonl` está disponível (ver `sportmonks_pull_serieb_cartoes.py`).
 
 | Data da checagem | Critério | Acumulado 2023-2026 | Últimos 90 dias |

@@ -4,9 +4,11 @@ mas ainda abaixo do limiar de significância padrão do projeto (z≈2),
 adotada como TERCEIRO critério com stake reduzido (ver `docs/protocolo.md`,
 seção "Terceiro critério (stake reduzido)").
 
-Depende de dado externo (Sportmonks — `referee_id` e odds do mercado
-"Number of Cards"), que não está nos CSVs do FootyStats. Ver
-`sportmonks_pull_serieb_cartoes.py` pra como esse dado é obtido/atualizado.
+Depende de dado externo do Sportmonks (`referee_id` e odds do mercado
+"Number of Cards") — vem de `data/sportmonks_serieb/fixtures.jsonl`
+(o mesmo arquivo amplo que o painel diário mantém atualizado sozinho
+via `sportmonks_atualizar_dado.py`; não existe mais um pull separado
+pra isso).
 """
 from __future__ import annotations
 

@@ -589,6 +589,26 @@ atualizada, esta lista aqui não é mantida em detalhe:
    "existe edge pra Under" — a odd real de Under já precifica essa
    tendência, não sobra vantagem pro modelo capturar. Fechado. Ver
    `docs/retrospectiva_filtro_under25_favoritismo_2026-08-27.md`.
+41. **`checar_decaimento.py` reconstruído — mensal, 100% Sportmonks,
+   cobre os 3 critérios de produção** — Lucas pediu um processo de
+   revalidação periódica. Decisão: NÃO re-rodar treino/holdout todo mês
+   (reintroduziria o mesmo risco de comparação múltipla do dia inteiro,
+   e o incremento de dado mensal é pequeno demais pra re-derivar
+   parâmetro com confiança) — em vez disso, virou monitoramento de
+   decaimento com os parâmetros FIXOS já em produção, reaproveitando
+   `previsao_dia.CRITERIOS_GOLS`/`PARAMS_CARTOES_TIME`/
+   `passa_filtros_gols` diretamente (extraído de `avaliar_criterio_gols`
+   pra nunca duplicar a lógica do filtro União em dois lugares).
+   Descontinuado `sportmonks_pull_serieb_cartoes.py` e
+   `data/sportmonks_serieb_cartoes/` (pull estreito separado, obsoleto)
+   — cartões agora lê `referee_id`/odds direto de
+   `data/sportmonks_serieb/fixtures.jsonl`, o mesmo arquivo do painel.
+   Rodado de ponta a ponta: os 3 números batem exatamente com o já
+   documentado (BTTS z=+2,89, Over 2.5 n=70/ROI+31,6% igual ao filtro
+   União, Cartões+Árbitro z=+2,08) — confirma que a reconstrução está
+   fiel à produção real. Log novo em `docs/decaimento_mensal.md`
+   (substitui `docs/decaimento_semanal.md`, mantido como registro
+   histórico da era FootyStats).
 
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
@@ -610,11 +630,6 @@ atualizada, esta lista aqui não é mantida em detalhe:
   persistente (resolvido em 27/08/2026, após 3 tentativas — aspas
   curvas do teclado do iPhone corrompendo o valor) — rotina diária do
   painel (item 32) rodando sozinha.
-- Consolidar as duas fontes de dado Sportmonks que existem em paralelo
-  (`data/sportmonks_serieb_cartoes/` do item 28, mais estreita, só pro
-  `checar_decaimento.py`; `data/sportmonks_{seriea,serieb}/` do item 32,
-  mais ampla, pro painel) — funciona, mas é duplicação que dava pra
-  unificar numa rodada futura.
 - Escanteios (Série A + Série B) seguem sem qualquer edge com o motor
   atual, mesmo com odd real do Sportmonks (item 26) — não vale
   insistir sem repensar o motor de previsão desse mercado especificamente.

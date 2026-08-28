@@ -109,6 +109,26 @@ def _carregar_referees_cartoes(path):
     return jogos
 
 
+def passa_filtros_gols(criterio, odd, favoritismo):
+    """Regra "União" do critério (hoje só o Over 2.5 usa): só reprova
+    quando os DOIS sinais forem desfavoráveis ao mesmo tempo — odd acima
+    de `odd_maxima` E jogo com favorito claro pela odd 1x2
+    (`favoritismo > limiar_favoritismo`). Sem `odd_maxima` configurado
+    (critério sem esse filtro, ex. BTTS), sempre passa. Sem
+    `limiar_favoritismo` ou sem odd 1x2 disponível pro jogo, cai pro
+    comportamento antigo (só o teto de odd decide).
+
+    Extraído de `avaliar_criterio_gols` pra ser reaproveitado também na
+    checagem de decaimento (`checar_decaimento.py`) — nunca duplicar
+    essa lógica em dois lugares, senão os dois processos podem divergir
+    silenciosamente do que está realmente em produção."""
+    odd_maxima = criterio.get("odd_maxima")
+    if odd_maxima is None or odd <= odd_maxima:
+        return True
+    limiar_favoritismo = criterio.get("limiar_favoritismo")
+    return limiar_favoritismo is not None and favoritismo is not None and favoritismo <= limiar_favoritismo
+
+
 def avaliar_criterio_gols(criterio, linha, df_historico):
     df_com_futuro = pd.concat([df_historico, pd.DataFrame([linha])], ignore_index=True)
     resultado = prever_jogo(
@@ -124,20 +144,8 @@ def avaliar_criterio_gols(criterio, linha, df_historico):
     edge = prob_modelo - prob_mercado
     if edge < criterio["limiar_edge"]:
         return None
-    odd_maxima = criterio.get("odd_maxima")
-    limiar_favoritismo = criterio.get("limiar_favoritismo")
-    if odd_maxima is not None and odd > odd_maxima:
-        # "União": só pula quando os DOIS sinais forem desfavoráveis (odd
-        # alta E jogo com favorito claro pela odd 1x2) — se o jogo for
-        # equilibrado, a sugestão passa mesmo com odd acima do teto. Sem
-        # limiar_favoritismo configurado, ou sem odd 1x2 disponível pro
-        # jogo, cai pro comportamento antigo (só o teto de odd decide).
-        favoritismo = resultado.get("prob_mercado_favorito_dc")
-        equilibrado = (
-            limiar_favoritismo is not None and favoritismo is not None and favoritismo <= limiar_favoritismo
-        )
-        if not equilibrado:
-            return None
+    if not passa_filtros_gols(criterio, odd, resultado.get("prob_mercado_favorito_dc")):
+        return None
     return dict(
         criterio=criterio["nome"], stake=criterio["stake"], lado=criterio["mercado"],
         odd=odd, prob_modelo=prob_modelo, prob_mercado=prob_mercado, edge=edge,

@@ -1,30 +1,33 @@
-"""Checagem semanal de decaimento dos critérios campeões (Over 2.5 e
-BTTS, Série A) e do 3º critério em stake reduzido (Cartões + Árbitro,
-Série B) — roda os critérios já validados (`docs/protocolo.md`) contra
-os dados disponíveis no momento, mede ROI/z tanto no acumulado quanto
-numa janela recente (últimos 90 dias), e registra o resultado em
-`docs/decaimento_semanal.md` pra dar pra acompanhar a tendência ao
-longo de várias semanas.
+"""Checagem mensal de decaimento dos 3 critérios em produção — BTTS,
+Over 2.5 (Sbo + filtro União) e Cartões+Árbitro (Série B) — rodando
+100% em cima do Sportmonks, com os MESMOS parâmetros e a MESMA fonte de
+odd que `previsao_dia.py` usa de verdade no painel (reaproveita
+`previsao_dia.CRITERIOS_GOLS`/`PARAMS_CARTOES_TIME`/
+`passa_filtros_gols` diretamente, nunca duplica os números — assim os
+dois processos não podem divergir silenciosamente).
 
-Não busca dado novo sozinho — assume que os CSVs em `data/` já foram
-atualizados manualmente (Lucas exporta do FootyStats e substitui/adiciona
-os arquivos) e que `data/sportmonks_serieb_cartoes/fixtures.jsonl` já foi
-atualizado rodando `sportmonks_pull_serieb_cartoes.py` (precisa de
-`SPORTMONKS_TOKEN` no ambiente pra isso, mas NÃO pra esta checagem — ela
-só lê o arquivo já salvo). Se esse arquivo não existir, o 3º critério é
-pulado com um aviso — não quebra a checagem dos outros dois.
+Substitui a versão antiga (FootyStats, upload manual de CSV,
+`data/sportmonks_serieb_cartoes/` separado) — obsoleta desde a migração
+100% Sportmonks de 27/08/2026. Não depende de nenhum passo manual do
+Lucas: só precisa que `data/sportmonks_{seriea,serieb}/fixtures.jsonl`
+estejam atualizados (rodar `sportmonks_atualizar_dado.py` antes, ou
+deixar a rotina mensal fazer isso).
+
+Mede ROI/z/acerto tanto no acumulado (desde que o Sportmonks tem dado,
+2024+) quanto numa janela recente de 90 dias, registrando em
+`docs/decaimento_mensal.md` pra acompanhar a TENDÊNCIA ao longo de
+várias checagens — nunca reagir a uma checagem isolada (amostra de 90
+dias é pequena pra critérios seletivos, ruído é esperado; o que importa
+é se a tendência se mantém, melhora ou piora ao longo de meses).
 
 Uso: `python3 checar_decaimento.py`.
 """
 from __future__ import annotations
 
-import glob
 import json
 import math
-import os
+from collections import defaultdict
 from datetime import date, datetime, timedelta
-
-import pandas as pd
 
 from cartoes_arbitro import (
     linha_mais_liquida,
@@ -33,78 +36,13 @@ from cartoes_arbitro import (
     prever_cartoes_combinado,
     simular_aposta_linha,
 )
+from previsao_dia import CAMINHO_HIST, CRITERIOS_GOLS, MIN_JOGOS_ARBITRO, N_HISTORICO_CARTOES, PARAMS_CARTOES_TIME, PESO_ARBITRO, passa_filtros_gols
 from retrospectiva import rodar_retrospectiva, simular_apostas
+from sportmonks_adapter import BOOKMAKER_BET365, carregar_liga_sportmonks
 
-CAMINHO_LOG = "docs/decaimento_semanal.md"
-CAMINHO_SPORTMONKS_CARTOES = "data/sportmonks_serieb_cartoes/fixtures.jsonl"
+CAMINHO_LOG = "docs/decaimento_mensal.md"
 MARKET_NUMBER_OF_CARDS = 255
-
-# Cartões + Árbitro (Série B) — parâmetros do 3º critério (stake reduzido,
-# ver docs/protocolo.md): corte de outlier do BTTS + reescala pra cartões
-# (ESCALA_CARTOES=1.9 × limite_unilateral=2), peso_arbitro=0.3, histórico
-# mínimo de 10 jogos por árbitro antes de confiar na média dele.
-PARAMS_CARTOES_TIME = dict(
-    k_mando=0.7, usar_estilo=True, filtro_estilo=0.8, filtro_favoritismo=0.65,
-    multiplicador_dp=1.5, limite_unilateral=2,
-    limite_unilateral_por_campo={"cartoes_pro": 3.8, "cartoes_contra": 3.8},
-)
-N_HISTORICO_CARTOES = 10
-MIN_JOGOS_ARBITRO = 10
-PESO_ARBITRO = 0.3
-
-CRITERIOS = [
-    dict(
-        nome="Over 2.5",
-        mercado="over25",
-        limiar_edge=0.05,
-        n_historico=15,
-        params=dict(
-            k_mando=0.5, usar_estilo=False, filtro_aderencia=0.8,
-            multiplicador_dp=1.5, limite_unilateral=2,
-        ),
-    ),
-    dict(
-        nome="BTTS",
-        mercado="btts",
-        limiar_edge=0.05,
-        n_historico=10,
-        params=dict(
-            k_mando=0.7, usar_estilo=True, filtro_estilo=0.8, filtro_favoritismo=0.65,
-            multiplicador_dp=1.5, limite_unilateral=2,
-        ),
-    ),
-]
-
 JANELA_RECENTE_DIAS = 90
-
-
-def carregar_seriea():
-    """Carrega todos os `matches.csv` da Série A disponíveis em `data/`
-    (temporadas fechadas `footystats_seriea_AAAA` + a temporada corrente
-    `footystats_seriea`), sem precisar listar anos manualmente — assim
-    novos arquivos que Lucas for adicionando entram automaticamente."""
-    caminhos = sorted(glob.glob("data/footystats_seriea_*/matches.csv")) + [
-        "data/footystats_seriea/matches.csv"
-    ]
-    dfs = []
-    for caminho in caminhos:
-        df = pd.read_csv(caminho)
-        df["__src"] = caminho.split("/")[-2] + ".csv"
-        dfs.append(df[df["status"] == "complete"])
-    return pd.concat(dfs, ignore_index=True, sort=False)
-
-
-def carregar_serieb():
-    """Mesmo padrão de `carregar_seriea()`, pra Série B."""
-    caminhos = sorted(glob.glob("data/footystats_serieb_*/matches.csv")) + [
-        "data/footystats_serieb/matches.csv"
-    ]
-    dfs = []
-    for caminho in caminhos:
-        df = pd.read_csv(caminho)
-        df["__src"] = caminho.split("/")[-2] + ".csv"
-        dfs.append(df[df["status"] == "complete"])
-    return pd.concat(dfs, ignore_index=True, sort=False)
 
 
 def zscore(lucros):
@@ -131,76 +69,69 @@ def stats(apostas):
 def fmt(s):
     if s["n"] == 0:
         return "sem apostas"
-    return f"n={s['n']} ROI={s['roi']*100:+.1f}% z={s['z']:+.2f}"
+    return f"n={s['n']} ROI={s['roi']*100:+.1f}% z={s['z']:+.2f} acerto={s['acerto']*100:.0f}%"
 
 
-def rodar_checagem():
-    df = carregar_seriea()
-    hoje = date.today()
-    corte_recente = hoje - timedelta(days=JANELA_RECENTE_DIAS)
+def _checagem_criterio_gols(criterio, corte_recente):
+    """BTTS ou Over 2.5 — mesmos parâmetros/bookmaker/filtros de
+    `previsao_dia.CRITERIOS_GOLS`, aplicados de ponta a ponta ao
+    histórico Sportmonks disponível hoje."""
+    caminho = CAMINHO_HIST[criterio["liga"]]
+    df = carregar_liga_sportmonks(caminho, bookmaker_id=criterio["bookmaker_id"])
+    rel = rodar_retrospectiva(
+        df, params=criterio["params"], min_jogos_historico=8, min_jogos_estilo=5,
+        n_historico=criterio["n_historico"],
+    )
+    r = simular_apostas(rel["jogos"], mercado=criterio["mercado"], limiar_edge=criterio["limiar_edge"])
+    by_key = {(j["jogo"], j["data"]): j for j in rel["jogos"]}
 
-    linhas_log = []
-    resumo = []
-    for crit in CRITERIOS:
-        rel = rodar_retrospectiva(
-            df, params=crit["params"], min_jogos_historico=8, min_jogos_estilo=5,
-            n_historico=crit["n_historico"],
-        )
-        r = simular_apostas(rel["jogos"], mercado=crit["mercado"], limiar_edge=crit["limiar_edge"])
-        apostas_2023_26 = [a for a in r["apostas"] if a["data"] >= date(2023, 1, 1)]
-        apostas_recentes = [a for a in r["apostas"] if a["data"] >= corte_recente]
+    apostas = []
+    for a in r["apostas"]:
+        full = by_key.get((a["jogo"], a["data"]))
+        favoritismo = full.get("prob_mercado_favorito_dc") if full else None
+        if passa_filtros_gols(criterio, a["odd"], favoritismo):
+            apostas.append(a)
 
-        s_total = stats(apostas_2023_26)
-        s_recente = stats(apostas_recentes)
-        resumo.append(dict(nome=crit["nome"], total=s_total, recente=s_recente))
-        linhas_log.append(
-            f"| {hoje.isoformat()} | {crit['nome']} | {fmt(s_total)} | {fmt(s_recente)} |"
-        )
-
-    return resumo, linhas_log, hoje
-
-
-def _data_footystats(row):
-    return datetime.strptime(row["date_GMT"].split(" - ")[0], "%b %d %Y").date()
+    s_total = stats(apostas)
+    s_recente = stats([a for a in apostas if a["data"] >= corte_recente])
+    return dict(nome=criterio["nome"], total=s_total, recente=s_recente)
 
 
-def _carregar_sportmonks_cartoes(caminho):
+def _carregar_referees_serieb_ordenado(caminho):
+    """Lê o JSONL principal da Série B (não mais um pull separado) e
+    devolve os jogos ordenados cronologicamente com `referee_id`/
+    `total_cartoes`/`fixture_id` — insumo do walk-forward de árbitro."""
+    jogos = []
     with open(caminho) as f:
-        jogos = [json.loads(linha) for linha in f]
-    for j in jogos:
-        j["_data"] = datetime.strptime(j["date"][:10], "%Y-%m-%d").date()
-        j["total_cartoes"] = j["cartoes_casa"] + j["cartoes_fora"]
-    return sorted(jogos, key=lambda j: j["_data"])
+        for l in f:
+            d = json.loads(l)
+            cf, ca = d.get("yellowcards_home") or 0, d.get("yellowcards_away") or 0
+            rf, ra = d.get("redcards_home") or 0, d.get("redcards_away") or 0
+            data = datetime.strptime(d["date"][:10], "%Y-%m-%d").date()
+            jogos.append(dict(
+                fixture_id=d["fixture_id"], referee_id=d.get("referee_id"),
+                total_cartoes=cf + ca + rf + ra, data=data,
+            ))
+    return sorted(jogos, key=lambda j: j["data"])
 
 
-def _indexar_sportmonks_por_nome_data(jogos_sm):
-    idx = {}
-    for j in jogos_sm:
-        for delta in (0, -1, 1):
-            idx[(j["home_team"], j["away_team"], j["_data"] + timedelta(days=delta))] = j
-    return idx
+def _checagem_cartoes_arbitro(corte_recente):
+    """3º critério (stake reduzido) — Cartões + Árbitro, Série B. Odds
+    e estatísticas vêm de `data/sportmonks_serieb/fixtures.jsonl` (o
+    mesmo arquivo que o painel usa, bookmaker bet365) — não depende
+    mais de nenhum pull separado."""
+    caminho = CAMINHO_HIST["serieb"]
+    jogos_ref = _carregar_referees_serieb_ordenado(caminho)
+    medias_wf = media_arbitro_walk_forward(jogos_ref, min_jogos_arbitro=MIN_JOGOS_ARBITRO)
+    media_arbitro_por_fixture = {j["fixture_id"]: m for j, m in zip(jogos_ref, medias_wf)}
 
+    df = carregar_liga_sportmonks(caminho, bookmaker_id=BOOKMAKER_BET365)
+    fixture_por_key = {}
+    for _, row in df.iterrows():
+        jogo_str = f"{row['home_team_name']} x {row['away_team_name']}"
+        data = datetime.fromtimestamp(row["timestamp"]).date()
+        fixture_por_key[(jogo_str, data)] = row
 
-def rodar_checagem_cartoes_arbitro():
-    """3º critério (stake reduzido) — Cartões + Árbitro, Série B. Retorna
-    `(resumo_item, linha_log)`, ou `(None, None)` quando o arquivo do
-    Sportmonks ainda não foi gerado (não é erro, é dado externo opcional
-    que só Lucas atualiza — ver `sportmonks_pull_serieb_cartoes.py`)."""
-    if not os.path.exists(CAMINHO_SPORTMONKS_CARTOES):
-        print(f"aviso: {CAMINHO_SPORTMONKS_CARTOES} não existe — pulando Cartões+Árbitro "
-              f"(rode sportmonks_pull_serieb_cartoes.py pra gerar)", flush=True)
-        return None, None
-
-    jogos_sm = _carregar_sportmonks_cartoes(CAMINHO_SPORTMONKS_CARTOES)
-    if not jogos_sm:
-        print(f"aviso: {CAMINHO_SPORTMONKS_CARTOES} está vazio — pulando Cartões+Árbitro", flush=True)
-        return None, None
-
-    idx_sm = _indexar_sportmonks_por_nome_data(jogos_sm)
-    medias_arbitro = media_arbitro_walk_forward(jogos_sm, min_jogos_arbitro=MIN_JOGOS_ARBITRO)
-    media_arbitro_por_fixture = {j["fixture_id"]: m for j, m in zip(jogos_sm, medias_arbitro)}
-
-    df = carregar_serieb()
     rel = rodar_retrospectiva(
         df, params=PARAMS_CARTOES_TIME, min_jogos_historico=8, min_jogos_estilo=5,
         n_historico=N_HISTORICO_CARTOES,
@@ -215,20 +146,20 @@ def rodar_checagem_cartoes_arbitro():
         pred_time = m_pro["pred"] + m_contra["pred"]
         real_total = m_pro["real"] + m_contra["real"]
 
-        home, away = jogo["jogo"].split(" x ")
-        sm = idx_sm.get((home, away, jogo["data"]))
-        if sm is None:
+        row = fixture_por_key.get((jogo["jogo"], jogo["data"]))
+        if row is None:
             continue
-        media_arb = media_arbitro_por_fixture.get(sm["fixture_id"])
+        media_arb = media_arbitro_por_fixture.get(row["_fixture_id"])
         pred_combinado = prever_cartoes_combinado(pred_time, media_arb, peso_arbitro=PESO_ARBITRO)
         if pred_combinado is None:
             continue
 
-        linha = linha_mais_liquida(sm, MARKET_NUMBER_OF_CARDS)
+        jogo_odds = dict(odds={str(MARKET_NUMBER_OF_CARDS): row.get("_odds_cartoes") or []})
+        linha = linha_mais_liquida(jogo_odds, MARKET_NUMBER_OF_CARDS)
         if linha is None:
             continue
-        odd_over = odd_media_na_linha(sm, MARKET_NUMBER_OF_CARDS, linha, "Over")
-        odd_under = odd_media_na_linha(sm, MARKET_NUMBER_OF_CARDS, linha, "Under")
+        odd_over = odd_media_na_linha(jogo_odds, MARKET_NUMBER_OF_CARDS, linha, "Over")
+        odd_under = odd_media_na_linha(jogo_odds, MARKET_NUMBER_OF_CARDS, linha, "Under")
         if odd_over is None or odd_under is None:
             continue
 
@@ -237,13 +168,23 @@ def rodar_checagem_cartoes_arbitro():
             aposta["data"] = jogo["data"]
             apostas.append(aposta)
 
-    hoje = date.today()
-    corte_recente = hoje - timedelta(days=JANELA_RECENTE_DIAS)
     s_total = stats(apostas)
     s_recente = stats([a for a in apostas if a["data"] >= corte_recente])
-    resumo_item = dict(nome="Cartões+Árbitro (Série B, stake reduzido)", total=s_total, recente=s_recente)
-    linha_log = f"| {hoje.isoformat()} | Cartões+Árbitro (Série B, stake reduzido) | {fmt(s_total)} | {fmt(s_recente)} |"
-    return resumo_item, linha_log
+    return dict(nome="Cartões+Árbitro (Série B, stake reduzido)", total=s_total, recente=s_recente)
+
+
+def rodar_checagem():
+    hoje = date.today()
+    corte_recente = hoje - timedelta(days=JANELA_RECENTE_DIAS)
+
+    resumo = [_checagem_criterio_gols(c, corte_recente) for c in CRITERIOS_GOLS]
+    resumo.append(_checagem_cartoes_arbitro(corte_recente))
+
+    linhas_log = [
+        f"| {hoje.isoformat()} | {item['nome']} | {fmt(item['total'])} | {fmt(item['recente'])} |"
+        for item in resumo
+    ]
+    return resumo, linhas_log, hoje
 
 
 def atualizar_log(linhas_log, hoje):
@@ -252,13 +193,18 @@ def atualizar_log(linhas_log, hoje):
             conteudo = f.read()
     except FileNotFoundError:
         conteudo = (
-            "# Decaimento semanal — Over 2.5 / BTTS (Série A)\n\n"
-            "Checagem recorrente (rotina semanal) do ROI/z dos critérios "
-            f"campeões (`docs/protocolo.md`), acumulado 2023-2026 vs. janela "
-            f"móvel dos últimos {JANELA_RECENTE_DIAS} dias — a janela recente é "
-            "o que importa pra pegar decaimento cedo, o acumulado se move "
-            "devagar demais pra isso.\n\n"
-            f"| Data da checagem | Critério | Acumulado 2023-2026 | Últimos {JANELA_RECENTE_DIAS} dias |\n"
+            "# Decaimento mensal — critérios em produção (100% Sportmonks)\n\n"
+            "Checagem recorrente (rotina mensal) do ROI/z/acerto dos 3 "
+            "critérios em produção (`docs/protocolo.md`), acumulado desde que "
+            "o Sportmonks tem dado (2024+) vs. janela móvel dos últimos "
+            f"{JANELA_RECENTE_DIAS} dias — a janela recente é o que importa "
+            "pra pegar decaimento cedo, o acumulado se move devagar demais "
+            "pra isso. **Nunca reagir a uma checagem isolada** — o que "
+            "importa é a tendência ao longo de várias checagens seguidas "
+            '(foi assim que o "casa" Série B foi identificado como sinal '
+            "morto: 2023/2024 ótimos, 2025 murchando, 2026 negativo — só "
+            "visível olhando vários pontos).\n\n"
+            f"| Data da checagem | Critério | Acumulado (2024+) | Últimos {JANELA_RECENTE_DIAS} dias |\n"
             "|---|---|---|---|\n"
         )
     conteudo += "\n".join(linhas_log) + "\n"
@@ -268,15 +214,9 @@ def atualizar_log(linhas_log, hoje):
 
 def main():
     resumo, linhas_log, hoje = rodar_checagem()
-
-    item_cartoes, linha_cartoes = rodar_checagem_cartoes_arbitro()
-    if item_cartoes is not None:
-        resumo.append(item_cartoes)
-        linhas_log.append(linha_cartoes)
-
     print(f"Checagem de {hoje.isoformat()}:")
     for item in resumo:
-        print(f"  {item['nome']}: acumulado 2023-2026 -> {fmt(item['total'])} | "
+        print(f"  {item['nome']}: acumulado -> {fmt(item['total'])} | "
               f"últimos {JANELA_RECENTE_DIAS}d -> {fmt(item['recente'])}")
     atualizar_log(linhas_log, hoje)
     print(f"Log atualizado em {CAMINHO_LOG}")

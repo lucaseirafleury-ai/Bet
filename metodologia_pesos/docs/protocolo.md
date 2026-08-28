@@ -37,6 +37,24 @@ produção. **3 critérios rodando no painel diário**:
   com odd real do bet365 (também mais forte que a média, z=+1,19).
 - Série B Over 2.5/BTTS seguem sem edge, confirmado de novo.
 
+**🔁 Revalidação mensal dos critérios (27/08/2026)**: Lucas pediu um
+processo recorrente pra revalidar os 3 critérios acima. Decisão
+deliberada: **NÃO re-rodar treino/holdout todo mês** — isso reintroduz
+o mesmo risco de comparação múltipla que tomamos cuidado o dia inteiro
+(re-buscar parâmetro repetidamente na mesma base pequena tende a
+ajustar ruído, não achar sinal novo), e o incremento de dado por mês
+(poucas apostas novas qualificadas por critério) não sustenta uma
+re-busca de parâmetro com confiança. Em vez disso, `checar_decaimento.py`
+foi reconstruído pra rodar 100% em cima do Sportmonks (sem CSV manual),
+com os parâmetros FIXOS já em produção, comparando o acumulado contra
+uma janela móvel de 90 dias — o objetivo é MONITORAR se o que já foi
+validado continua funcionando, não re-descobrir parâmetro. Nunca reagir
+a uma checagem isolada (amostra de 90 dias é pequena, ruído esperado);
+o que importa é a tendência ao longo de várias checagens seguidas — foi
+assim que o decaimento do "casa" Série B (`docs/retrospectiva_filtro_casa_serieb_2026-08-27.md`)
+foi identificado. Log em `docs/decaimento_mensal.md` (substitui
+`docs/decaimento_semanal.md`, descontinuado).
+
 **⚠️ Odds restritas por critério a UMA casa específica (não mais média
 de todas as casas do Sportmonks), desde 27/08/2026.** Lucas reportou
 uma sugestão de cartões que não existia em nenhuma casa que ele usa —
@@ -148,13 +166,15 @@ nos 3 anos com dado disponível (2024/2025/2026). O agregado completo
 esse número isolado como prova, o z≈1,73 é a leitura mais honesta.
 
 **Implementação em produção**: `metodologia_pesos/cartoes_arbitro.py`
-(funções puras, testadas em `test_cartoes_arbitro.py`) +
-`sportmonks_pull_serieb_cartoes.py` (atualiza
-`data/sportmonks_serieb_cartoes/fixtures.jsonl` — precisa de
-`SPORTMONKS_TOKEN` no ambiente, rodar de novo periodicamente pra manter
-o dado atualizado, mesmo esforço que já é feito com os CSVs do
-FootyStats). `checar_decaimento.py` já inclui esse critério na checagem
-semanal (pula com aviso se o arquivo do Sportmonks não existir).
+(funções puras, testadas em `test_cartoes_arbitro.py`). **Atualização
+(27/08/2026)**: `sportmonks_pull_serieb_cartoes.py` e
+`data/sportmonks_serieb_cartoes/fixtures.jsonl` (o pull estreito
+separado, criado antes da migração 100% Sportmonks) foram
+DESCONTINUADOS e removidos — `checar_decaimento.py` (agora mensal) lê
+`referee_id`/odds de cartões direto de
+`data/sportmonks_serieb/fixtures.jsonl`, o mesmo arquivo amplo que o
+painel diário já mantém atualizado sozinho — não depende mais de
+nenhum pull manual/separado.
 
 **Acompanhamento**: a checagem semanal vai recalculando o z conforme
 mais jogos de 2026 entram — se subir e se sustentar acima de z≈2 de
