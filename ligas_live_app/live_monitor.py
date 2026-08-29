@@ -440,7 +440,16 @@ IMPACTO_MINIMO_PP_VALOR_ATUAL = 5.0  # mesmo limiar usado pra selecionar as regr
 # a base (impacto +7pp), mas ainda é uma aposta ruim (73% de chance de
 # perder). Esse segundo filtro exige que a PROBABILIDADE em si (não só o
 # ganho sobre a base) já esteja alta — critério ajustável, pode mudar depois.
-PROBABILIDADE_MINIMA_VALOR_ATUAL = 0.75
+# Era 0.75; baixado pra 0.70 depois de comparar o LUCRO TOTAL (não só
+# acerto%) em vários cortes contra os dados históricos pooled (pesquisa_gols/
+# testar_persistencia_v2.py, com odd sintética = 1/p_condicao). Faixa 65-72%
+# forma um platô de lucro total positivo (~+1.3u a +4.1u em ~1000 sinais,
+# testado em passos de 1pp); abaixo disso o lucro cai forte (60% já fica
+# negativo). Optamos pelo número redondo 70% dentro desse platô em vez do
+# pico pontual (69%), que é provavelmente ruído de amostra. Em 75% o volume
+# era baixo demais (~6,4% dos jogos, 319 sinais) e o lucro total já ficava
+# negativo apesar do acerto alto (86,8%) — pouco volume não compensa.
+PROBABILIDADE_MINIMA_VALOR_ATUAL = 0.70
 
 
 def _carregar_regras_sinais():
