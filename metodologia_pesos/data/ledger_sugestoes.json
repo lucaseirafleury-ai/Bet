@@ -44,8 +44,8 @@
     "odd": 1.72,
     "edge": 0.09152048559221326,
     "data_registro": "2026-08-27",
-    "resultado": "pendente",
-    "lucro": null
+    "resultado": "green",
+    "lucro": 0.36
   },
   {
     "fixture_id": 19667196,
@@ -60,8 +60,8 @@
     "odd": 1.83,
     "edge": 0.15325748581617304,
     "data_registro": "2026-08-27",
-    "resultado": "pendente",
-    "lucro": null
+    "resultado": "green",
+    "lucro": 0.41500000000000004
   },
   {
     "fixture_id": 19621837,
@@ -94,8 +94,8 @@
     "edge": 0.030794161648582508,
     "data_registro": "2026-08-27",
     "casa_ref": "bet365",
-    "resultado": "pendente",
-    "lucro": null,
+    "resultado": "green",
+    "lucro": 0.41500000000000004,
     "nota_correcao": "corrigido em 2026-08-28 22:2x UTC: registro original (Under 4.5, odd 1.80, edge 19.9%) usava a linha_mais_liquida antiga (bug, ver docs/retrospectiva_linha_cartoes_bug_2026-08-28.md) — bet365 real só tinha 3.5/4.5, escolha antiga caiu em 4.5 por ordem arbitrária. Corrigido manualmente pra 3.5 (odd real 1.83/1.83) porque o jogo ia começar em minutos e não dava tempo de esperar a rotina reprocessar; o registro congelado nunca seria corrigido sozinho (registrar_novas_sugestoes não sobrescreve fixture_id+criterio já existente)."
   },
   {
