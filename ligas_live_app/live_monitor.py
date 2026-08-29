@@ -511,7 +511,7 @@ def _direcoes_ja_disparadas(insights_existentes, fixture_id):
     return disparadas
 
 
-def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto, pendentes_fixture):
+def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto):
     """
     Agrupa as regras que bateram por (alvo, direção do mercado) — várias
     condições diferentes costumam apontar pro MESMO mercado ao mesmo tempo
@@ -526,14 +526,15 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
     reportado: painel recomendou Under 8,5 e minutos depois Over, sem
     nenhuma indicação de que uma coisa cancelava a outra.
 
-    Exige PERSISTÊNCIA antes de publicar: testado nos ~5.000 jogos já
-    cacheados (pesquisa_gols/testar_persistencia.py) que um sinal que
-    reaparece numa minutagem seguinte (mesma direção) acerta bem mais que um
-    que aparece só uma vez — diferença de +4 a +19 p.p., consistente em quase
-    todo checkpoint, mesmo controlando pelo minuto de decisão. Por isso a
-    PRIMEIRA aparição de um (alvo, direção) só fica registrada em
-    `pendentes_fixture` (sem virar insight, sem notificar) — só quando o
-    MESMO (alvo, direção) bate de novo num ciclo seguinte é que o card sai.
+    NÃO exige mais persistência (aparecer 2x) — chegou a ser adicionado, mas
+    testado de novo (pesquisa_gols/testar_persistencia_v2.py) simulando os
+    dois filtros que JÁ rodam antes disso (impacto ≥5pp e probabilidade ≥75%,
+    condicionados ao valor atual do próprio alvo): juntos, esses dois filtros
+    já derrubam pra ~6% dos jogos, e dentro desse grupo já filtrado, sinais de
+    aparição única acertam 86,7% (n=315) — acima da própria promessa de 75%.
+    Exigir persistência em cima disso derrubava pra 0,1% dos jogos (4 em
+    quase 5.000) sem ganho de acerto mensurável — os outros dois filtros já
+    fazem o trabalho sozinhos.
     """
     grupos = {}
     for regra, stats in candidatas:
@@ -545,20 +546,6 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
         direcao_oposta = "mais_de" if direcao == "menos_de" else "menos_de"
         if direcoes_ja_disparadas.get(alvo) == direcao_oposta:
             continue  # contradiria um sinal já mostrado pra esse alvo nesta partida
-
-        pendente = pendentes_fixture.get(alvo)
-        if pendente and pendente["direcao"] == direcao_oposta:
-            continue  # já tem uma primeira aparição contrária aguardando confirmação — não sobrepõe
-        if not pendente:
-            # primeira aparição: só registra e aguarda uma segunda pra confirmar, não publica ainda
-            melhor_regra, _ = max(itens, key=lambda par: par[1]["impacto_pp"])
-            pendentes_fixture[alvo] = {
-                "direcao": direcao, "minuto": minuto, "linha": melhor_regra["mercado"]["linha"],
-            }
-            continue
-        # já tinha uma primeira aparição na mesma direção — confirma agora com a evidência atual
-        minuto_primeira_aparicao = pendente["minuto"]
-        del pendentes_fixture[alvo]
 
         melhor_regra, melhor_stats = max(itens, key=lambda par: par[1]["impacto_pp"])
         n_condicoes = len(itens)
@@ -573,22 +560,21 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
         # nas nórdicas; escanteios/chutes no Brasil — ver odds_ao_vivo.py). Quando NÃO acha
         # (mercado sem cobertura nessa liga/linha), não bloqueia — segue com o odd mínima
         # sintético, como antes. Quando ACHA, só publica se o EV contra essa odd real for
-        # positivo — sem valor real contra o preço de mercado, a confirmação por
-        # persistência sozinha não basta.
+        # positivo — sem valor real contra o preço de mercado, os outros filtros sozinhos
+        # não bastam.
         odd_real_info = odds_ao_vivo.buscar_odd_real(relatorio["fixture_id"], alvo, direcao, linha_mercado)
         texto_odd_real = ""
         if odd_real_info:
             ev_pct = (melhor_stats["p_condicao"] * odd_real_info["odd"] - 1) * 100
             if ev_pct < 0:
-                continue  # odd real conhecida e sem valor — não publica, mesmo já confirmado por persistência
+                continue  # odd real conhecida e sem valor — não publica
             texto_odd_real = (
                 f" Odd real ao vivo ({odd_real_info['casa']}): {odd_real_info['odd']:.2f} (implica "
                 f"{odd_real_info['probabilidade_implicita']*100:.1f}%) — valor esperado positivo de {ev_pct:+.1f}%."
             )
 
         mensagem = (
-            f"min {minuto} — {melhor_regra['mercado_curto']} (persistiu: já tinha aparecido aos "
-            f"{minuto_primeira_aparicao}').{reforco} Recalculado já considerando que o jogo "
+            f"min {minuto} — {melhor_regra['mercado_curto']}.{reforco} Recalculado já considerando que o jogo "
             f"tem {melhor_stats['valor_atual_real']} {nome_alvo_valor} até agora: {melhor_stats['n']} jogos de "
             f"referência com esse mesmo valor (impacto +{melhor_stats['impacto_pp']:.1f} p.p. sobre a base nesse "
             f"estado de jogo). Probabilidade estimada: {melhor_stats['p_condicao']*100:.1f}%. Odd mínima de "
@@ -617,13 +603,12 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
     return insights
 
 
-def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combinados, insights_existentes, fixture_id, pendentes_fixture):
+def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combinados, insights_existentes, fixture_id):
     """
     Um insight por (alvo, direção) confirmada que bate com o jogo agora — não
     mais um por regra, ver _consolidar_candidatas. No máximo uma vez por
     (alvo, direção) por partida (dedup por (fixture_id, tipo) já cuida disso
-    em ciclo(), já que o tipo agora é estável por alvo+direção). Só publica na
-    SEGUNDA aparição da mesma direção — ver _consolidar_candidatas.
+    em ciclo(), já que o tipo agora é estável por alvo+direção).
     """
     candidatas = []
     for checkpoint in CHECKPOINTS_REGRA:
@@ -651,7 +636,7 @@ def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combi
             candidatas.append((regra, stats))
 
     direcoes_ja_disparadas = _direcoes_ja_disparadas(insights_existentes, fixture_id)
-    return _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto, pendentes_fixture)
+    return _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto)
 
 
 # ── Ciclo principal ────────────────────────────────────────────
@@ -660,10 +645,6 @@ def ciclo():
     prelive = carregar_prelive()
     insights = _carregar(config.LIVE_INSIGHTS_FILE, [])
     snapshots_ciclo_anterior = _carregar(config.LIVE_SNAPSHOTS_FILE, {})
-    # {fixture_id (str): {alvo: {"direcao","minuto","linha"}}} — primeira aparição de
-    # cada (alvo, direção) fica registrada aqui até confirmar (ver _consolidar_candidatas)
-    # ou até o jogo ser arquivado, sem nunca virar insight/notificação sozinha.
-    pendentes = _carregar(config.SINAIS_PENDENTES_FILE, {})
     snapshots = {}
 
     # Chave sem o minuto: cada combinação (jogo, tipo de sinal, time) dispara no
@@ -690,7 +671,6 @@ def ciclo():
                 _arquivar_jogo_finalizado(fixture_id_antigo, snap, insights)
             except Exception as e:
                 print(f"[arquivo] erro ao arquivar fixture {fixture_id_antigo}: {e}")
-            pendentes.pop(str(fixture_id_antigo), None)  # descarta 1ª aparição nunca confirmada
 
     for f in fixtures_monitoradas:
         fixture_id = f["id"]
@@ -845,7 +825,6 @@ def ciclo():
         # individual), por isso extend em vez de um único item na lista.
         candidatos.extend(checar_sinais_confirmados(
             relatorio, minuto, gols_totais_jogo, valores_regras_combinados, insights, fixture_id,
-            pendentes.setdefault(str(fixture_id), {}),
         ))
 
         for c in candidatos:
@@ -861,7 +840,6 @@ def ciclo():
 
     _salvar(config.LIVE_INSIGHTS_FILE, insights)
     _salvar(config.LIVE_SNAPSHOTS_FILE, snapshots)
-    _salvar(config.SINAIS_PENDENTES_FILE, pendentes)
     _atualizar_status(len(fixtures_monitoradas))
 
 
