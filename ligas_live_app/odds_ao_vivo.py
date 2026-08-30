@@ -38,9 +38,12 @@ MARKET_ID_POR_ALVO = {
 #   menos_de X.5 == Under X+1  (final <= X,   mesma coisa que menos_de X.5)
 MARKET_ID_FALLBACK_ESCANTEIOS = 68  # "Match Corners"
 
-# Ordem de preferência por confiabilidade/profundidade observada (bet365 é a
-# mais completa nas ligas já checadas) — usa a primeira que tiver a linha exata.
-CASAS_PREFERENCIA = ["bet365", "Unibet", "10Bet", "1xbet"]
+# Só bet365 — é a casa que o usuário realmente usa; outras (Unibet, 10Bet,
+# 1xbet etc.) não têm operação no Brasil, então mostrar a odd delas seria
+# uma referência que ele não consegue de fato apostar. Se a bet365 não tiver
+# a linha exata aberta no momento, buscar_odd_real devolve None (o card cai
+# pra odd sintética) em vez de usar qualquer outra casa como substituto.
+CASA_UNICA = "bet365"
 
 
 def _candidatas_no_mercado(linhas, market_id, label, total_alvo):
@@ -120,19 +123,16 @@ def buscar_odd_real(fixture_id, alvo, direcao, linha):
         casas = sm.bookmakers_mapa()
     except Exception:
         casas = {}
-    por_nome_casa = {casas.get(o["bookmaker_id"], str(o["bookmaker_id"])): o for o in candidatas}
-    escolhida = nome_casa = None
-    for preferida in CASAS_PREFERENCIA:
-        if preferida in por_nome_casa:
-            escolhida, nome_casa = por_nome_casa[preferida], preferida
-            break
+    escolhida = next(
+        (o for o in candidatas if casas.get(o["bookmaker_id"]) == CASA_UNICA), None
+    )
     if escolhida is None:
-        escolhida = candidatas[0]
-        nome_casa = casas.get(escolhida["bookmaker_id"], str(escolhida["bookmaker_id"]))
+        print(f"  [odds ao vivo] fixture {fixture_id}: linha existe mas não na {CASA_UNICA} agora — sem odd real")
+        return None
 
     return {
         "odd": escolhida["_odd"],
-        "casa": nome_casa,
+        "casa": CASA_UNICA,
         "probabilidade_implicita": round(1 / escolhida["_odd"], 4),
         "atualizado_em": escolhida.get("latest_bookmaker_update"),
     }
