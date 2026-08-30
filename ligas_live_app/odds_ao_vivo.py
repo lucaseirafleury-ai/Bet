@@ -38,12 +38,18 @@ MARKET_ID_POR_ALVO = {
 #   menos_de X.5 == Under X+1  (final <= X,   mesma coisa que menos_de X.5)
 MARKET_ID_FALLBACK_ESCANTEIOS = 68  # "Match Corners"
 
-# Só bet365 — é a casa que o usuário realmente usa; outras (Unibet, 10Bet,
-# 1xbet etc.) não têm operação no Brasil, então mostrar a odd delas seria
-# uma referência que ele não consegue de fato apostar. Se a bet365 não tiver
-# a linha exata aberta no momento, buscar_odd_real devolve None (o card cai
-# pra odd sintética) em vez de usar qualquer outra casa como substituto.
-CASA_UNICA = "bet365"
+# Só casas confirmadas como autorizadas pela SPA/MF no Brasil (checado em
+# ago/2026 — ver conversa) — outras (Unibet, 10Bet, Betfair etc.) ficam de
+# fora mesmo que apareçam nos dados, porque o usuário não consegue de fato
+# apostar nelas. bet365 primeiro (a que ele usa), 1xbet como fallback: a
+# bet365 só mantém 1 linha de escanteios aberta por vez (perto do placar
+# atual), enquanto a 1xbet cobre dezenas de linhas .5 simultaneamente —
+# testado ao vivo em jogos da Série B, onde a Betfair não tinha NENHUMA
+# linha de escanteios. Nota: a autorização da 1xbet no Brasil aparece em
+# agregadores mas não foi confirmada direto no SIGAP — aceito pelo usuário
+# mesmo assim, dado que é a única opção com cobertura real de escanteios na
+# Série B.
+CASAS_ACEITAS = ["bet365", "1xbet"]
 
 
 def _candidatas_no_mercado(linhas, market_id, label, total_alvo):
@@ -123,16 +129,19 @@ def buscar_odd_real(fixture_id, alvo, direcao, linha):
         casas = sm.bookmakers_mapa()
     except Exception:
         casas = {}
-    escolhida = next(
-        (o for o in candidatas if casas.get(o["bookmaker_id"]) == CASA_UNICA), None
-    )
+    por_nome_casa = {casas.get(o["bookmaker_id"], str(o["bookmaker_id"])): o for o in candidatas}
+    escolhida = nome_casa = None
+    for aceita in CASAS_ACEITAS:
+        if aceita in por_nome_casa:
+            escolhida, nome_casa = por_nome_casa[aceita], aceita
+            break
     if escolhida is None:
-        print(f"  [odds ao vivo] fixture {fixture_id}: linha existe mas não na {CASA_UNICA} agora — sem odd real")
+        print(f"  [odds ao vivo] fixture {fixture_id}: linha existe mas não em {CASAS_ACEITAS} agora — sem odd real")
         return None
 
     return {
         "odd": escolhida["_odd"],
-        "casa": CASA_UNICA,
+        "casa": nome_casa,
         "probabilidade_implicita": round(1 / escolhida["_odd"], 4),
         "atualizado_em": escolhida.get("latest_bookmaker_update"),
     }
