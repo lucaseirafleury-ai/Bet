@@ -82,6 +82,7 @@ def buscar_odd_real(fixture_id, alvo, direcao, linha):
         print(f"  [odds ao vivo] erro buscando fixture {fixture_id}: {e}")
         return None
     if not linhas:
+        print(f"  [odds ao vivo] fixture {fixture_id}: API não retornou nenhuma linha de odds ao vivo ainda")
         return None
 
     candidatas = []
@@ -90,6 +91,15 @@ def buscar_odd_real(fixture_id, alvo, direcao, linha):
         if candidatas:
             break
     if not candidatas:
+        # Loga o que a API TEM (pra distinguir "mercado não coberto nesse jogo"
+        # de "coberto, mas a linha/label exatos do sinal não bateram") — sem
+        # isso, um buscar_odd_real que não acha nada é indistinguível de um bug.
+        market_ids_presentes = sorted(set(o.get("market_id") for o in linhas))
+        tentado_str = ", ".join(f"market={m} label={l} total={t}" for m, l, t in tentativas)
+        print(
+            f"  [odds ao vivo] fixture {fixture_id}: nenhuma linha bateu (tentado: {tentado_str}); "
+            f"markets presentes na API pra esse jogo: {market_ids_presentes}"
+        )
         return None
 
     try:
