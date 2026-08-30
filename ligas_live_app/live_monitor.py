@@ -5,17 +5,19 @@ A cada ciclo, para cada jogo ao vivo monitorado:
   1. Lê estatísticas acumuladas (xG_proxy, pressão, escanteios, cartões, eficiência
      — usadas no card do painel, não geram sinal sozinhas)
   2. Compara a CONTAGEM de gols real com a esperada (perfil pré-live)
-     prorrateada pelo minuto — único tipo de sinal do painel. Só dispara
-     quando o desvio é grande em percentual E em número absoluto (ver
-     LIMIAR_DELTA_GOLS/LIMIAR_ABS_GOLS em config.py) E o xG_proxy DIVERGE do
-     placar na direção certa (time devendo gols mas criando mais chance do
-     que o esperado, ou marcando mais gols do que o processo sustenta) —
-     é essa divergência que indica uma entrada de valor, não a concordância
-     entre placar e processo. Critério deliberadamente rigoroso: é normal um
-     jogo terminar sem gerar nenhum sinal.
+     prorrateada pelo minuto (ver checar_ritmo_gols) — sinal mais antigo do
+     painel, hoje rastreado só INTERNAMENTE (data/gols_interno.json) pra
+     medir assertividade ao longo do tempo, sem virar card publicado; os
+     sinais publicados hoje são os confirmados por pesquisa cross-liga (ver
+     checar_sinais_confirmados). Só dispara quando o desvio é grande em
+     percentual E em número absoluto (ver LIMIAR_DELTA_GOLS/LIMIAR_ABS_GOLS
+     em config.py) E o xG_proxy DIVERGE do placar na direção certa (time
+     devendo gols mas criando mais chance do que o esperado, ou marcando
+     mais gols do que o processo sustenta).
   3. Publica:
        - data/live_snapshots.json  → estado atual rico de cada jogo (painel permanente)
-       - data/live_insights.json   → só os eventos que cruzaram o limiar (feed de alertas)
+       - data/live_insights.json   → só os sinais confirmados que cruzaram o limiar (feed de alertas)
+       - data/gols_interno.json    → rastreamento interno do sinal de ritmo de gols (não exposto por nenhuma rota)
 """
 import json
 import os
@@ -95,11 +97,12 @@ def _avaliar_sinais_confirmados(sinais_do_jogo, registro):
     """
     Compara cada sinal confirmado (tipo "sinal_*", com alvo/direção/linha
     limpos) que disparou nesse jogo contra o resultado final, marcando
-    "green" (bateu o mercado) ou "red" (não bateu). Sinais sem "alvo" (ex.:
-    ritmo de gols) não têm uma linha única pra avaliar como green/red —
-    ficam de fora por enquanto. Mutação in-place: os mesmos dicts também
-    estão em `insights`/`live_insights.json`, então marcar aqui já reflete
-    lá também.
+    "green" (bateu o mercado) ou "red" (não bateu). O sinal de ritmo de gols
+    não passa mais por aqui — não entra em `insights`/`live_insights.json`
+    (não é publicado no painel); sua assertividade é rastreada à parte, ver
+    _avaliar_gols_interno/GOLS_INTERNO_FILE. Mutação in-place: os mesmos
+    dicts também estão em `insights`/`live_insights.json`, então marcar aqui
+    já reflete lá também.
 
     Usado pro acompanhamento diário de assertividade dos sinais (rotina
     externa que lê /api/jogos-anteriores) — ver conversa.
@@ -119,6 +122,23 @@ def _avaliar_sinais_confirmados(sinais_do_jogo, registro):
         bateu = (valor_final > sinal["linha"]) if sinal["direcao"] == "mais_de" else (valor_final < sinal["linha"])
         sinal["valor_final_alvo"] = valor_final
         sinal["resultado"] = "green" if bateu else "red"
+
+
+def _avaliar_gols_interno(sinal, eventos_gols):
+    """
+    Assertividade do sinal de ritmo de gols (rastreamento interno, ver
+    GOLS_INTERNO_FILE — não é exibido no painel): "abaixo" (time devendo
+    gols, "prestes a marcar") acerta se esse time marcar de novo depois do
+    minuto do sinal; "acima" (sorte/risco de regressão) acerta se o time NÃO
+    marcar mais depois do minuto do sinal.
+    """
+    marcou_depois = any(
+        sinal["time"] in ev["time"] and ev["minuto"] > sinal["minuto"]
+        for ev in eventos_gols
+    )
+    if sinal["direcao_gols"] == "abaixo":
+        return "green" if marcou_depois else "red"
+    return "red" if marcou_depois else "green"
 
 
 def _arquivar_jogo_finalizado(fixture_id, snapshot_final, insights):
@@ -196,6 +216,7 @@ def _arquivar_jogo_finalizado(fixture_id, snapshot_final, insights):
     jogos_anteriores.sort(key=lambda j: j["arquivado_em"], reverse=True)
     _salvar(config.JOGOS_ANTERIORES_FILE, jogos_anteriores)
     print(f"[arquivo] {registro['home']} x {registro['away']} arquivado em jogos anteriores.")
+    return registro
 
 
 # ── Notificação push (Web Push) ────────────────────────────────
@@ -295,7 +316,11 @@ def _mercados_favorecidos(relatorio, comparacao):
 def checar_ritmo_gols(relatorio, minuto, time_nome, gols_reais, lambda_time, xg_atual, xg_media_prelive,
                        dados_xg_disponiveis, gols_restantes_calibrado, gols_totais_jogo, comparacao=None):
     """
-    Único tipo de sinal do painel. O critério que decide SE existe desvio é
+    Sinal de ritmo de gols — NÃO é mais publicado no painel (ver ciclo():
+    fica só em rastreamento interno, GOLS_INTERNO_FILE, pra medir
+    assertividade ao longo do tempo sem virar card pro usuário; os sinais
+    exibidos hoje são os confirmados por pesquisa cross-liga, tipo
+    "sinal_<alvo>_<direção>"). O critério que decide SE existe desvio é
     pré-definido e fixo (perfil pré-live prorrateado pelo relógio, com limiar
     duplo — percentual E absoluto). xG_proxy e o modelo calibrado por liga
     entram só DEPOIS, como filtros eliminatórios — nenhum dos dois cria sinal
@@ -370,11 +395,9 @@ def checar_ritmo_gols(relatorio, minuto, time_nome, gols_reais, lambda_time, xg_
 
     msg = f"min {minuto} — {time_nome}: {rotulo} — {motivo}{_mercados_favorecidos(relatorio, comparacao)}"
     insight = _insight_base(relatorio, minuto, "gols", time_nome, delta_pct_exibido, msg)
-    # Mesmo formato fechado dos outros sinais (ver htmlSinalItem/unidadeDelta em
-    # static/app.js) — "resumo" decide isso no front, e "unidade_delta" evita que
-    # ganhar "resumo" mude sem querer a unidade exibida (aqui é "%", não "p.p.").
     insight["resumo"] = f"{time_nome}: {rotulo}"
     insight["unidade_delta"] = "%"
+    insight["direcao_gols"] = direcao_gols  # usado só por _avaliar_gols_interno (rastreamento, não é exibido)
     return insight
 
 
@@ -656,11 +679,24 @@ def ciclo():
     snapshots_ciclo_anterior = _carregar(config.LIVE_SNAPSHOTS_FILE, {})
     snapshots = {}
 
+    # Rastreamento interno do sinal de ritmo de gols — NÃO é publicado no
+    # painel (não entra em `insights`/live_insights.json), só acompanhado
+    # aqui pra medir assertividade ao longo do tempo. "pendentes" são os
+    # sinais de jogos ainda ao vivo, aguardando o jogo terminar pra avaliar
+    # green/red contra os eventos de gol reais (ver _avaliar_gols_interno);
+    # "resumo" acumula as contagens, "log" guarda um histórico bruto capado.
+    estado_gols = _carregar(config.GOLS_INTERNO_FILE, {
+        "pendentes": [],
+        "resumo": {"abaixo": {"green": 0, "red": 0}, "acima": {"green": 0, "red": 0}},
+        "log": [],
+    })
+
     # Chave sem o minuto: cada combinação (jogo, tipo de sinal, time) dispara no
     # máximo uma vez por partida. Sem isso, um desvio que persiste (ex: time que
     # abre 2 gols de vantagem sobre o esperado) reenvia o mesmo sinal a cada
     # ciclo de 60s pelo resto do jogo — é o que causava "centenas de sinais".
     ids_ja_gerados = {(i["fixture_id"], i["tipo"], i["time"]) for i in insights}
+    ids_ja_gerados_gols = {(i["fixture_id"], i["time"]) for i in estado_gols["pendentes"]}
 
     fixtures = sm.live_fixtures()
     fixtures_monitoradas = [
@@ -677,9 +713,23 @@ def ciclo():
         fixture_id_antigo = int(fixture_id_str)
         if fixture_id_antigo not in ids_atuais:
             try:
-                _arquivar_jogo_finalizado(fixture_id_antigo, snap, insights)
+                registro = _arquivar_jogo_finalizado(fixture_id_antigo, snap, insights)
             except Exception as e:
+                registro = None
                 print(f"[arquivo] erro ao arquivar fixture {fixture_id_antigo}: {e}")
+            if registro is not None:
+                pendentes_do_jogo = [s for s in estado_gols["pendentes"] if s["fixture_id"] == fixture_id_antigo]
+                for sinal in pendentes_do_jogo:
+                    resultado = _avaliar_gols_interno(sinal, registro["eventos_gols"])
+                    estado_gols["resumo"][sinal["direcao_gols"]][resultado] += 1
+                    estado_gols["log"].append({
+                        "fixture_id": fixture_id_antigo, "jogo": sinal["jogo"], "time": sinal["time"],
+                        "direcao_gols": sinal["direcao_gols"], "minuto": sinal["minuto"], "resultado": resultado,
+                        "avaliado_em": datetime.now(timezone.utc).isoformat(),
+                    })
+                estado_gols["pendentes"] = [
+                    s for s in estado_gols["pendentes"] if s["fixture_id"] != fixture_id_antigo
+                ]
 
     for f in fixtures_monitoradas:
         fixture_id = f["id"]
@@ -819,22 +869,33 @@ def ciclo():
         gols_restantes_calibrado = probs.get("xg_restante_total_calibrado")
         gols_totais_jogo = gols_home + gols_away
 
-        candidatos = [
-            # Único sinal do painel: ritmo de gols (real x esperado). xG_proxy
-            # do time e o modelo calibrado por liga (ritmo de chutes, mesmo
-            # usado no Over/Under) entram só como filtros eliminatórios, e a
-            # mensagem já lista os mercados que refletem o desvio.
+        # Ritmo de gols (real x esperado) — rastreado só internamente (ver
+        # topo do ciclo()), NÃO publicado no painel. xG_proxy do time e o
+        # modelo calibrado por liga (ritmo de chutes, mesmo usado no
+        # Over/Under) entram só como filtros eliminatórios dentro da própria
+        # checar_ritmo_gols.
+        candidatos_gols = [
             checar_ritmo_gols(relatorio, minuto, home["name"], gols_home, lambda_home, xg_home, perfil_c["xg_proxy_media"], dados_ofensivos_disponiveis, gols_restantes_calibrado, gols_totais_jogo, probs["comparacao"]),
             checar_ritmo_gols(relatorio, minuto, away["name"], gols_away, lambda_away, xg_away, perfil_f["xg_proxy_media"], dados_ofensivos_disponiveis, gols_restantes_calibrado, gols_totais_jogo, probs["comparacao"]),
         ]
+        for c in candidatos_gols:
+            if c is None:
+                continue
+            chave = (c["fixture_id"], c["time"])
+            if chave in ids_ja_gerados_gols:
+                continue
+            estado_gols["pendentes"].append(c)
+            ids_ja_gerados_gols.add(chave)
+
         # Sinais de escanteios/chutes confirmados por pesquisa cross-liga —
-        # ver comentário acima de checar_sinais_confirmados(). Pode gerar mais
-        # de um insight por ciclo (alvos diferentes podem bater ao mesmo
-        # tempo — já consolidado por (alvo, direção), não mais por regra
-        # individual), por isso extend em vez de um único item na lista.
-        candidatos.extend(checar_sinais_confirmados(
+        # ver comentário acima de checar_sinais_confirmados(). Esses SÃO os
+        # sinais publicados no painel hoje. Pode gerar mais de um insight por
+        # ciclo (alvos diferentes podem bater ao mesmo tempo — já
+        # consolidado por (alvo, direção), não mais por regra individual),
+        # por isso extend em vez de um único item na lista.
+        candidatos = checar_sinais_confirmados(
             relatorio, minuto, gols_totais_jogo, valores_regras_combinados, insights, fixture_id,
-        ))
+        )
 
         for c in candidatos:
             if c is None:
@@ -849,6 +910,8 @@ def ciclo():
 
     _salvar(config.LIVE_INSIGHTS_FILE, insights)
     _salvar(config.LIVE_SNAPSHOTS_FILE, snapshots)
+    estado_gols["log"] = estado_gols["log"][-200:]  # capado -- só auditoria interna, resumo já tem os totais
+    _salvar(config.GOLS_INTERNO_FILE, estado_gols)
     _atualizar_status(len(fixtures_monitoradas))
 
 
