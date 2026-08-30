@@ -113,9 +113,23 @@ def live_fixtures(include="statistics.type;participants;league;scores;periods"):
 
 
 def odds_inplay_fixture(fixture_id):
-    """Linhas de odds AO VIVO (mercado x casa x label) de uma fixture, se existirem."""
-    data = _get(f"/odds/inplay/fixtures/{fixture_id}", base_url=ODDS_BASE_URL)
-    return data.get("data", [])
+    """
+    Linhas de odds (mercado x casa x label) de uma fixture, via a relação
+    "odds" do endpoint principal de fixtures.
+
+    O endpoint dedicado /odds/inplay/fixtures/{id} (ODDS_BASE_URL) foi usado
+    aqui antes, mas SEMPRE devolve "no access" nesta assinatura — inclusive
+    testado contra um jogo ao vivo agora mesmo, em 4 ligas diferentes.
+    /fixtures/{id}?include=odds funciona e devolve a MESMA coleção completa
+    (as mesmas chaves market_id/label/total/value/bookmaker_id), continuamente
+    atualizada do pré-jogo até o fim da partida — não existe uma coleção
+    separada só de odds "ao vivo"; o campo "stopped" de cada linha (filtrado
+    em odds_ao_vivo._candidatas_no_mercado) é o que diz se ela ainda está
+    aberta pra aposta.
+    """
+    data = _get(f"/fixtures/{fixture_id}", {"include": "odds"})
+    fixture = data.get("data") or {}
+    return fixture.get("odds") or []
 
 
 _cache_bookmakers = {}

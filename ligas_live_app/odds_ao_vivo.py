@@ -9,8 +9,14 @@ nórdicas hoje só têm mercado de ESCANTEIOS ao vivo (chutes e cartões não t�
 odd nenhuma nelas); Série A/B do Brasil tem escanteios, chutes totais e
 chutes no alvo. Por isso esta busca nunca assume cobertura — só tenta achar
 a linha exata e devolve None quando não encontra (liga sem o mercado, linha
-específica não ofertada, jogo sem odds ao vivo ainda, ou erro de rede). Nunca
-deve derrubar o monitor por causa disso.
+específica não ofertada, linha fechada/suspensa no momento, ou erro de
+rede). Nunca deve derrubar o monitor por causa disso.
+
+NOTA: até esta correção, sportmonks_client.odds_inplay_fixture() chamava um
+endpoint (/odds/inplay/fixtures/{id}) que sempre devolvia "no access" nesta
+assinatura — por isso NENHUM dos 7 sinais gerados até aqui tinha achado odd
+real, mesmo em ligas com cobertura confirmada. Agora usa /fixtures/{id}
+?include=odds, que tem os mesmos dados e funciona (confirmado ao vivo).
 """
 import sportmonks_client as sm
 
@@ -40,6 +46,8 @@ CASAS_PREFERENCIA = ["bet365", "Unibet", "10Bet", "1xbet"]
 def _candidatas_no_mercado(linhas, market_id, label, total_alvo):
     candidatas = []
     for o in linhas:
+        if o.get("stopped"):
+            continue  # linha fechada/suspensa pela casa — não é um preço aceitável agora
         if o.get("market_id") != market_id or o.get("label") != label:
             continue
         try:
