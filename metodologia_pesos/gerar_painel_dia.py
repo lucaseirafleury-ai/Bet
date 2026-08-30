@@ -21,7 +21,7 @@ from __future__ import annotations
 import sys
 from datetime import datetime, timedelta, timezone
 
-from ledger_apostas import calcular_resumo, carregar_ledger, registrar_novas_sugestoes, resolver_pendentes, salvar_ledger
+from ledger_apostas import calcular_resumo, carregar_ledger, recalcular_pendentes, registrar_novas_sugestoes, resolver_pendentes, salvar_ledger
 from previsao_dia import CAMINHO_HIST, gerar_sugestoes_do_dia
 from sportmonks_adapter import carregar_liga_sportmonks
 
@@ -322,6 +322,18 @@ def atualizar_painel(caminho_ledger=CAMINHO_LEDGER, dias_a_frente=3):
     sugestoes = gerar_sugestoes_do_dia(dias_a_frente=dias_a_frente)
     hoje = datetime.now(timezone.utc).date().isoformat()
     ledger = registrar_novas_sugestoes(ledger, sugestoes, data_registro=hoje)
+    # Jogos que ainda não começaram podem ter sido registrados com dado
+    # incompleto (ex.: time joga hoje contra outro adversário antes do
+    # jogo sugerido — a previsão de daqui a poucos dias só fica completa
+    # depois desse jogo entrar no histórico). Reaproveita a mesma
+    # `sugestoes` já buscada (sem custo extra de API) pra manter odd/
+    # lado/edge das pendentes em dia até o jogo começar — reportado pelo
+    # Lucas (Flamengo x Mirassol, 02/09, ainda usando dado de antes do
+    # jogo de cada time em 30/08). Não mexe em entradas já resolvidas
+    # nem em jogos que já começaram (não aparecem mais em `sugestoes`
+    # nesse caso — só em jogos futuros que deixaram de qualificar,
+    # ver `ledger_apostas.recalcular_pendentes`).
+    ledger, _ = recalcular_pendentes(ledger, sugestoes)
 
     salvar_ledger(caminho_ledger, ledger)
 

@@ -209,14 +209,35 @@ outro critério deste documento).
 
 **Ferramenta nova (28/08/2026) — `recalcular_pendentes.py`**: depois do
 caso do Goiás (corrigido manualmente, ver abaixo), Lucas perguntou se o
-ledger nunca recalcula uma entrada quando precisa — resposta: por
-design, nunca sozinho (protege contra o painel mudar a odd de uma
-aposta já feita), mas agora existe um comando manual explícito pra
-quando um bug de cálculo for corrigido e alguma sugestão pendente (jogo
-ainda não começado) precisar ser reconferida: `python3
-recalcular_pendentes.py` — busca fixtures futuros frescos, recalcula só
-as entradas pendentes afetadas, imprime o que mudou. Nunca roda sozinho
-na rotina diária — só sob demanda, depois de uma correção de código.
+ledger nunca recalcula uma entrada quando precisa — resposta original:
+por design, nunca sozinho (protege contra o painel mudar a odd de uma
+aposta já feita), mas com um comando manual explícito
+(`python3 recalcular_pendentes.py`) pra quando um bug de cálculo for
+corrigido e alguma sugestão pendente (jogo ainda não começado) precisar
+ser reconferida.
+
+**Atualização (29/08/2026) — virou automático na rotina diária**: Lucas
+notou um caso concreto onde "nunca sozinho" era o comportamento ERRADO,
+não só uma limitação: Flamengo x Mirassol (02/09) apareceu qualificado
+quando registrado, mas os dois times ainda iam jogar contra outros
+adversários hoje (30/08) — a previsão ficaria desatualizada até o jogo
+acontecer, porque `registrar_novas_sugestoes` nunca sobrescreve. Agora
+`gerar_painel_dia.atualizar_painel` chama
+`ledger_apostas.recalcular_pendentes` automaticamente todo dia (reaproveitando
+a mesma busca de sugestões já feita, sem custo extra de API) — qualquer
+sugestão pendente cujo jogo ainda não começou tem
+lado/linha/odd/edge atualizados com o histórico e a odd mais recentes,
+até o jogo começar (depois disso o jogo não aparece mais em
+`puxar_fixtures_futuros`/`state_id`, e a entrada para de mudar). O
+script `recalcular_pendentes.py` continua existindo pra forçar isso na
+hora (sem esperar a rotina), útil logo depois de corrigir um bug.
+**Limitação conhecida, não resolvida ainda**: se um jogo deixar de
+QUALIFICAR de vez (edge cai abaixo do piso, ou o filtro para de bater)
+depois de já ter sido sugerido, a entrada simplesmente não é mais
+encontrada nas sugestões frescas e fica como estava (não é removida nem
+marcada) — perguntar ao Lucas antes de implementar isso (remover vs.
+marcar com uma nota) porque mexe em como o painel mostra uma aposta que
+ele talvez já tenha feito.
 
 **Correção 2 — painel ficava preso na sugestão antiga perto do início do
 jogo (28/08/2026)**: mesmo depois da correção de linha abaixo, o

@@ -64,18 +64,27 @@ def recalcular_pendentes(ledger, sugestoes_frescas):
     `fixture_id`, `criterio` etc. intactos, só corrige os campos
     calculados.
 
-    Uso: SÓ manual/pontual (nunca chamado pela rotina diária
-    automática) — depois de corrigir um bug que pode ter afetado
-    sugestões já registradas cujo jogo ainda não começou.
-    `registrar_novas_sugestoes` propositalmente nunca sobrescreve uma
-    entrada já registrada (protege contra o painel mudar a odd de uma
-    aposta que o Lucas já tenha feito com base num valor correto) — mas
-    isso significa que uma entrada registrada com um valor ERRADO por
-    bug nunca se autocorrige sozinha. Rodar esta função é o jeito
-    deliberado de corrigir isso quando (e só quando) houver um motivo
-    real (ver `docs/retrospectiva_estado_fixture_bug_2026-08-28.md`,
-    onde a entrada do Goiás x São Bernardo foi corrigida manualmente
-    porque não havia essa função ainda).
+    Uso: chamada automaticamente pela rotina diária
+    (`gerar_painel_dia.atualizar_painel`, logo depois de
+    `registrar_novas_sugestoes`, reaproveitando as mesmas `sugestoes`
+    já buscadas) — pedido do Lucas (29/08/2026): jogos sugeridos com
+    alguns dias de antecedência (ex.: Flamengo x Mirassol dia 02/09,
+    sugerido quando os dois times ainda iam jogar contra outros
+    adversários no dia 30/08) tinham a previsão/odd desatualizada até o
+    jogo acontecer, porque `registrar_novas_sugestoes` nunca sobrescreve
+    uma entrada já registrada. Agora a previsão (lado/linha/odd/edge) se
+    mantém em dia com o histórico mais recente E com a odd mais recente
+    do bookmaker até o jogo começar — depois disso (`state_id` deixa de
+    ser NS) o jogo simplesmente não aparece mais em `sugestoes_frescas`
+    e a entrada para de mudar, o que é o comportamento certo.
+
+    Também pode ser rodada manualmente/pontualmente (script
+    `recalcular_pendentes.py`) — útil pra forçar a atualização
+    imediatamente depois de corrigir um bug de cálculo, sem esperar a
+    próxima execução da rotina diária (foi assim que a entrada do
+    Goiás x São Bernardo foi corrigida em
+    `docs/retrospectiva_estado_fixture_bug_2026-08-28.md`, antes desta
+    função rodar automaticamente).
 
     `sugestoes_frescas` só contém jogos que ainda não começaram (vem de
     `puxar_fixtures_futuros`, que já filtra por `state_id`) — uma

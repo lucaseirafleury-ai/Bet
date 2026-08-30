@@ -1,17 +1,17 @@
-"""Corrige manualmente as sugestões PENDENTES do ledger depois de um bug
-consertado na lógica de sugestão (`previsao_dia.py`/`cartoes_arbitro.py`)
-— NUNCA rodado pela rotina diária automática, só sob demanda.
+"""Recalcula manualmente/imediatamente as sugestões PENDENTES do ledger
+— versão standalone de `ledger_apostas.recalcular_pendentes`, que desde
+29/08/2026 também roda automaticamente dentro da rotina diária
+(`gerar_painel_dia.atualizar_painel`, logo depois de
+`registrar_novas_sugestoes`) pra manter jogos futuros com a
+previsão/odd em dia até o jogo começar.
 
-Contexto: `ledger_apostas.registrar_novas_sugestoes` propositalmente
-nunca sobrescreve uma entrada `(fixture_id, criterio)` já registrada
-(protege contra o painel mudar a odd de uma aposta que o Lucas já tenha
-feito) — mas isso significa que uma sugestão registrada com valor
-ERRADO por bug nunca se autocorrige sozinha, mesmo depois do bug ser
-corrigido. Este script é o jeito deliberado de corrigir isso quando (e
-só quando) houver um motivo real pra reconferir — ver
-`docs/retrospectiva_estado_fixture_bug_2026-08-28.md` (a entrada do
-Goiás x São Bernardo foi corrigida manualmente porque este script ainda
-não existia).
+Ainda útil rodar este script à parte quando: (a) acabou de corrigir um
+bug de cálculo e quer forçar a atualização na hora, sem esperar a
+próxima execução da rotina (foi assim que a entrada do Goiás x São
+Bernardo foi corrigida em
+`docs/retrospectiva_estado_fixture_bug_2026-08-28.md`, antes desta
+função rodar automaticamente); ou (b) quer conferir/atualizar o ledger
+fora do horário da rotina, sem gerar o painel inteiro.
 
 Uso: `python3 recalcular_pendentes.py` — busca fixtures futuros frescos
 (mesma função da produção, `previsao_dia.gerar_sugestoes_do_dia`),

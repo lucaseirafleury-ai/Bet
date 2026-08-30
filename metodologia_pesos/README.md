@@ -720,6 +720,24 @@ atualizada, esta lista aqui não é mantida em detalhe:
    ROI+13,6% z=+1,17 últimos 90 dias — bate com a análise. `pytest`
    197/197.
 
+48. **`recalcular_pendentes` virou automático na rotina diária** —
+   Lucas notou um caso real: Flamengo x Mirassol (02/09) apareceu
+   qualificado, mas os dois times ainda iam jogar contra outros
+   adversários hoje (30/08) — a previsão ficaria desatualizada até
+   esse jogo acontecer, porque `registrar_novas_sugestoes` nunca
+   sobrescreve uma entrada já registrada (item 45 tratava isso como
+   "só sob demanda depois de um bug" — esse caso mostrou que também
+   precisa ser automático pra manter dado em dia, não só pra corrigir
+   bug). `gerar_painel_dia.atualizar_painel` agora chama
+   `recalcular_pendentes` toda vez que roda, reaproveitando a mesma
+   busca de sugestões (sem custo extra de API) — lado/linha/odd/edge
+   de qualquer pendente cujo jogo ainda não começou ficam atualizados
+   até o jogo começar. `recalcular_pendentes.py` (script manual)
+   continua existindo pra forçar isso na hora. `pytest` 197/197.
+   **Em aberto**: se um jogo deixar de qualificar de vez depois de
+   sugerido, a entrada não é removida nem marcada — decisão pendente
+   com o Lucas (remover vs. marcar com nota).
+
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
   sem qualquer edge defensável — não apostar por este critério.
