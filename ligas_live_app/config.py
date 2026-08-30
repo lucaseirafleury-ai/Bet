@@ -63,3 +63,7 @@ LIVE_SNAPSHOTS_FILE = os.path.join(DATA_DIR, "live_snapshots.json")
 JOGOS_ANTERIORES_FILE = os.path.join(DATA_DIR, "jogos_anteriores.json")
 STATUS_FILE = os.path.join(DATA_DIR, "status.json")
 PUSH_SUBS_FILE = os.path.join(DATA_DIR, "push_subscriptions.json")
+# Rastreamento interno do sinal de ritmo de gols — NENHUMA rota do app.py lê
+# este arquivo; é só pra medir a assertividade dele ao longo do tempo sem
+# publicar no painel (ver live_monitor.py::_avaliar_gols_interno).
+GOLS_INTERNO_FILE = os.path.join(DATA_DIR, "gols_interno.json")
