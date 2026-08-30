@@ -131,5 +131,22 @@
     "casa_ref": "bet365",
     "resultado": "pendente",
     "lucro": null
+  },
+  {
+    "fixture_id": 19622049,
+    "criterio": "BTTS",
+    "stake": "normal",
+    "liga": "Série A",
+    "liga_chave": "seriea",
+    "jogo": "Flamengo x Mirassol",
+    "data_jogo": "2026-09-02 22:30:00",
+    "lado": "btts",
+    "linha_aposta": null,
+    "odd": 2.05,
+    "edge": 0.17758586349255973,
+    "data_registro": "2026-08-30",
+    "casa_ref": "bet365",
+    "resultado": "pendente",
+    "lucro": null
   }
 ]
