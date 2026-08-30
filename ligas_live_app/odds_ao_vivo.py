@@ -62,8 +62,15 @@ def _candidatas_no_mercado(linhas, market_id, label, total_alvo):
 
 
 def _tentativas_mercado(alvo, direcao, linha):
-    """(market_id, label, total) a tentar em ordem — linha .5 exata primeiro,
-    fallback de linha inteira pra escanteios quando a liga só tiver esse."""
+    """
+    (market_id, label, total) a tentar — TODAS são tentadas e combinadas (não
+    para na primeira que achar candidata), porque casas diferentes usam
+    formatos diferentes pro mesmo mercado 67 de escanteios: a maioria usa
+    linha .5 (Over/Under 8.5), mas a bet365 usa linha INTEIRA dentro do MESMO
+    market_id 67 (Over/Under/Exactly 9) — se parássemos na primeira tentativa
+    que achasse qualquer candidata, a bet365 nunca entraria no pool pra
+    CASAS_PREFERENCIA escolher, mesmo sendo a casa preferida.
+    """
     market_id = MARKET_ID_POR_ALVO.get(alvo)
     if market_id is None:
         return []
@@ -71,7 +78,8 @@ def _tentativas_mercado(alvo, direcao, linha):
     tentativas = [(market_id, label, linha)]
     if alvo == "escanteios":
         total_inteiro = int(linha - 0.5) if direcao == "mais_de" else int(linha + 0.5)
-        tentativas.append((MARKET_ID_FALLBACK_ESCANTEIOS, label, total_inteiro))
+        tentativas.append((market_id, label, total_inteiro))  # formato bet365, mesmo market_id
+        tentativas.append((MARKET_ID_FALLBACK_ESCANTEIOS, label, total_inteiro))  # formato de outras casas, market_id 68
     return tentativas
 
 
@@ -95,9 +103,7 @@ def buscar_odd_real(fixture_id, alvo, direcao, linha):
 
     candidatas = []
     for market_id, label, total_alvo in tentativas:
-        candidatas = _candidatas_no_mercado(linhas, market_id, label, total_alvo)
-        if candidatas:
-            break
+        candidatas.extend(_candidatas_no_mercado(linhas, market_id, label, total_alvo))
     if not candidatas:
         # Loga o que a API TEM (pra distinguir "mercado não coberto nesse jogo"
         # de "coberto, mas a linha/label exatos do sinal não bateram") — sem
