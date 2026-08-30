@@ -100,6 +100,21 @@ def api_jogos_anteriores():
     return jsonify(_ler_json(config.JOGOS_ANTERIORES_FILE, []))
 
 
+@app.route("/api/gols-interno")
+def api_gols_interno():
+    """
+    Diagnóstico interno do sinal de ritmo de gols (não publicado no painel —
+    ver live_monitor.py). Não é usada por nenhuma tela do dashboard; existe
+    só pra rotina externa de sincronização ler o "log" e persistir de forma
+    durável (o arquivo local em si é apagado a cada redeploy).
+    """
+    return jsonify(_ler_json(config.GOLS_INTERNO_FILE, {
+        "pendentes": [],
+        "resumo": {"abaixo": {"green": 0, "red": 0}, "acima": {"green": 0, "red": 0}},
+        "log": [],
+    }))
+
+
 @app.route("/api/historico-sinais")
 def api_historico_sinais():
     linhas = historico_analytics.carregar_linhas()
