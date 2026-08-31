@@ -12,8 +12,8 @@
     "odd": 2.0,
     "edge": 0.05477615902144939,
     "data_registro": "2026-08-27",
-    "resultado": "pendente",
-    "lucro": null
+    "resultado": "red",
+    "lucro": -1.0
   },
   {
     "fixture_id": 19621837,
@@ -28,8 +28,8 @@
     "odd": 1.8,
     "edge": 0.06908668425022557,
     "data_registro": "2026-08-27",
-    "resultado": "pendente",
-    "lucro": null
+    "resultado": "green",
+    "lucro": 0.8
   },
   {
     "fixture_id": 19667190,
@@ -77,8 +77,8 @@
     "edge": 0.1734938206538328,
     "data_registro": "2026-08-27",
     "casa_ref": "Sbo",
-    "resultado": "pendente",
-    "lucro": null
+    "resultado": "red",
+    "lucro": -0.5
   },
   {
     "fixture_id": 19667192,
@@ -112,8 +112,8 @@
     "edge": 0.24113942872413763,
     "data_registro": "2026-08-27",
     "casa_ref": "bet365",
-    "resultado": "pendente",
-    "lucro": null
+    "resultado": "green",
+    "lucro": 0.5
   },
   {
     "fixture_id": 19667193,
@@ -126,7 +126,7 @@
     "lado": "Under 5.5 cartões",
     "linha_aposta": 5.5,
     "odd": 1.66,
-    "edge": 0.16060404265747696,
+    "edge": 0.33749304097463706,
     "data_registro": "2026-08-28",
     "casa_ref": "bet365",
     "resultado": "pendente",
