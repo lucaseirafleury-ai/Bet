@@ -22,7 +22,7 @@ import sys
 from datetime import datetime, timedelta, timezone
 
 from ledger_apostas import calcular_resumo, carregar_ledger, recalcular_pendentes, registrar_novas_sugestoes, resolver_pendentes, salvar_ledger
-from previsao_dia import CAMINHO_HIST, gerar_sugestoes_do_dia
+from previsao_dia import CAMINHO_HIST, DIAS_A_FRENTE_PADRAO, gerar_sugestoes_do_dia
 from sportmonks_adapter import carregar_liga_sportmonks
 
 FUSO_BRASIL = timezone(timedelta(hours=-3))
@@ -97,12 +97,15 @@ def _criterio_chip_html(c):
 def _linha_resumo_criterio_html(nome, dados):
     roi_txt = f"{dados['roi']*100:+.1f}%" if dados["roi"] is not None else "—"
     roi_classe = "pos" if (dados["roi"] or 0) >= 0 else "neg"
+    lucro_txt = f"{dados['lucro']:+.2f}u"
+    lucro_classe = "pos" if dados["lucro"] >= 0 else "neg"
     return f"""
       <tr>
         <td>{nome}</td>
         <td class="num">{dados['n']}</td>
         <td class="num">{dados['n_green']}/{dados['n_red']}</td>
         <td class="num {roi_classe}">{roi_txt}</td>
+        <td class="num {lucro_classe}">{lucro_txt}</td>
       </tr>"""
 
 
@@ -194,6 +197,9 @@ TEMPLATE = """<title>Painel Brasileirão</title>
   .resumo-roi.pos {{ color: var(--accent-strong); }}
   .resumo-roi.neg {{ color: var(--red-strong); }}
   .resumo-roi-label {{ font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.3rem; }}
+  .resumo-lucro-un {{ font-family: 'IBM Plex Mono', monospace; font-size: 0.95rem; font-weight: 600; font-variant-numeric: tabular-nums; opacity: 0.75; }}
+  .resumo-lucro-un.pos {{ color: var(--accent-strong); }}
+  .resumo-lucro-un.neg {{ color: var(--red-strong); }}
   .resumo-stats {{ display: flex; gap: 1.25rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }}
   .resumo-stat {{ display: flex; flex-direction: column; }}
   .resumo-stat .valor {{ font-family: 'IBM Plex Mono', monospace; font-size: 1.3rem; font-weight: 600; font-variant-numeric: tabular-nums; }}
@@ -255,13 +261,14 @@ TEMPLATE = """<title>Painel Brasileirão</title>
         <h3>Resumo geral</h3>
         <div class="resumo-roi-label">ROI (stake fixo)</div>
         <div class="resumo-roi {roi_classe}">{roi_txt}</div>
+        <div class="resumo-lucro-un {roi_classe}">{lucro_txt}</div>
         <div class="resumo-stats">
           <div class="resumo-stat"><span class="valor">{resumo_n}</span><span class="label">Entradas</span></div>
           <div class="resumo-stat"><span class="valor green">{resumo_green}</span><span class="label">Green</span></div>
           <div class="resumo-stat"><span class="valor red">{resumo_red}</span><span class="label">Red</span></div>
         </div>
         <table class="tabela-criterios" style="margin-top: 1rem;">
-          <thead><tr><th>Critério</th><th class="num">N</th><th class="num">G/R</th><th class="num">ROI</th></tr></thead>
+          <thead><tr><th>Critério</th><th class="num">N</th><th class="num">G/R</th><th class="num">ROI</th><th class="num">Un.</th></tr></thead>
           <tbody>{tabela_criterios_html}
           </tbody>
         </table>
@@ -293,9 +300,10 @@ def gerar_html(sugestoes_pendentes, resolvidos_recentes, resumo, dias_a_frente):
 
     roi = resumo["roi"]
     roi_txt = f"{roi*100:+.1f}%" if roi is not None else "—"
+    lucro_txt = f"{resumo['lucro_total']:+.2f}u"
     tabela_criterios_html = "".join(_linha_resumo_criterio_html(nome, dados) for nome, dados in resumo["por_criterio"].items())
     if not tabela_criterios_html:
-        tabela_criterios_html = '<tr><td colspan="4" style="color: var(--text-faint); text-align: center;">sem dado ainda</td></tr>'
+        tabela_criterios_html = '<tr><td colspan="5" style="color: var(--text-faint); text-align: center;">sem dado ainda</td></tr>'
 
     return TEMPLATE.format(
         atualizado_em=agora_brt.strftime("%d/%m/%Y, %H:%M"),
@@ -307,13 +315,14 @@ def gerar_html(sugestoes_pendentes, resolvidos_recentes, resumo, dias_a_frente):
         jogos_html=jogos_html,
         resolvidos_html=resolvidos_html,
         roi_txt=roi_txt,
+        lucro_txt=lucro_txt,
         roi_classe="pos" if (roi or 0) >= 0 else "neg",
         resumo_n=resumo["n"], resumo_green=resumo["n_green"], resumo_red=resumo["n_red"],
         tabela_criterios_html=tabela_criterios_html,
     )
 
 
-def atualizar_painel(caminho_ledger=CAMINHO_LEDGER, dias_a_frente=3):
+def atualizar_painel(caminho_ledger=CAMINHO_LEDGER, dias_a_frente=DIAS_A_FRENTE_PADRAO):
     ledger = carregar_ledger(caminho_ledger)
 
     dfs_por_liga = {liga: carregar_liga_sportmonks(caminho) for liga, caminho in CAMINHO_HIST.items()}
@@ -350,7 +359,7 @@ def atualizar_painel(caminho_ledger=CAMINHO_LEDGER, dias_a_frente=3):
 
 if __name__ == "__main__":
     caminho_saida = sys.argv[1] if len(sys.argv) > 1 else "painel_dia.html"
-    dias_a_frente = 3
+    dias_a_frente = DIAS_A_FRENTE_PADRAO
     pendentes, resolvidos_recentes, resumo = atualizar_painel(dias_a_frente=dias_a_frente)
     html = gerar_html(pendentes, resolvidos_recentes, resumo, dias_a_frente)
     with open(caminho_saida, "w") as f:

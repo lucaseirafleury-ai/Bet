@@ -47,7 +47,17 @@ CAMINHO_HIST = {
     "serieb": "data/sportmonks_serieb/fixtures.jsonl",
 }
 MARKET_NUMBER_OF_CARDS = 255
-DIAS_A_FRENTE_PADRAO = 3
+# Reduzido de 3 pra 2 em 01/09/2026 (pedido do Lucas) — caso real: o
+# painel sugeriu Flamengo x Mirassol (02/09) quando os dois times ainda
+# iam jogar contra outros adversários no dia 30/08 (3 dias antes),
+# então a previsão nasceu incompleta (não incluía o jogo de 30/08 no
+# histórico recente dos dois times). Com janela de 2 dias, um jogo só
+# aparece com no máximo 2 dias de antecedência — reduz (não elimina) a
+# chance de outro jogo relevante de um dos dois times acontecer DEPOIS
+# do registro e ANTES do jogo sugerido. `recalcular_pendentes`
+# (`ledger_apostas.py`) continua atualizando a previsão todo dia até o
+# jogo começar de qualquer forma — as duas mudanças se complementam.
+DIAS_A_FRENTE_PADRAO = 2
 
 # Over 2.5 recalibrado tinha sido removido em 27/08/2026 (com odds do
 # bet365, 2025 vira negativo — docs/retrospectiva_bookmaker_bet365_2026-08-27.md).

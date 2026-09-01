@@ -385,6 +385,25 @@ Substituiu a planilha manual. Roda 100% em cima do Sportmonks:
   entre disparos da rotina — diferente do token usado durante o
   desenvolvimento, que só existia na sessão).
 
+**Janela de antecedência — 2 dias (reduzida de 3 em 01/09/2026)**:
+`previsao_dia.DIAS_A_FRENTE_PADRAO`. Motivo: Flamengo x Mirassol (02/09)
+apareceu qualificado quando os dois times ainda iam jogar contra outros
+adversários no dia 30/08 (3 dias antes) — a previsão nasceu incompleta,
+sem esse jogo no histórico recente de nenhum dos dois times. Com 2 dias,
+um jogo aparece com no máximo 2 dias de antecedência, reduzindo (não
+eliminando) a chance de outro jogo relevante acontecer no meio do
+caminho. Complementar (não substitui) o `recalcular_pendentes` da
+seção "Terceiro critério" acima, que já atualiza a previsão todo dia
+até o jogo começar de qualquer forma.
+
+**Resumo do painel mostra lucro em unidades, não só ROI% (01/09/2026)**:
+pedido do Lucas — `calcular_resumo` (`ledger_apostas.py`) já calculava
+`lucro`/`lucro_total` em unidades de stake, só não aparecia na tela.
+Agora o card de resumo geral mostra a unidade líquida logo abaixo do
+ROI% (`+X,XXu`), e a tabela por critério ganhou uma coluna "Un." ao
+lado do ROI — mesmo padrão de stake fixo já documentado (BTTS=1u,
+Over 2.5/Cartões+Árbitro=0,5u).
+
 ## Acerto ≠ vantagem real (24/08/2026)
 
 Toda calibração até aqui (`k_mando`, `usar_estilo`, `filtro_aderencia`,

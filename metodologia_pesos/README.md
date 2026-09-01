@@ -738,6 +738,20 @@ atualizada, esta lista aqui não é mantida em detalhe:
    sugerido, a entrada não é removida nem marcada — decisão pendente
    com o Lucas (remover vs. marcar com nota).
 
+49. **Janela de antecedência reduzida de 3 pra 2 dias + resumo do
+   painel ganha lucro em unidades** — mesmo caso do Flamengo x
+   Mirassol (item 48): Lucas pediu duas mudanças. (a)
+   `previsao_dia.DIAS_A_FRENTE_PADRAO` 3→2 (complementa o item 48, não
+   substitui — reduz a chance de um jogo relevante de qualquer um dos
+   dois times acontecer entre o registro e o jogo sugerido, já que a
+   janela fica mais curta); removida a duplicação do valor hardcoded
+   em `gerar_painel_dia.py` (agora importa a mesma constante). (b) o
+   card de resumo geral do painel agora mostra o lucro em unidades
+   (`+X,XXu`) logo abaixo do ROI%, e a tabela por critério ganhou uma
+   coluna "Un." — o dado (`calcular_resumo`'s `lucro`/`lucro_total`)
+   já existia, só não aparecia na tela. `pytest` 197/197, render local
+   conferido visualmente.
+
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
   sem qualquer edge defensável — não apostar por este critério.
