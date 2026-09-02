@@ -831,6 +831,37 @@ atualizada, esta lista aqui não é mantida em detalhe:
    mercado já precifica bem essa vantagem de mando mais fraca, não
    sobra edge mesmo com o mecanismo corrigido. Ver
    `docs/retrospectiva_ligas_nordicas_2026-09-02.md`.
+54. **Investiguei mais 3 mecanismos pras ligas nórdicas (turfe
+   sintético, congestionamento europeu, sazonalidade/temperatura nos
+   gols) — nenhum passa no filtro inicial, mais barato que um backtest
+   completo.** Turfe sem base na literatura (estudo mundial não achou
+   diferença significativa, p=0,85). Congestionamento europeu com
+   amostra baixa demais (só Allsvenskan tem clubes em competição
+   continental). Sazonalidade tinha respaldo acadêmico real (Mišák
+   2026, Kyklos: frio reduz produtividade ofensiva), mas o teste
+   descritivo direto nos dados mostrou padrão contraditório entre
+   ligas — Noruega e Superettan têm MAIS gols em novembro (mês mais
+   frio), só Allsvenskan bate com a hipótese e com `n=32` — mesma
+   armadilha do pooling (1 de 3 ligas não é sinal). Ver
+   `docs/retrospectiva_ligas_nordicas_2026-09-02.md`.
+55. **Testei a hipótese do Lucas de escanteios em contra-ataque ×
+   bloco baixo (Série A/B) — não se confirma, e achei de quebra um gap
+   no pipeline de dados (não é limitação do Sportmonks).** `estilo.py`
+   já calcula `tr`/`bb` (transição/bloco baixo) por time, walk-forward
+   — reaproveitado sem código novo de produção. No caminho, descobri
+   que `sportmonks_client.MARKETS` não pede mais o mercado 60
+   (escanteios) desde que ele nunca virou critério de produção — a
+   rotina diária vinha sobrescrevendo o arquivo local sem essa odd.
+   Confirmei ao vivo na API que a odd de escanteios CONTINUA retida
+   normalmente pra Série A/B (2024 até 31/08/2026, bet365 incluído) —
+   diferente do achado de hoje nas nórdicas, aqui não é limitação do
+   dado. Puxei um snapshot à parte (fora de `data/`, não versionado)
+   com escanteios incluído e testei de verdade: na Série A o filtro
+   teve ROI PIOR que o resto do jogo (oposto da hipótese, z=-0,28 vs
+   z=+1,64 do resto — mas o "resto" não conta como candidato, não foi
+   pré-registrado e 2026 sozinho já é negativo); na Série B os dois
+   lados ficaram negativos. Nenhuma mudança em produção. Ver
+   `docs/retrospectiva_contra_ataque_bloco_baixo_2026-09-02.md`.
 
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
