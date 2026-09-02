@@ -896,6 +896,19 @@ atualizada, esta lista aqui não é mantida em detalhe:
    ligas) — mas agora é um resultado limpo e testado de verdade, não
    um "sem dado" errado nem um "achado" inflado por bug. Ver os dois
    docs (nórdicas e contra-ataque/bloco) pra erratas completas.
+57. **Duas limpezas de pipeline depois do item 56**: (a)
+   `sportmonks_client.MARKETS` agora inclui o mercado 60 (escanteios) —
+   não é critério de produção, mas fica disponível pra qualquer
+   investigação futura sem precisar de pull ad-hoc; (b) revalidei o
+   teste original de escanteios de 27/08
+   (`docs/retrospectiva_escanteios_cartoes_2026-08-27.md`, config
+   "neutro") com o bug do sentinela corrigido — **conclusão não muda
+   (ainda negativo nas duas ligas), mas a magnitude era mais extrema
+   do que devia**: Série A z=-2,38→-1,92, Série B z=-2,80→-1,41.
+   Diferente das nórdicas (onde o bug só inflava pra cima), aqui o
+   efeito foi misto (também criava derrotas falsas em apostas "Over"
+   contaminadas) — resultado líquido foi tornar o sinal negativo menos
+   extremo, não mais.
 
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem

@@ -199,6 +199,49 @@ fina estaria só ajustando ruído.
   mas isso é sobre 3 anos apenas (2024-2026, limite do plano gratuito
   do Sportmonks).
 
+## Atualização (02/09/2026) — revalidado com o bug do sentinela `-1` corrigido
+
+Um bug de integridade de dado (não descoberto ainda em 27/08) fazia
+`retrospectiva._valor_real` tratar o sentinela `-1` (dado ausente de
+escanteios, `sportmonks_adapter.flat_para_linha`) como se fosse um
+placar real de -2 escanteios — inflando/distorcendo o ROI de jogos com
+estatística incompleta. Corrigido em `retrospectiva.py`
+(commit `bd23a5b`, 02/09/2026, achado ao investigar um resultado
+implausível num teste de escanteios nas ligas nórdicas — ver
+`docs/retrospectiva_ligas_nordicas_2026-09-02.md`).
+
+Revalidei a config "neutro" (`PARAMS_PADRAO`, edge≥0%, linha mais
+líquida entre qualquer bookmaker — mesma metodologia original) com o
+motor corrigido:
+
+| Liga | Original (com bug) | Corrigido |
+|---|---|---|
+| Série A | n=907, ROI-7,4%, z=-2,38 | n=757, ROI-6,4%, z=-1,92 |
+| Série B | n=862, ROI-8,9%, z=-2,80 | n=809, ROI-4,6%, z=-1,41 |
+
+**A conclusão não muda — escanteios continua negativo nas duas
+ligas —, mas a magnitude era mais extrema do que devia.** Diferente do
+teste das ligas nórdicas (onde o bug SÓ inflava artificialmente pra
+cima, criando vitórias falsas em "Under"), aqui o efeito foi misto: o
+sentinela também gera derrotas falsas quando o modelo aposta "Over"
+num jogo contaminado (real=-2 nunca supera nenhuma linha) — então
+remover os jogos contaminados removeu tanto vitórias quanto derrotas
+artificiais, e neste dataset especificamente o saldo líquido foi
+tornar o resultado MENOS negativo (não mais, como nas nórdicas).
+
+Ano a ano corrigido: Série A 2024 +1,0% (n=193) / 2025 -10,6% (n=344) /
+2026 -6,4% (n=220) — 2024 deixa de ser negativo. Série B 2024 -5,1%
+(n=269) / 2025 -6,0% (n=326) / 2026 -1,9% (n=214) — agora
+consistentemente negativo nos 3 anos (antes tinha uma leitura menos
+uniforme).
+
+**Recomendação não muda**: não usar escanteios com o motor atual — mas
+o sinal negativo é mais moderado do que o originalmente reportado, não
+"estrutural e extremo" como a redação original sugeria. Não foram
+revalidadas aqui as variações com os parâmetros calibrados de Over
+2.5/BTTS nem o reescalonamento de `limite_unilateral` (tabelas do meio
+deste doc) — só o headline "neutro" que sustenta a conclusão principal.
+
 Reprodução: `metodologia_pesos/retrospectiva.py`
 (`rodar_retrospectiva`), `metodologia_pesos/pesos.py`
 (`probabilidade_over`, `probabilidade_implicita_2vias`), script de
