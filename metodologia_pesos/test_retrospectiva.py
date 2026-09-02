@@ -14,6 +14,7 @@ from retrospectiva import (
     _estilo_por_mando,
     _probabilidades_1x2_e_dc,
     _probabilidades_favorito_dc,
+    _valor_real,
     grid_search,
     prever_jogo,
     rodar_retrospectiva,
@@ -692,3 +693,24 @@ def test_simular_apostas_combo_menos_de_2_pernas_levanta_erro():
 def test_simular_apostas_combo_mercado_invalido_levanta_erro():
     with pytest.raises(ValueError):
         simular_apostas_combo([], pernas=["over25", "escanteios"])
+
+
+def test_valor_real_soma_colunas_normalmente():
+    row = pd.Series({"home_team_corner_count": 6, "away_team_corner_count": 4})
+    assert _valor_real(row, "escanteios_pro") == 6
+    assert _valor_real(row, "escanteios_contra") == 4
+
+
+def test_valor_real_ignora_jogo_com_sentinela_dado_ausente():
+    # -1 é o placeholder de "dado ausente" (sportmonks_adapter.flat_para_linha)
+    # pra escanteios — nunca é um valor real de placar, tem que virar None,
+    # não -1 (que faria qualquer aposta "Under" vencer contra um total
+    # negativo que nunca aconteceu de verdade).
+    row = pd.Series({"home_team_corner_count": -1, "away_team_corner_count": -1})
+    assert _valor_real(row, "escanteios_pro") is None
+    assert _valor_real(row, "escanteios_contra") is None
+
+
+def test_valor_real_soma_com_duas_colunas_ignora_sentinela_em_qualquer_lado():
+    row = pd.Series({"home_team_yellow_cards": -1, "home_team_red_cards": 1})
+    assert _valor_real(row, "cartoes_pro") is None

@@ -86,9 +86,21 @@ def _valor_real(row, campo):
     """Valor real (placar/estatística) de `campo` no jogo `row`. Soma as
     colunas quando o mercado precisa de mais de uma (ex.: cartões =
     amarelos + vermelhos). Retorna None se a coluna não existir/for NaN
-    (não inventa dado)."""
+    (não inventa dado), OU se qualquer coluna somada for `-1` — o
+    sentinela de "dado ausente" usado por `sportmonks_adapter.flat_para_linha`
+    (hoje só pra escanteios: `corners_home`/`corners_away` viram -1
+    quando a estatística de detalhe não veio no jogo). Nenhum desses
+    campos pode ser legitimamente negativo, então -1 nunca é um valor
+    real — sem esse filtro, dois lados ausentes somam -2 e qualquer
+    aposta "Under" vence automaticamente contra um placar que nunca
+    aconteceu (achado ao investigar um ROI implausível de escanteios
+    nas ligas nórdicas, 02/09/2026 — ver
+    docs/retrospectiva_ligas_nordicas_2026-09-02.md)."""
     try:
-        valor = sum(float(row[c]) for c in _COLUNAS_VALOR_REAL[campo])
+        valores = [float(row[c]) for c in _COLUNAS_VALOR_REAL[campo]]
+        if any(v == -1 for v in valores):
+            return None
+        valor = sum(valores)
         return valor if valor == valor else None  # descarta NaN (NaN != NaN)
     except (KeyError, ValueError, TypeError):
         return None
