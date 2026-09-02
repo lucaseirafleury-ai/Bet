@@ -752,6 +752,49 @@ atualizada, esta lista aqui não é mantida em detalhe:
    já existia, só não aparecia na tela. `pytest` 197/197, render local
    conferido visualmente.
 
+50. **Flamengo x Mirassol (BTTS) removido do ledger — deixou de
+   qualificar depois da rodada de 30/08** — Lucas perguntou se o jogo
+   continuava qualificado; recalculei com dado 100% atual: edge caiu
+   de +17,8% (registro original) pra +0,9%, bem abaixo do piso de 5%.
+   Confirma ao vivo o limite que tínhamos deixado em aberto (item 48):
+   `recalcular_pendentes` só atualiza uma entrada que CONTINUA
+   qualificando — quando o jogo deixa de qualificar de vez, a entrada
+   fica congelada com o valor antigo. Lucas pediu pra remover — feito
+   manualmente no `data/ledger_sugestoes.json`. Também investiguei por
+   que a Sbo não tinha odd de Over 2.5 pro mesmo jogo: não é bug — a
+   Sbo cotou a linha 3,0 em vez de 2,5 pra esse jogo específico
+   (provavelmente por esperar um jogo de muitos gols), e o código
+   busca a odd EXATAMENTE na linha 2,5 (validada), não substitui por
+   outra linha. Lucas perguntou se fazia sentido cair pra outra casa
+   nesses casos — não: já testamos 12 bookmakers pro Over 2.5 antes e
+   a Sbo foi a única sem ano negativo; um fallback reabriria
+   exatamente esse problema, só nos casos raros (~1-2% dos jogos) em
+   que a Sbo foge da linha padrão. Decisão: manter como está.
+
+51. **Testei BTTS/Gols/1x2-DC/Escanteios nas 3 ligas nórdicas já
+   configuradas (Noruega 1.Division, Suécia Allsvenskan/Superettan) —
+   resultado negativo, nenhum candidato** — Lucas não vai trocar essas
+   3 ligas, pediu pra testar se tem edge nelas já que o dado está
+   pago. Cobertura de odds bet365 checada antes: 1x2/Gols/BTTS 100%,
+   Cartões 0% (nenhuma casa do catálogo, não só bet365 — descartado).
+   Escanteios pareceu 100% numa checagem inicial, mas era enganosa (só
+   pegou jogos futuros com odd pré-jogo viva) — no histórico real
+   (`puxar_fixtures_finalizados`), **0 de 648 jogos da Noruega têm odd
+   de escanteios retida** (as estatísticas reais existem normalmente,
+   só a odd não fica salva depois do jogo terminar) — mercado
+   descartado por limitação de dado, não por falta de sinal. Rodei
+   BTTS/Over gols (1.5/2.5/3.5)/1x2-DC nas 3 ligas com os parâmetros
+   já campeões do Brasil (sem recalibração nova, mesmo padrão usado na
+   troca FootyStats→Sportmonks): nenhum mercado chegou perto de z≈2,
+   maioria fortemente negativa (vários z<-2). Não recomendo grid
+   search dedicado pra essas ligas — o padrão do resultado (negativo
+   consistente, não "quase lá") não justifica o risco de comparação
+   múltipla de uma busca nova só pra tentar salvar um resultado já
+   ruim. Capacidade nova mantida em produção mesmo sem uso imediato:
+   `sportmonks_adapter.flat_para_linha` extrai `_odds_escanteios`
+   (mercado 60), mesmo padrão de `_odds_cartoes`. Ver
+   `docs/retrospectiva_ligas_nordicas_2026-09-02.md`.
+
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
   sem qualquer edge defensável — não apostar por este critério.

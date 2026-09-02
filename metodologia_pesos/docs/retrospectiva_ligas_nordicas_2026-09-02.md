@@ -1,0 +1,99 @@
+# Retrospectiva — ligas nórdicas (Noruega 1.Division, Suécia Allsvenskan/Superettan)
+
+## Contexto
+
+Lucas já tem 3 ligas nórdicas configuradas no plano Sportmonks (não
+vai trocar por outras) — pediu pra investigar se dá pra achar edge
+nelas, já que o dado está pago/disponível de qualquer forma.
+
+Antes de rodar backtest, checamos cobertura de odds do bet365 (a casa
+que o Lucas usa) nas 3 ligas: 1x2/Gols/BTTS 100%, Cartões 0% (em
+qualquer bookmaker do catálogo, não só bet365), Escanteios aparentando
+100%. Ver seção "Correção" abaixo — a checagem de escanteios estava
+enganosa.
+
+## Correção: escanteios não é testável historicamente
+
+A checagem inicial de cobertura de escanteios (mercado 60, "2-Way
+Corners") usou `/fixtures` ordenado por `-starting_at` sem filtro de
+data — isso pegou por acidente jogos FUTUROS/em aberto (com odd
+pré-jogo ainda viva), não o histórico de jogos já encerrados.
+
+Ao puxar o histórico real (`puxar_fixtures_finalizados`, 648 jogos na
+Noruega 2024-2026) e checar `_odds_escanteios`: **0 de 648 jogos têm
+odd de escanteios salva** — mesmo jogos de 30/08/2026 (bem recentes).
+As estatísticas reais de escanteios (`corners_home`/`corners_away`)
+existem normalmente (645/648) — só a ODD não fica retida depois que o
+jogo termina. bet365 cota escanteios ao vivo/pré-jogo nessas ligas,
+mas o Sportmonks não preserva essa odd no registro histórico
+finalizado. **Não dá pra validar edge sem odd histórica real — mercado
+descartado por limitação de dado, não por falta de sinal.**
+
+Código de extração (`sportmonks_adapter.flat_para_linha`, campo
+`_odds_escanteios`, mesmo padrão de `_odds_cartoes`) foi mantido —
+capacidade genérica e reutilizável, mesmo sem uso imediato aqui.
+
+## BTTS / Over gols / 1x2-Dupla Chance — resultado negativo, limpo
+
+Reaproveitado 100% o motor existente (`retrospectiva.rodar_retrospectiva`/
+`simular_apostas`), com os parâmetros JÁ VALIDADOS pro Brasil (BTTS:
+`k_mando=0.7, usar_estilo=True, filtro_estilo=0.8,
+filtro_favoritismo=0.65, multiplicador_dp=1.5, limite_unilateral=2,
+n_historico=10`; Over/1x2-DC: `k_mando=0.35, usar_estilo=False,
+filtro_aderencia=0.65, multiplicador_dp=1.5, limite_unilateral=4,
+n_historico=15`), sem recalibração nova — mesmo padrão usado quando
+testamos a troca FootyStats→Sportmonks (reconfirma com o que já
+funciona antes de cogitar grid novo).
+
+| Liga | Mercado | n | ROI | z | Ano a ano |
+|---|---|---|---|---|---|
+| Noruega, 1.Division | BTTS | 101 | -14,9% | -1,97 | 2024 -35,3% \| 2025 -29,4% \| 2026 +9,5% |
+| Noruega, 1.Division | Over 2.5 | 46 | -16,4% | -1,35 | 2024 -21,5% \| 2025 -31,6% \| 2026 -2,3% |
+| Noruega, 1.Division | Casa | 172 | -19,0% | -2,27 | 2024 -26,1% \| 2025 -40,2% \| 2026 +8,7% |
+| Noruega, 1.Division | Empate | 83 | -16,7% | -0,86 | 2024 -17,8% \| 2025 +6,1% \| 2026 -100,0% (n=10) |
+| Noruega, 1.Division | Fora | 242 | -10,8% | -1,22 | 2024 +4,1% \| 2025 -28,9% \| 2026 -3,8% |
+| Noruega, 1.Division | Mandante DC | 170 | -12,2% | -2,23 | 2024 -9,4% \| 2025 -18,4% \| 2026 -7,8% |
+| Noruega, 1.Division | Visitante DC | 255 | -14,0% | -2,56 | 2024 -10,8% \| 2025 -10,9% \| 2026 -22,9% |
+| Suécia, Allsvenskan | BTTS | 99 | -3,9% | -0,46 | 2024 +13,6% \| 2025 -10,1% \| 2026 -10,8% |
+| Suécia, Allsvenskan | Over 2.5 | 69 | -15,3% | -1,44 | 2024 -33,6% \| 2025 -11,3% \| 2026 -10,7% |
+| Suécia, Allsvenskan | Casa | 183 | -5,8% | -0,62 | 2024 -6,8% \| 2025 -2,6% \| 2026 -8,8% |
+| Suécia, Allsvenskan | Empate | 101 | -12,7% | -0,75 | 2024 -10,2% \| 2025 -10,4% \| 2026 -23,2% |
+| Suécia, Allsvenskan | Fora | 239 | +1,4% | +0,14 | 2024 -8,4% \| 2025 +18,0% \| 2026 -15,0% |
+| Suécia, Allsvenskan | Mandante DC | 189 | -6,7% | -1,24 | 2024 -3,2% \| 2025 -13,7% \| 2026 -0,2% |
+| Suécia, Allsvenskan | Visitante DC | 253 | -4,1% | -0,70 | 2024 -10,8% \| 2025 +5,7% \| 2026 -14,6% |
+| Suécia, Superettan | BTTS | 95 | +8,4% | +0,99 | 2024 -19,1% \| 2025 +2,8% \| 2026 +31,4% |
+| Suécia, Superettan | Over 2.5 | 57 | +2,2% | +0,18 | 2024 -27,8% (n=5) \| 2025 -15,0% \| 2026 +26,8% |
+| Suécia, Superettan | Casa | 163 | -15,1% | -1,65 | 2024 -18,4% \| 2025 -2,2% \| 2026 -33,8% |
+| Suécia, Superettan | Empate | 94 | -35,8% | -2,30 | 2024 -49,3% \| 2025 -0,1% \| 2026 -100,0% (n=8) |
+| Suécia, Superettan | Fora | 241 | -9,1% | -0,96 | 2024 -13,5% \| 2025 -5,0% \| 2026 -9,0% |
+| Suécia, Superettan | Mandante DC | 158 | -13,9% | -2,53 | 2024 -17,3% \| 2025 -4,7% \| 2026 -26,8% |
+| Suécia, Superettan | Visitante DC | 263 | -7,8% | -1,46 | 2024 -12,7% \| 2025 -3,9% \| 2026 -6,5% |
+
+(Over 1.5 e Over 3.5: n=0 nas 3 ligas — o combo de parâmetros usado
+nunca qualificou nenhuma aposta nessas linhas com o `limiar_edge`
+aplicado.)
+
+**Nenhum mercado chega perto de z≈2.** A maioria é claramente negativa,
+vários abaixo de z=-2 (Casa/Mandante DC/Visitante DC na Noruega,
+Empate/Mandante DC na Superettan). O "melhor" resultado (BTTS
+Superettan, z=+0,99) tem uma tendência de melhora ano a ano (2024
+muito negativo → 2026 fortemente positivo) que parece mais ruído de
+amostra recente pequena do que sinal real — não passa nem perto da
+barra "3 anos positivos" exigida em todo o resto do projeto.
+
+## Recomendação final
+
+**Não seguir com nenhum critério nessas 3 ligas nesta rodada.** Os
+parâmetros usados foram os já campeões do Brasil, sem recalibração —
+um grid search dedicado a cada liga poderia teoricamente achar algo
+diferente, mas o padrão do resultado (negativo forte e consistente na
+maioria dos mercados, não "quase lá") não justifica o risco de
+comparação múltipla de uma nova busca de parâmetro só pra tentar
+salvar um resultado já majoritariamente ruim. Escanteios fica
+descartado por limitação de dado (odd não retida historicamente), não
+por falta de sinal — pode valer revisitar SE o Sportmonks mudar esse
+comportamento no futuro.
+
+Capacidade nova mantida em produção (reutilizável, mesmo sem uso
+imediato): `sportmonks_adapter.flat_para_linha` agora extrai
+`_odds_escanteios` (mercado 60), mesmo padrão de `_odds_cartoes`.
