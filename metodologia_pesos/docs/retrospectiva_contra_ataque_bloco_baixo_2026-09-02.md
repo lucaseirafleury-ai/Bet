@@ -70,14 +70,45 @@ pré-registrada (é só o complemento de um filtro que falhou), e 2026
 sozinho já é negativo (-13,3%), o que já reprova a barra de "sem ano
 negativo" usada em todo o resto do projeto.
 
+## Atualização (mesmo dia) — mineração green/red no "resto", nada se sustenta
+
+Lucas propôs (corretamente, mesmo raciocínio que já funcionou pro
+Over 2.5 antes): já que "resto" é o complemento de um filtro que
+falhou, vale separar esses jogos em green/red e procurar parâmetros
+que diferenciem os dois grupos, em vez de descartar de cara.
+
+Testados 5 candidatos com razão de futebol (não é busca cega): `edge`,
+soma de pressão alta dos dois times (`soma_pa`), soma de transição
+(`soma_tr`), soma de bloco baixo (`soma_bb`), total de escanteios
+previsto pelo modelo (`pred_total`) — médias green vs red e cortes por
+mediana, nas duas ligas.
+
+**Nenhuma feature separa green de red de forma real** — todas as
+diferenças de média são minúsculas (0,015 a 0,098), dentro do ruído.
+E mais revelador: **todo corte testado na Série A tem 2026 negativo,
+sem exceção** — inclusive o "melhor" pelo agregado (`soma_pa≤mediana`,
+z=+2,12, ROI+8,6%, mas 2026=-11,4%). Isso não é sinal de que falta
+achar o corte certo — é o oposto: o padrão comum a TODOS os cortes é
+"2024 ótimo, 2026 ruim", **independente de qualquer feature testada**,
+o que sugere mudança de regime no mercado/dado de escanteios em 2026,
+não um filtro escondido. Série B ficou negativa em praticamente todos
+os cortes, sem nem um candidato de agregado positivo.
+
+Não achamos parâmetro nenhum que sustente uma entrada em escanteios,
+nem no filtro original nem no complemento dele.
+
 ## Conclusão
 
 Hipótese de futebol bem fundamentada, testada com disciplina (dado
-real, ano a ano, os dois sentidos do confronto) — e não se sustenta.
+real, ano a ano, os dois sentidos do confronto, e depois mineração
+green/red no complemento) — e não se sustenta em nenhuma camada.
 Escanteios em Série A/B continua sem critério viável, mesma conclusão
 de antes (`docs/retrospectiva_escanteios_cartoes_2026-08-27.md`), mas
-agora testada especificamente contra esse ângulo tático, não só no
-agregado. Não recomendo perseguir mais recortes de estilo pra
-escanteios sem uma hipótese nova e concreta — cada teste novo gasta
-comparação múltipla em cima de um mercado que já mostrou sinal
-negativo/nulo em toda tentativa até aqui.
+agora testada especificamente contra esse ângulo tático e seu
+complemento, não só no agregado. Não recomendo perseguir mais recortes
+de estilo pra escanteios sem uma hipótese nova e concreta — cada teste
+novo gasta comparação múltipla em cima de um mercado que já mostrou
+sinal negativo/nulo em toda tentativa até aqui. O padrão "2026 pior que
+2024 em qualquer recorte" é uma pista genuína, mas é uma investigação
+diferente (mudança de regime no mercado de escanteios, não um filtro
+de entrada) — não perseguida aqui.
