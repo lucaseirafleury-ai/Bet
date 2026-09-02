@@ -853,15 +853,49 @@ atualizada, esta lista aqui não é mantida em detalhe:
    (escanteios) desde que ele nunca virou critério de produção — a
    rotina diária vinha sobrescrevendo o arquivo local sem essa odd.
    Confirmei ao vivo na API que a odd de escanteios CONTINUA retida
-   normalmente pra Série A/B (2024 até 31/08/2026, bet365 incluído) —
-   diferente do achado de hoje nas nórdicas, aqui não é limitação do
-   dado. Puxei um snapshot à parte (fora de `data/`, não versionado)
-   com escanteios incluído e testei de verdade: na Série A o filtro
-   teve ROI PIOR que o resto do jogo (oposto da hipótese, z=-0,28 vs
-   z=+1,64 do resto — mas o "resto" não conta como candidato, não foi
-   pré-registrado e 2026 sozinho já é negativo); na Série B os dois
-   lados ficaram negativos. Nenhuma mudança em produção. Ver
+   normalmente pra Série A/B (2024 até 31/08/2026, bet365 incluído).
+   Puxei um snapshot à parte (fora de `data/`, não versionado) com
+   escanteios incluído e testei de verdade. **Números desta rodada
+   corrigidos no item 56 — havia um segundo bug (sentinela de dado
+   ausente) inflando o ROI.** Nenhuma mudança em produção. Ver
    `docs/retrospectiva_contra_ataque_bloco_baixo_2026-09-02.md`.
+56. **Achei e corrigi um bug de integridade de dado em `_valor_real`
+   (sentinela `-1` tratado como placar real) — reabriu e corrigiu
+   TANTO o teste de escanteios da Série A/B (item 55) QUANTO o "0% de
+   cobertura" que eu tinha reportado errado pras ligas nórdicas
+   (item 53/doc nórdicas).** Ao reavaliar as nórdicas com o mesmo
+   pipeline corrigido de mercado (item 55), o resultado inicial foi
+   implausível (Noruega z=+5,93!, Superettan z=+3,61) — grande demais
+   pra ser real (nenhum critério deste projeto passou de z≈3,4).
+   Investigando, achei que `sportmonks_adapter.flat_para_linha` usa
+   `-1` como placeholder quando falta estatística de detalhe de um
+   jogo (escanteios especificamente) — mas `retrospectiva._valor_real`
+   somava essas colunas sem checar o sentinela, então dois lados
+   ausentes viravam `real_total=-2` (placar impossível), fazendo
+   qualquer aposta "Under" vencer sozinha contra um resultado que
+   nunca aconteceu. Corrigido em `retrospectiva.py` (`_valor_real`
+   agora trata `-1` como dado ausente, igual coluna faltante/NaN,
+   commit `bd23a5b`, 3 testes novos). Consequência: **isso também
+   invalidava o "0 de 648 jogos com odd de escanteios" que eu tinha
+   reportado antes pras nórdicas (era o MESMO bug de `MARKETS`
+   descrito no item 55, não limitação do Sportmonks — corrigido em
+   `docs/retrospectiva_ligas_nordicas_2026-09-02.md`)**. Com dado E
+   motor corrigidos, refiz os dois testes:
+   - **Nórdicas** (escanteios, agregado): Noruega n=361 ROI+2,2%
+     z=+0,45 (~zero); Allsvenskan n=517 ROI-3,4% z=-0,85 (quase igual
+     à versão contaminada — pouco dado ausente ali, confirma que o fix
+     está certo); Superettan n=361 ROI-11,4% z=-2,33 (era z=+3,61
+     antes). Sem sinal em nenhuma liga.
+   - **Série A/B** (contra-ataque × bloco baixo + green/red no resto,
+     item 55): tudo negativo ou perto de zero nas duas ligas, dentro e
+     fora do filtro — o "resto" da Série A, que antes parecia
+     levemente positivo (z=+1,64), na verdade é negativo (z=-0,81); a
+     mineração green/red não achou mais nenhum corte positivo em
+     nenhuma liga (antes: melhor corte z=+2,12).
+   Conclusão prática não muda (não apostar escanteios em nenhuma das 5
+   ligas) — mas agora é um resultado limpo e testado de verdade, não
+   um "sem dado" errado nem um "achado" inflado por bug. Ver os dois
+   docs (nórdicas e contra-ataque/bloco) pra erratas completas.
 
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem

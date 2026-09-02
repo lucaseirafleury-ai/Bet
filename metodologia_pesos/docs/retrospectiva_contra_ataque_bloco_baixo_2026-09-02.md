@@ -20,18 +20,21 @@ filtro da rotina diária em algum momento (economiza payload), e a
 atualização incremental (`atualizar_fixtures_finalizados`) foi
 progressivamente sobrescrevendo o arquivo local sem essa odd.
 
-Diferente do achado de hoje mais cedo nas ligas nórdicas (Sportmonks
-não retém odd de escanteios em NENHUM jogo finalizado, limitação real
-do dado), aqui é diferente: confirmei ao vivo, direto na API, pedindo
-`markets:60` explicitamente — a odd de escanteios **é retida
-normalmente** pra Série A/B, de 2024 até jogos de 31/08/2026, inclusive
-via bet365 especificamente. Não é limitação do Sportmonks — é só o
-pipeline de produção que parou de pedir esse mercado, algo esperado já
-que não é usado hoje. Puxei um snapshot à parte (`markets:1,80,14,60,255`),
-fora de `data/` (não é produção, não versionado), com 1005/1005 (Série A)
-e 1010/1010 (Série B) fixtures, 1003 e — respectivamente — com odd de
-escanteios real. Nenhuma mudança em `sportmonks_client.py`/produção
-feita aqui — só documentando que a lacuna existe e por quê.
+Confirmei ao vivo, direto na API, pedindo `markets:60` explicitamente —
+a odd de escanteios **é retida normalmente** pra Série A/B, de 2024 até
+jogos de 31/08/2026, inclusive via bet365 especificamente. Não é
+limitação do Sportmonks — é só o pipeline de produção que parou de
+pedir esse mercado, algo esperado já que não é usado hoje. Puxei um
+snapshot à parte (`markets:1,80,14,60,255`), fora de `data/` (não é
+produção, não versionado), com 1005/1005 (Série A) e 1010/1010
+(Série B) fixtures, 1003 e — respectivamente — com odd de escanteios
+real. Nenhuma mudança em `sportmonks_client.py`/produção feita aqui —
+só documentando que a lacuna existe e por quê.
+
+**Atualização (mesmo dia)**: achei o MESMO bug de pipeline nas ligas
+nórdicas mais tarde hoje — o "0% de cobertura" que eu tinha reportado
+antes lá também era esse gap do `MARKETS`, não limitação real do
+Sportmonks (corrigido em `docs/retrospectiva_ligas_nordicas_2026-09-02.md`).
 
 ## Teste
 
@@ -54,21 +57,35 @@ linha mais líquida) — mesma função já usada antes
 
 ## Resultado — hipótese NÃO se confirma
 
+**ERRATA (mesmo dia)**: a tabela abaixo, na primeira versão deste doc,
+tinha um SEGUNDO bug — `retrospectiva._valor_real` somava as colunas
+de escanteios sem checar o sentinela `-1` (usado por
+`sportmonks_adapter.flat_para_linha` quando falta estatística de
+detalhe no jogo). Dois lados ausentes viravam `real_total = -2`, um
+placar que nunca aconteceu — e qualquer aposta "Under" vencia
+automaticamente contra ele, inflando o ROI de qualquer célula com
+jogos de dado incompleto (mais comum em 2024, a temporada mais antiga
+puxada). Achado ao investigar um resultado implausível (z>5) no
+reteste das ligas nórdicas com esse mesmo motor. Corrigido em
+`retrospectiva.py` (commit `bd23a5b`, `_valor_real` agora trata `-1`
+como dado ausente, igual a coluna faltante/NaN). A tabela abaixo é a
+versão CORRIGIDA (números antigos, errados: Série A filtro n=137
+z=-0,28 / resto n=727 z=+1,64; Série B filtro n=134 z=-0,79 / resto
+n=714 z=-1,42 — mantidos aqui só por rastreabilidade, não usar).
+
 | Liga | Grupo | n | ROI | z | Ano a ano |
 |---|---|---|---|---|---|
-| Série A | Filtro (contra-ataque × bloco) | 137 | -2,2% | -0,28 | 2024 +23,9% \| 2025 -16,8% \| 2026 -8,1% |
-| Série A | Resto | 727 | +5,6% | +1,64 | 2024 +24,8% \| 2025 +0,4% \| 2026 -13,3% |
-| Série B | Filtro (contra-ataque × bloco) | 134 | -6,3% | -0,79 | 2024 +2,7% \| 2025 -6,4% \| 2026 -14,0% |
-| Série B | Resto | 714 | -4,9% | -1,42 | 2024 -9,6% \| 2025 -3,6% \| 2026 -0,2% |
+| Série A | Filtro (contra-ataque × bloco) | 120 | -12,1% | -1,42 | 2024 +0,8% \| 2025 -18,6% \| 2026 -11,1% |
+| Série A | Resto | 637 | -3,0% | -0,81 | 2024 +4,1% \| 2025 +0,4% \| 2026 -15,0% |
+| Série B | Filtro (contra-ataque × bloco) | 132 | -4,9% | -0,61 | 2024 +5,1% \| 2025 -4,1% \| 2026 -14,0% |
+| Série B | Resto | 702 | -5,1% | -1,46 | 2024 -9,6% \| 2025 -4,2% \| 2026 -0,1% |
 
-**Na Série A, o filtro tem ROI PIOR que o resto do jogo** — o oposto
-do que a hipótese previa. Na Série B, os dois lados são negativos, sem
-diferença que sustente a hipótese. Em nenhuma liga o subconjunto
-filtrado passa perto de z≈2, e o próprio "resto" da Série A (z=+1,64)
-**não deve ser tratado como candidato** — não foi uma hipótese
-pré-registrada (é só o complemento de um filtro que falhou), e 2026
-sozinho já é negativo (-13,3%), o que já reprova a barra de "sem ano
-negativo" usada em todo o resto do projeto.
+Com o dado corrigido, o quadro fica mais simples e mais limpo: **tudo
+negativo ou perto de zero, nas duas ligas, dentro e fora do filtro.**
+O "resto" da Série A, que antes parecia levemente positivo (z=+1,64,
+já tratado com cautela na v1 deste doc), na verdade é negativo
+(z=-0,81) — o sinal positivo aparente era, ele também, efeito do bug.
+Hipótese rejeitada com ainda mais clareza que antes.
 
 ## Atualização (mesmo dia) — mineração green/red no "resto", nada se sustenta
 
@@ -83,16 +100,28 @@ soma de pressão alta dos dois times (`soma_pa`), soma de transição
 previsto pelo modelo (`pred_total`) — médias green vs red e cortes por
 mediana, nas duas ligas.
 
-**Nenhuma feature separa green de red de forma real** — todas as
-diferenças de média são minúsculas (0,015 a 0,098), dentro do ruído.
-E mais revelador: **todo corte testado na Série A tem 2026 negativo,
-sem exceção** — inclusive o "melhor" pelo agregado (`soma_pa≤mediana`,
-z=+2,12, ROI+8,6%, mas 2026=-11,4%). Isso não é sinal de que falta
-achar o corte certo — é o oposto: o padrão comum a TODOS os cortes é
-"2024 ótimo, 2026 ruim", **independente de qualquer feature testada**,
-o que sugere mudança de regime no mercado/dado de escanteios em 2026,
-não um filtro escondido. Série B ficou negativa em praticamente todos
-os cortes, sem nem um candidato de agregado positivo.
+**ERRATA**: também refeito depois de corrigir o bug do sentinela `-1`
+(seção anterior). Os números originais abaixo (`soma_pa≤mediana`
+z=+2,12) vinham do mesmo dado contaminado — mantidos riscados por
+rastreabilidade:
+
+~~Nenhuma feature separa green de red de forma real — diferenças de
+média minúsculas (0,015 a 0,098). Todo corte testado na Série A tem
+2026 negativo, sem exceção — inclusive o "melhor" pelo agregado
+(`soma_pa≤mediana`, z=+2,12, ROI+8,6%, mas 2026=-11,4%). Série B
+ficou negativa em praticamente todos os cortes.~~
+
+**Resultado corrigido**: continua nenhuma feature separando green de
+red de forma real (diferenças de média igualmente pequenas com o dado
+corrigido). Mas agora **nenhum corte fica positivo em nenhuma liga** —
+o melhor da Série A cai pra `edge≤mediana` z=+0,31 (ROI+1,6%), longe
+de qualquer limiar; Série B não tem nenhum cruzamento positivo. O
+padrão "2026 pior que os outros anos" que eu tinha destacado antes
+como pista genuína também enfraquece bastante com o dado corrigido —
+2024 deixa de ser uniformemente ótimo (varia entre +0,8% e +25,2%
+conforme o corte, não mais um bloco consistente) — então não vale mais
+tratar isso como um sinal de mudança de regime; era, em boa parte,
+também reflexo do bug.
 
 Não achamos parâmetro nenhum que sustente uma entrada em escanteios,
 nem no filtro original nem no complemento dele.
@@ -100,15 +129,13 @@ nem no filtro original nem no complemento dele.
 ## Conclusão
 
 Hipótese de futebol bem fundamentada, testada com disciplina (dado
-real, ano a ano, os dois sentidos do confronto, e depois mineração
-green/red no complemento) — e não se sustenta em nenhuma camada.
-Escanteios em Série A/B continua sem critério viável, mesma conclusão
-de antes (`docs/retrospectiva_escanteios_cartoes_2026-08-27.md`), mas
-agora testada especificamente contra esse ângulo tático e seu
-complemento, não só no agregado. Não recomendo perseguir mais recortes
-de estilo pra escanteios sem uma hipótese nova e concreta — cada teste
-novo gasta comparação múltipla em cima de um mercado que já mostrou
-sinal negativo/nulo em toda tentativa até aqui. O padrão "2026 pior que
-2024 em qualquer recorte" é uma pista genuína, mas é uma investigação
-diferente (mudança de regime no mercado de escanteios, não um filtro
-de entrada) — não perseguida aqui.
+real, ano a ano, os dois sentidos do confronto, mineração green/red no
+complemento, e uma correção de bug de integridade de dado no meio do
+caminho) — e não se sustenta em nenhuma camada. Escanteios em Série
+A/B continua sem critério viável, mesma conclusão de antes
+(`docs/retrospectiva_escanteios_cartoes_2026-08-27.md`), agora com o
+resultado mais limpo e mais confiável que já tivemos pra esse mercado
+(sem o viés de dado ausente que inflava resultados anteriores — inclui
+possivelmente o teste original de 27/08, não revalidado aqui). Não
+recomendo perseguir mais recortes de estilo pra escanteios sem uma
+hipótese nova e concreta.

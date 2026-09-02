@@ -12,14 +12,19 @@ qualquer bookmaker do catálogo, não só bet365), Escanteios aparentando
 100%. Ver seção "Correção" abaixo — a checagem de escanteios estava
 enganosa.
 
-## Correção: escanteios não é testável historicamente
+## Correção: escanteios não é testável historicamente — ERRADO, corrigido abaixo
 
-A checagem inicial de cobertura de escanteios (mercado 60, "2-Way
+**Esta seção estava errada — ver "Correção #2" mais abaixo pra a
+versão certa.** Mantida aqui, riscada, por transparência (mesmo padrão
+de todo erro corrigido neste projeto: nunca apagar, sempre mostrar o
+que aconteceu).
+
+~~A checagem inicial de cobertura de escanteios (mercado 60, "2-Way
 Corners") usou `/fixtures` ordenado por `-starting_at` sem filtro de
 data — isso pegou por acidente jogos FUTUROS/em aberto (com odd
-pré-jogo ainda viva), não o histórico de jogos já encerrados.
+pré-jogo ainda viva), não o histórico de jogos já encerrados.~~
 
-Ao puxar o histórico real (`puxar_fixtures_finalizados`, 648 jogos na
+~~Ao puxar o histórico real (`puxar_fixtures_finalizados`, 648 jogos na
 Noruega 2024-2026) e checar `_odds_escanteios`: **0 de 648 jogos têm
 odd de escanteios salva** — mesmo jogos de 30/08/2026 (bem recentes).
 As estatísticas reais de escanteios (`corners_home`/`corners_away`)
@@ -27,11 +32,55 @@ existem normalmente (645/648) — só a ODD não fica retida depois que o
 jogo termina. bet365 cota escanteios ao vivo/pré-jogo nessas ligas,
 mas o Sportmonks não preserva essa odd no registro histórico
 finalizado. **Não dá pra validar edge sem odd histórica real — mercado
-descartado por limitação de dado, não por falta de sinal.**
+descartado por limitação de dado, não por falta de sinal.**~~
 
 Código de extração (`sportmonks_adapter.flat_para_linha`, campo
 `_odds_escanteios`, mesmo padrão de `_odds_cartoes`) foi mantido —
 capacidade genérica e reutilizável, mesmo sem uso imediato aqui.
+
+## Correção #2 (02/09/2026, mesmo dia) — escanteios TEM odd histórica; o "0 de 648" era outro bug de pipeline
+
+A "Correção" acima usou `puxar_fixtures_finalizados`, que por sua vez
+usa `sportmonks_client.MARKETS = "1,80,14,255"` — **esse filtro nunca
+pediu o mercado 60 (escanteios)**, porque escanteios nunca virou
+critério de produção. O "0 de 648" não era o Sportmonks recusando
+reter a odd — era o nosso próprio pull nunca tendo pedido essa odd em
+primeiro lugar. Confirmado ao vivo na API, pedindo `markets:60`
+explicitamente: a odd de escanteios **é retida normalmente** nas 3
+ligas nórdicas, de 2024 até jogos de 30/08/2026, bet365 incluído
+(>99% de cobertura nas 3 ligas). Mesmo bug (e mesma correção) achados
+hoje mais cedo pra Série A/B — ver
+`docs/retrospectiva_contra_ataque_bloco_baixo_2026-09-02.md`.
+
+Puxei um snapshot à parte (fora de `data/`, não versionado, mercado 60
+incluído) e testei escanteios de verdade nas 3 ligas — motor genérico
+(perfil de parâmetros do BTTS, já usado antes pra escanteios),
+`n_historico=10`, odd real bet365, mercado 60.
+
+**Primeira rodada (com um SEGUNDO bug, também corrigido — ver
+`docs/retrospectiva_contra_ataque_bloco_baixo_2026-09-02.md` pro
+detalhe técnico)**: resultados implausíveis (Noruega z=+5,93, Superettan
+z=+3,61) — grande demais pra ser real, investigado e achado um bug de
+integridade de dado (`_valor_real` tratava o sentinela `-1`, usado
+quando falta estatística de detalhe, como se fosse um placar real de
+-2 escanteios — o que faz qualquer aposta "Under" vencer sozinha
+contra um total que nunca aconteceu). Corrigido em `retrospectiva.py`
+(commit `bd23a5b`).
+
+**Resultado final, com o dado E o motor corretos**:
+
+| Liga | n | ROI | z | Ano a ano |
+|---|---|---|---|---|
+| Noruega 1.Division | 361 | +2,2% | +0,45 | 2024 -4,5% (n=29) \| 2025 -0,6% \| 2026 +8,0% |
+| Suécia Allsvenskan | 517 | -3,4% | -0,85 | 2024 -1,6% \| 2025 -8,6% \| 2026 +2,4% |
+| Suécia Superettan | 361 | -11,4% | -2,33 | 2024 -26,3% (n=30) \| 2025 -11,6% \| 2026 -7,5% |
+
+**Sem sinal em nenhuma das 3 ligas** — Noruega fica praticamente em
+zero, Allsvenskan levemente negativa (mudou pouco com a correção,
+esperado — é a liga com menos jogo de estatística faltando), Superettan
+claramente negativa. A conclusão prática de antes ("não apostar
+escanteios nas nórdicas") continua certa — só que agora testada de
+verdade, não por falta de dado.
 
 ## BTTS / Over gols / 1x2-Dupla Chance — resultado negativo, limpo
 
