@@ -813,6 +813,24 @@ atualizada, esta lista aqui não é mantida em detalhe:
    é "não tem sinal". Encerrado por enquanto, sem mais ação recomendada
    até mais temporadas acumularem (2027+). Ver atualização em
    `docs/retrospectiva_ligas_nordicas_2026-09-02.md`.
+53. **Pesquisei mecanismo de futebol real pras ligas nórdicas (vantagem
+   de mando mais fraca na Escandinávia, achado acadêmico robusto —
+   Pollard & Gómez) e testei se recalibrar `k_mando` nos mercados de
+   mando corrige o viés — melhora parte, mas não abre edge.** Teste
+   estreito com hipótese declarada antes de rodar (não um grid às
+   cegas): `k_mando ∈ {None,0.35,0.5,0.7,1.0}` só nos 5 mercados de
+   mando (Casa/Empate/Fora/Mandante DC/Visitante DC), 3 ligas. Casa
+   melhora de forma real e às vezes grande com menos separação
+   casa/fora (Noruega z=-2,27→-0,96; Superettan z=-1,65→-0,35) —
+   confirma que parte do viés vinha de importar vantagem de mando forte
+   demais (calibrada no Brasil) pra uma região onde ela é
+   estruturalmente mais fraca. Mas Mandante DC/Visitante DC não seguem
+   o mesmo padrão limpo (chegam a piorar em Allsvenskan/Noruega em
+   algum ponto do grid), e o ponto decisivo: mesmo no melhor `k_mando`
+   de cada combinação, nada chega perto de positivo — confirma que o
+   mercado já precifica bem essa vantagem de mando mais fraca, não
+   sobra edge mesmo com o mecanismo corrigido. Ver
+   `docs/retrospectiva_ligas_nordicas_2026-09-02.md`.
 
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem

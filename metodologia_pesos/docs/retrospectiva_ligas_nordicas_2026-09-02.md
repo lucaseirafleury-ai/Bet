@@ -116,12 +116,75 @@ compartilhado, é uma liga isolada dentro do pool. Nem com mais amostra
 (pooling) nem testando 48 parâmetros apareceu algo que passasse nem
 perto da barra z≈2 usada em todo o resto do projeto.
 
+## Atualização (mesmo dia) — hipótese de mecanismo: vantagem de mando mais fraca
+
+Pesquisa acadêmica (Pollard & Gómez, 157 ligas / 169.752 jogos,
+2006-2012) mostra que a Escandinávia tem vantagem de mando
+estruturalmente mais fraca que a média mundial — achado robusto (um
+modelo de regressão com geografia/torcida/viagem explica 76,7% da
+variância entre países), não uma hipótese solta. Isso bate com o
+padrão mais feio visto acima: os mercados que mais foram mal são
+justamente os ligados a mando (Casa, Mandante DC, Visitante DC).
+
+**Mecanismo testável**: `k_mando` (`pesos.ajuste_mando`) controla o
+quanto o modelo separa o histórico de casa/fora do time-alvo — `k`
+baixo = separação forte (mais "vantagem de mando" embutida), `k=1.0`
+ou `k=None` = sem separação nenhuma. Os testes anteriores nesta liga
+usaram `k_mando=0.35` (herdado do campeão Over 2.5 do Brasil) nos
+mercados de mando — nunca tinha sido testado um `k_mando` mais alto
+especificamente aí. Testei `k_mando ∈ {None, 0.35, 0.5, 0.7, 1.0}` nos
+5 mercados de mando, nas 3 ligas (mesma base de parâmetros de antes,
+`limiar_edge=5%`) — teste estreito, com hipótese declarada antes de
+rodar, não um grid novo às cegas. (Confirmação técnica: `k_mando=None`
+e `k_mando=1.0` deram exatamente os mesmos números em toda a tabela —
+esperado, já que os dois equivalem a "sem ajuste de mando".)
+
+**Resultado: hipótese parcialmente confirmada, mas sem abrir edge em
+lugar nenhum.**
+
+| Mercado | k=0.35 (baseline) | Melhor k testado | Interpretação |
+|---|---|---|---|
+| Casa — Noruega | z=-2,27 | z=-0,96 (k=0,5) | melhora real e grande |
+| Casa — Superettan | z=-1,65 | z=-0,35 (k=1,0) | melhora real, monotônica |
+| Casa — Allsvenskan | z=-0,62 | z=-0,41 (k=0,5) | melhora pequena |
+| Mandante DC — Noruega | z=-2,23 | z=-1,94 (k=0,7) | melhora pequena, segue negativo forte |
+| Mandante DC — Superettan | z=-2,53 | z=-2,53 (o próprio baseline) | não melhora |
+| Mandante DC — Allsvenskan | z=-1,24 | — | **piora** com menos mando (z=-1,89 em k=1,0) |
+| Visitante DC — Noruega | z=-2,56 | — | **piora** com menos mando (z=-3,01 em k=0,5) |
+| Visitante DC — Superettan | z=-1,46 | z=-1,13 (k=1,0) | melhora pequena |
+| Visitante DC — Allsvenskan | z=-0,70 | z=-0,38 (k=0,5) | melhora pequena |
+
+O mercado "Casa" (o mais diretamente ligado à magnitude de vantagem de
+mando) melhora de forma consistente e às vezes grande nas 3 ligas
+conforme reduzimos a separação casa/fora — confirma que parte do viés
+negativo original era mesmo o modelo importando uma vantagem de mando
+forte demais para essas ligas, exatamente como a pesquisa sugeria.
+Mas Mandante DC/Visitante DC não seguem o mesmo padrão de forma limpa
+(Allsvenskan e Noruega chegam a piorar em algum ponto do grid) — o
+mecanismo não é a explicação completa do que está errado nesses
+mercados.
+
+**O ponto decisivo**: mesmo no melhor `k_mando` de cada combinação,
+NENHUM resultado chega perto de positivo — o menos ruim ainda é
+claramente negativo (z entre -0,35 e -3,01). Ou seja: corrigir a
+calibração de mando reduz o tamanho do erro, mas não revela edge
+nenhum — o mercado (bookmaker) já precifica corretamente essa vantagem
+de mando mais fraca, então mesmo com o modelo "certo" nesse aspecto
+específico, não sobra vantagem para apostar. Confirma, com um
+mecanismo real e não só amostra pequena, que o motor atual (mesmo
+recalibrado neste eixo) não tem o que oferecer nessas 3 ligas.
+
 ## Recomendação final (revista)
 
-**Não seguir com nenhum critério nessas 3 ligas, mesmo depois de
-testar a hipótese de pooling.** A pergunta do Lucas (juntar as 3 ligas
-pra ganhar amostra) era uma forma válida e mais rigorosa de checar
-antes de desistir — foi testada de verdade, não só descartada por
-intuição, e o resultado continua negativo. Não vejo mais nada razoável
-a tentar aqui sem esperar mais temporadas de dado acumularem (2027+).
+**Não seguir com nenhum critério nessas 3 ligas.** Testamos 3
+hipóteses diferentes hoje — parâmetros isolados, pooling com mais
+amostra, e agora um mecanismo de futebol real (vantagem de mando mais
+fraca na Escandinávia, com respaldo acadêmico) — nenhuma abriu edge.
+A última é a mais informativa: confirma que o motor está capturando
+corretamente o mecanismo (o viés de Casa melhora como esperado), mas
+mesmo corrigido não sobra vantagem contra a odd — não é falta de
+calibração, é o mercado já precificando bem. Não vejo mais nada
+razoável a tentar aqui sem esperar mais temporadas de dado acumularem
+(2027+), ou sem um mecanismo de futebol novo e diferente deste (vantagem
+de mando) para investigar.
 
