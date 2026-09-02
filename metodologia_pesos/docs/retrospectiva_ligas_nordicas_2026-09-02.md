@@ -174,6 +174,38 @@ específico, não sobra vantagem para apostar. Confirma, com um
 mecanismo real e não só amostra pequena, que o motor atual (mesmo
 recalibrado neste eixo) não tem o que oferecer nessas 3 ligas.
 
+## Atualização (mesmo dia) — outros 3 mecanismos investigados, nenhum passa no filtro inicial
+
+Além do mando, pesquisei mais 3 mecanismos de futebol específicos da
+região que poderiam abrir uma pista nova:
+
+- **Turfe sintético**: descartado pela própria literatura — o estudo
+  mundial mais robusto (times que trocaram de grama natural pra
+  sintética, antes/depois do mesmo time) não achou diferença
+  significativa de vantagem de mando (p=0,85). Sem base pra testar.
+- **Congestionamento de jogos europeus** (fadiga pós-competição
+  continental): só a Allsvenskan (1ª divisão) tem uns poucos clubes
+  disputando competição europeia — amostra baixa demais pra valer o
+  esforço de testar nessas 3 ligas.
+- **Sazonalidade/temperatura nos gols** (há respaldo acadêmico real —
+  Mišák 2026, Kyklos: clima frio reduz produtividade ofensiva —
+  plausível aqui, já que o Nórdico joga março-novembro com bordas de
+  temporada frias, diferente do Brasil que não tem essa sazonalidade
+  estrutural). Testei de forma barata ANTES de qualquer backtest:
+  gols reais por mês x probabilidade implícita da odd de Over 2.5, nas
+  3 ligas. Resultado: Noruega e Superettan mostram MAIS gols em
+  novembro (o mês mais frio) que em setembro/outubro — o oposto da
+  hipótese. Só a Allsvenskan bate com "frio = menos gol" (2,31
+  gols/jogo em novembro, o mais baixo do ano), mas com `n=32` — e é a
+  mesma armadilha já vista hoje com o pooling (1 de 3 ligas carregando
+  um padrão que as outras duas contradizem). Não passa no filtro
+  inicial — não vale investir num backtest completo.
+
+Nenhum dos 3 sobrevive nem ao teste inicial mais barato. O mando
+segue sendo o único mecanismo real encontrado nessa pesquisa mais
+profunda — e mesmo ele, como já visto acima, não abre edge de
+verdade.
+
 ## Recomendação final (revista)
 
 **Não seguir com nenhum critério nessas 3 ligas.** Testamos 3
