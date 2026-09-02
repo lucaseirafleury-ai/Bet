@@ -4,8 +4,13 @@
 `previsao_dia.py`). Token via variável de ambiente `SPORTMONKS_TOKEN`,
 nunca hardcoded.
 
-Mercados pulados: 1 (Fulltime Result/1x2 — usado pro favoritismo do
-próprio jogo), 80 (Goals Over/Under), 14 (BTTS), 255 (Number of Cards).
+Mercados pedidos: 1 (Fulltime Result/1x2 — usado pro favoritismo do
+próprio jogo), 80 (Goals Over/Under), 14 (BTTS), 60 (2-Way Corners —
+não é critério de produção hoje, mas mantido pra qualquer investigação
+futura não precisar de pull ad-hoc; ver
+docs/retrospectiva_contra_ataque_bloco_baixo_2026-09-02.md, onde a
+ausência desse mercado no filtro atrasou um teste real), 255 (Number
+of Cards).
 Estatísticas: corners, cartões (amarelo/vermelho), chutes, chutes no
 alvo, posse, faltas — tudo que `planilha_lib.get_historico` espera,
 menos xG (não existe pra Série A/B no Sportmonks, ver
@@ -22,7 +27,7 @@ import requests
 
 BASE = "https://api.sportmonks.com/v3/football"
 LEAGUE_IDS = {"seriea": 648, "serieb": 651}
-MARKETS = "1,80,14,255"
+MARKETS = "1,80,14,60,255"
 
 # `state_id` (sempre presente no fixture, não depende de nenhum `include`)
 # — únicas fontes confiáveis de "ainda não começou"/"terminou de verdade".
