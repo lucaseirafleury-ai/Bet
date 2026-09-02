@@ -119,16 +119,25 @@ def recalcular_pendentes(ledger, sugestoes_frescas):
 
 
 def _resolver_um(entrada, row):
+    """Retorna `(resultado, lucro)`, ou `None` se o dado necessário pra
+    resolver esse critério ainda não está completo (cartões: sentinela
+    `-1`, ver `sportmonks_adapter.flat_para_linha` — jogo com estatística
+    de detalhe ausente no Sportmonks). O chamador (`resolver_pendentes`)
+    mantém a entrada como `pendente` nesse caso, mesmo tratamento já dado
+    a fixture não encontrado — nunca resolve aposta real com dado
+    incompleto (achado ao investigar o bug de escanteios, ver
+    docs/retrospectiva_ligas_nordicas_2026-09-02.md)."""
     total_gols = row["home_team_goal_count"] + row["away_team_goal_count"]
     if entrada["criterio"] == "BTTS":
         venceu = row["home_team_goal_count"] > 0 and row["away_team_goal_count"] > 0
     elif entrada["criterio"] == "Over 2.5":
         venceu = total_gols > 2.5
     elif entrada["criterio"] == "Cartões+Árbitro":
-        total_cartoes = (
-            row["home_team_yellow_cards"] + row["home_team_red_cards"]
-            + row["away_team_yellow_cards"] + row["away_team_red_cards"]
-        )
+        campos_cartoes = ["home_team_yellow_cards", "home_team_red_cards",
+                           "away_team_yellow_cards", "away_team_red_cards"]
+        if any(row[c] == -1 for c in campos_cartoes):
+            return None
+        total_cartoes = sum(row[c] for c in campos_cartoes)
         lado_over = entrada["lado"].startswith("Over")
         venceu = (total_cartoes > entrada["linha_aposta"]) if lado_over else (total_cartoes <= entrada["linha_aposta"])
     else:
@@ -153,9 +162,10 @@ def resolver_pendentes(ledger, dfs_por_liga):
         linhas = df[df["_fixture_id"] == entrada["fixture_id"]]
         if linhas.empty:
             continue
-        resultado, lucro = _resolver_um(entrada, linhas.iloc[0])
-        entrada["resultado"] = resultado
-        entrada["lucro"] = lucro
+        resolvido = _resolver_um(entrada, linhas.iloc[0])
+        if resolvido is None:
+            continue  # dado ainda incompleto (ex.: cartões ausentes) — tenta de novo no próximo dia
+        entrada["resultado"], entrada["lucro"] = resolvido
     return ledger
 
 

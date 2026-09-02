@@ -97,6 +97,27 @@ def flat_para_linha(flat, bookmaker_id=BOOKMAKER_BET365):
     stats_ausentes = eh_futuro or any(flat.get(c) is None for c in CAMPOS_DETALHE)
     corners_home = -1 if stats_ausentes else flat["corners_home"]
     corners_away = -1 if stats_ausentes else flat["corners_away"]
+    # Cartões/chutes: mesmo sentinela -1 de corners quando falta QUALQUER
+    # campo do bloco de detalhe (`stats_ausentes`) — antes só corners
+    # tinha essa proteção (o resto usava `flat.get(...) or 0`, mesmo
+    # comentário acima já dizia que devia ser assim, mas o código não
+    # fazia). `-1` individual de cada campo (ex.: cartão vermelho ausente
+    # porque o time teve 0 — convenção do próprio Sportmonks de omitir
+    # stat de valor zero) continua virando `0` normalmente — só o bloco
+    # INTEIRO ausente (jogo com pouca cobertura de dado, comum em jogos
+    # mais antigos) vira `-1`. Sem isso, `_valor_real`
+    # (`retrospectiva.py`) e `_resolver_um` (`ledger_apostas.py`, decide
+    # green/red de apostas reais) tratavam esses jogos como "0 cartões"
+    # de verdade, inflando o lado Under — mesma classe de bug achada em
+    # escanteios, ver docs/retrospectiva_ligas_nordicas_2026-09-02.md.
+    yellowcards_home = -1 if stats_ausentes else (flat.get("yellowcards_home") or 0)
+    yellowcards_away = -1 if stats_ausentes else (flat.get("yellowcards_away") or 0)
+    redcards_home = -1 if stats_ausentes else (flat.get("redcards_home") or 0)
+    redcards_away = -1 if stats_ausentes else (flat.get("redcards_away") or 0)
+    shots_home = -1 if stats_ausentes else (flat.get("shots_home") or 0)
+    shots_away = -1 if stats_ausentes else (flat.get("shots_away") or 0)
+    shots_on_target_home = -1 if stats_ausentes else (flat.get("shots_on_target_home") or 0)
+    shots_on_target_away = -1 if stats_ausentes else (flat.get("shots_on_target_away") or 0)
 
     return {
         "home_team_name": flat["home_team"], "away_team_name": flat["away_team"],
@@ -109,13 +130,11 @@ def flat_para_linha(flat, bookmaker_id=BOOKMAKER_BET365):
         "away_team_goal_count_half_time": flat.get("away_goals_ht") or 0,
         "team_a_xg": float(home_goals), "team_b_xg": float(away_goals),
         "home_team_corner_count": corners_home, "away_team_corner_count": corners_away,
-        "home_team_yellow_cards": flat.get("yellowcards_home") or 0,
-        "home_team_red_cards": flat.get("redcards_home") or 0,
-        "away_team_yellow_cards": flat.get("yellowcards_away") or 0,
-        "away_team_red_cards": flat.get("redcards_away") or 0,
-        "home_team_shots": flat.get("shots_home") or 0, "away_team_shots": flat.get("shots_away") or 0,
-        "home_team_shots_on_target": flat.get("shots_on_target_home") or 0,
-        "away_team_shots_on_target": flat.get("shots_on_target_away") or 0,
+        "home_team_yellow_cards": yellowcards_home, "home_team_red_cards": redcards_home,
+        "away_team_yellow_cards": yellowcards_away, "away_team_red_cards": redcards_away,
+        "home_team_shots": shots_home, "away_team_shots": shots_away,
+        "home_team_shots_on_target": shots_on_target_home,
+        "away_team_shots_on_target": shots_on_target_away,
         "home_team_possession": flat.get("possession_home") or 50, "away_team_possession": flat.get("possession_away") or 50,
         "home_team_fouls": flat.get("fouls_home") or 0, "away_team_fouls": flat.get("fouls_away") or 0,
         "odds_ft_home_team_win": _media_odd(odds_1x2, "Home", bookmaker_id=bookmaker_id),

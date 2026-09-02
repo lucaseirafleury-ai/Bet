@@ -16,3 +16,6 @@ Checagem recorrente (rotina mensal) do ROI/z/acerto dos 3 critérios em produç�
 | 2026-09-01 | BTTS | n=189 ROI=+21.6% z=+3.02 acerto=61% | n=13 ROI=+19.2% z=+0.70 acerto=62% |
 | 2026-09-01 | Over 2.5 | n=71 ROI=+29.7% z=+2.42 acerto=62% | n=7 ROI=-45.1% z=-1.27 acerto=29% |
 | 2026-09-01 | Cartões+Árbitro (Série B, stake reduzido) | n=215 ROI=+17.4% z=+2.85 acerto=64% | n=58 ROI=+22.4% z=+1.97 acerto=67% |
+| 2026-09-02 | BTTS (reexecução pós-correção sentinela `-1`, ver abaixo — só confirma que não muda) | n=189 ROI=+21.6% z=+3.02 acerto=61% | n=13 ROI=+19.2% z=+0.70 acerto=62% |
+| 2026-09-02 | Over 2.5 (reexecução pós-correção sentinela `-1` — só confirma que não muda) | n=71 ROI=+29.7% z=+2.42 acerto=62% | n=7 ROI=-45.1% z=-1.27 acerto=29% |
+| 2026-09-02 | Cartões+Árbitro (Série B, stake reduzido) — **pós-correção sentinela `-1` em cartões** (`sportmonks_adapter.flat_para_linha` não sentinelava cartões/chutes ausentes, só corners — jogos com cartões faltando entravam como "0 cartões" de verdade; achado ao investigar o bug de escanteios, ver `docs/retrospectiva_ligas_nordicas_2026-09-02.md`) | n=212 ROI=+16.4% z=+2.66 acerto=63% | n=56 ROI=+20.3% z=+1.73 acerto=66% |

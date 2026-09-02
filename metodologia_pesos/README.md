@@ -909,6 +909,35 @@ atualizada, esta lista aqui não é mantida em detalhe:
    efeito foi misto (também criava derrotas falsas em apostas "Over"
    contaminadas) — resultado líquido foi tornar o sinal negativo menos
    extremo, não mais.
+58. **Lucas perguntou se o bug do sentinela impacta os critérios EM
+   PRODUÇÃO (BTTS, Over 2.5, Cartões+Árbitro) — pesquisei os 3 e achei
+   que cartões tinha o MESMO bug, ainda não corrigido, inclusive no
+   caminho que decide green/red de apostas reais.** Gols (BTTS/Over
+   2.5): sem risco — jogo finalizado nunca tem `home_goals`/`away_goals`
+   ausente (checado direto na API, 0 casos em ~2000 jogos). Cartões:
+   `sportmonks_adapter.flat_para_linha` só sentinelava corners a `-1`
+   quando faltava estatística de detalhe — cartões/chutes continuavam
+   com `flat.get(...) or 0`, tratando jogo com dado ausente como "0
+   cartões" de verdade (mesma classe de bug do item 56, mas ainda viva
+   aqui). Mais grave: `ledger_apostas._resolver_um` (decide green/red
+   de apostas REAIS do painel) lia esses mesmos campos sem proteção
+   nenhuma — o mesmo bug podia, em teoria, resolver uma aposta real
+   errada. Checei os 5 jogos de Cartões+Árbitro já resolvidos no ledger
+   direto na API — nenhum tinha o bloco de dado ausente (cartão
+   vermelho "ausente" nesses 5 é o próprio Sportmonks omitindo stat de
+   valor zero, convenção normal, não dado faltando) — **nenhuma aposta
+   real já resolvida foi afetada**, mas o risco existia pra frente.
+   Corrigido em duas pontas: (a) `flat_para_linha` agora sentinela
+   cartões/chutes a `-1` no mesmo `stats_ausentes` de corners (commit
+   com 3 testes novos); (b) `ledger_apostas._resolver_um` agora detecta
+   o sentinela em Cartões+Árbitro e retorna `None` — `resolver_pendentes`
+   mantém a entrada `pendente` em vez de resolver com dado incompleto,
+   mesmo tratamento já dado a "fixture não encontrado" (1 teste novo).
+   Rechecagem do critério em produção com o fix: n=215→212, ROI
+   +17,4%→+16,4%, z=+2,85→+2,66 — **mudança pequena, continua
+   folgadamente acima do limiar z≈2**. BTTS/Over 2.5 reexecutados
+   também, número idêntico ao já documentado (confirma que não tinham
+   exposição). Ver `docs/decaimento_mensal.md` (linha 02/09/2026).
 
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem

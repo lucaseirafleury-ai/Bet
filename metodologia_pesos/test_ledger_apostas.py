@@ -138,6 +138,19 @@ def test_resolver_pendentes_cartoes_over_e_under():
     assert ledger2[0]["resultado"] == "red"  # 5 > 4.5, Under perde
 
 
+def test_resolver_pendentes_cartoes_com_sentinela_ausente_continua_pendente():
+    # dado de cartões ainda não completo no Sportmonks (sentinela -1, ver
+    # sportmonks_adapter.flat_para_linha) -- nunca resolver a aposta real
+    # com dado incompleto, mesma classe de bug já achada em escanteios.
+    import pandas as pd
+    sug = _sugestao(criterio="Cartões+Árbitro", liga_chave="serieb", lado="Under 4.5 cartões", linha_aposta=4.5, odd=1.9)
+    ledger = registrar_novas_sugestoes([], [sug], data_registro="2026-08-27")
+    df_ausente = pd.DataFrame([{"_fixture_id": 1, **_row(home_ya=-1, home_ra=-1, away_ya=-1, away_ra=-1)}])
+    ledger = resolver_pendentes(ledger, {"serieb": df_ausente})
+    assert ledger[0]["resultado"] == "pendente"
+    assert ledger[0]["lucro"] is None
+
+
 def test_resolver_pendentes_jogo_nao_encontrado_continua_pendente():
     import pandas as pd
     ledger = registrar_novas_sugestoes([], [_sugestao()], data_registro="2026-08-27")

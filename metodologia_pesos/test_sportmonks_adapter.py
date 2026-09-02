@@ -63,6 +63,33 @@ def test_flat_para_linha_stats_faltando_aciona_sentinela_de_dado_ausente():
     assert linha["away_team_corner_count"] == -1
 
 
+def test_flat_para_linha_stats_faltando_aciona_sentinela_tambem_em_cartoes_e_chutes():
+    # mesmo sentinela de corners tem que valer pra cartões/chutes -- sem
+    # isso, _valor_real (retrospectiva.py) e _resolver_um (ledger_apostas.py,
+    # resolve apostas reais) tratavam jogo com dado ausente como "0
+    # cartões" de verdade, inflando o lado Under (mesma classe de bug já
+    # achada em escanteios).
+    linha = flat_para_linha(_flat_base(shots_home=None))
+    assert linha["home_team_yellow_cards"] == -1
+    assert linha["home_team_red_cards"] == -1
+    assert linha["away_team_yellow_cards"] == -1
+    assert linha["away_team_red_cards"] == -1
+    assert linha["home_team_shots"] == -1
+    assert linha["away_team_shots"] == -1
+    assert linha["home_team_shots_on_target"] == -1
+    assert linha["away_team_shots_on_target"] == -1
+
+
+def test_flat_para_linha_cartao_vermelho_individualmente_ausente_vira_zero():
+    # diferente do bloco inteiro ausente: um campo específico faltando
+    # sozinho (comum em cartão vermelho -- convenção do Sportmonks de
+    # omitir stat de valor zero) continua virando 0, não -1, DESDE que
+    # nenhum outro campo de CAMPOS_DETALHE esteja ausente.
+    linha = flat_para_linha(_flat_base(redcards_home=None))
+    assert linha["home_team_red_cards"] == 0
+    assert linha["home_team_corner_count"] == 6  # resto do bloco intacto
+
+
 def test_flat_para_linha_jogo_futuro_usa_placeholder_0x0_e_sentinela():
     flat_futuro = _flat_base(home_goals=None, away_goals=None, home_goals_ht=None, away_goals_ht=None)
     linha = flat_para_linha(flat_futuro)
