@@ -132,6 +132,10 @@ def flat_para_linha(flat, bookmaker_id=BOOKMAKER_BET365):
             e for e in (flat.get("odds", {}).get("255", []))
             if bookmaker_id is None or e.get("bookmaker_id") == bookmaker_id
         ],
+        "_odds_escanteios": [
+            e for e in (flat.get("odds", {}).get("60", []))
+            if bookmaker_id is None or e.get("bookmaker_id") == bookmaker_id
+        ],
     }
 
 

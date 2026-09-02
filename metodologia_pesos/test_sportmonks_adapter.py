@@ -117,3 +117,22 @@ def test_flat_para_linha_odds_cartoes_filtra_por_bookmaker():
     linha = flat_para_linha(flat)
     linhas_vistas = {e["total"] for e in linha["_odds_cartoes"]}
     assert linhas_vistas == {"4.5"}  # a linha da casa 999 (não-bet365) não entra
+
+
+def test_flat_para_linha_odds_escanteios_filtra_por_bookmaker():
+    flat = _flat_base(odds={
+        "60": [
+            {"bookmaker_id": 2, "label": "Over", "total": "9.5", "value": "1.83"},
+            {"bookmaker_id": 2, "label": "Under", "total": "9.5", "value": "1.83"},
+            {"bookmaker_id": 999, "label": "Over", "total": "10.5", "value": "1.90"},
+        ],
+    })
+    linha = flat_para_linha(flat)
+    linhas_vistas = {e["total"] for e in linha["_odds_escanteios"]}
+    assert linhas_vistas == {"9.5"}  # a linha da casa 999 (não-bet365) não entra
+
+
+def test_flat_para_linha_odds_escanteios_ausente_retorna_lista_vazia():
+    flat = _flat_base(odds={})
+    linha = flat_para_linha(flat)
+    assert linha["_odds_escanteios"] == []

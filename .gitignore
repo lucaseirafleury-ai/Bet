@@ -9,3 +9,6 @@ pesquisa_gols/dados/.checkpoint_*.json
 ligas_live_app/backtest_run.log
 metodologia_pesos/data/sportmonks_seriea/fixtures.jsonl
 metodologia_pesos/data/sportmonks_serieb/fixtures.jsonl
+metodologia_pesos/data/sportmonks_noruega1div/fixtures.jsonl
+metodologia_pesos/data/sportmonks_suecia_allsvenskan/fixtures.jsonl
+metodologia_pesos/data/sportmonks_suecia_superettan/fixtures.jsonl
