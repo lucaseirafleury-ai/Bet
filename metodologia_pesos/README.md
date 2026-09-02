@@ -795,6 +795,25 @@ atualizada, esta lista aqui não é mantida em detalhe:
    (mercado 60), mesmo padrão de `_odds_cartoes`. Ver
    `docs/retrospectiva_ligas_nordicas_2026-09-02.md`.
 
+52. **Testei a hipótese do Lucas de "pooling" nas 3 ligas nórdicas
+   (juntar como se fossem ~9 temporadas) — confirma o resultado
+   negativo, não era só falta de amostra** — proposta válida (mais
+   potência estatística, não "continuar procurando até achar"): grid
+   search de 48 combinações (`k_mando`/`usar_estilo`/`filtro_aderencia`,
+   mesmo grid usado pra calibrar Over 2.5 no Brasil) pra BTTS e Over
+   2.5, rodando o walk-forward de cada liga separadamente (histórico de
+   time nunca mistura entre ligas) mas agregando as APOSTAS resultantes
+   na hora de medir ROI/z. Salvaguarda pré-declarada: só aceitar um
+   candidato com a mesma direção nas 3 ligas individualmente, não só no
+   pooled. Melhor resultado: BTTS z=-0,38 (ainda negativo); Over 2.5
+   z=+0,72 (positivo mas longe de z≈2) — e os dois falham a salvaguarda:
+   é a Superettan sozinha carregando o resultado, Noruega fica negativa
+   nos dois casos. Confirma que não tem edge recuperável nessas ligas
+   mesmo com mais amostra e busca de parâmetro — não é "faltou dado",
+   é "não tem sinal". Encerrado por enquanto, sem mais ação recomendada
+   até mais temporadas acumularem (2027+). Ver atualização em
+   `docs/retrospectiva_ligas_nordicas_2026-09-02.md`.
+
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
   sem qualquer edge defensável — não apostar por este critério.

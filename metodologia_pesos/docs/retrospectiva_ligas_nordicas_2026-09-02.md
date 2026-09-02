@@ -81,19 +81,47 @@ muito negativo → 2026 fortemente positivo) que parece mais ruído de
 amostra recente pequena do que sinal real — não passa nem perto da
 barra "3 anos positivos" exigida em todo o resto do projeto.
 
-## Recomendação final
+## Atualização (mesmo dia) — grid pooled nas 3 ligas juntas
 
-**Não seguir com nenhum critério nessas 3 ligas nesta rodada.** Os
-parâmetros usados foram os já campeões do Brasil, sem recalibração —
-um grid search dedicado a cada liga poderia teoricamente achar algo
-diferente, mas o padrão do resultado (negativo forte e consistente na
-maioria dos mercados, não "quase lá") não justifica o risco de
-comparação múltipla de uma nova busca de parâmetro só pra tentar
-salvar um resultado já majoritariamente ruim. Escanteios fica
-descartado por limitação de dado (odd não retida historicamente), não
-por falta de sinal — pode valer revisitar SE o Sportmonks mudar esse
-comportamento no futuro.
+Lucas propôs uma ideia genuinamente boa (não é "continuar procurando
+até achar" — é aumentar potência estatística de verdade): já que as 3
+ligas são "próximas" (mesma região, calendário parecido), testar os
+parâmetros com as apostas das 3 ligas JUNTAS (como se fossem ~9
+temporadas), em vez de cada liga isolada com pouca amostra.
 
-Capacidade nova mantida em produção (reutilizável, mesmo sem uso
-imediato): `sportmonks_adapter.flat_para_linha` agora extrai
-`_odds_escanteios` (mercado 60), mesmo padrão de `_odds_cartoes`.
+**Como foi feito certo**: o walk-forward de cada time continua rodando
+DENTRO da própria liga (não faz sentido histórico de time norueguês
+incluir jogos suecos) — só as APOSTAS resultantes de cada parâmetro
+testado foram agregadas (pooled) na hora de medir ROI/z. Grid: `k_mando
+∈ {None,0.2,0.35,0.5,0.7,1.0} × usar_estilo ∈ {True,False} ×
+filtro_aderencia ∈ {0,0.5,0.65,0.8}` (48 combos), `multiplicador_dp=1.5,
+limite_unilateral=2` fixos — mesmo grid usado historicamente pra
+calibrar Over 2.5 no Brasil. Rodado pra BTTS e Over 2.5 (os 2 mercados
+mais centrais do motor).
+
+**Salvaguarda pré-declarada**: não aceitar um candidato só pelo z
+pooled — exigir a MESMA direção em cada liga individualmente (senão é
+a armadilha clássica de "agregado bom escondendo que só 1 liga está
+carregando tudo", já vista antes neste projeto).
+
+| Mercado | Melhor z pooled | ROI pooled (n) | Por liga |
+|---|---|---|---|
+| BTTS | -0,38 | -1,8% (n=305) | Noruega -13,8% \| Allsvenskan -3,4% \| Superettan +11,2% |
+| Over 2.5 | +0,72 | +3,3% (n=328) | Noruega -4,9% \| Allsvenskan +0,8% \| Superettan +16,1% |
+
+**Os dois "melhores" candidatos falham a salvaguarda**: em ambos, é a
+Superettan sozinha carregando o resultado — Noruega fica claramente
+negativa, Allsvenskan fica em torno de zero. Não é sinal
+compartilhado, é uma liga isolada dentro do pool. Nem com mais amostra
+(pooling) nem testando 48 parâmetros apareceu algo que passasse nem
+perto da barra z≈2 usada em todo o resto do projeto.
+
+## Recomendação final (revista)
+
+**Não seguir com nenhum critério nessas 3 ligas, mesmo depois de
+testar a hipótese de pooling.** A pergunta do Lucas (juntar as 3 ligas
+pra ganhar amostra) era uma forma válida e mais rigorosa de checar
+antes de desistir — foi testada de verdade, não só descartada por
+intuição, e o resultado continua negativo. Não vejo mais nada razoável
+a tentar aqui sem esperar mais temporadas de dado acumularem (2027+).
+
