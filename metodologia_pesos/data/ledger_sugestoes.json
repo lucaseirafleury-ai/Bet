@@ -131,5 +131,22 @@
     "casa_ref": "bet365",
     "resultado": "green",
     "lucro": 0.32999999999999996
+  },
+  {
+    "fixture_id": 19621822,
+    "criterio": "BTTS",
+    "stake": "normal",
+    "liga": "Série A",
+    "liga_chave": "seriea",
+    "jogo": "Coritiba x Mirassol",
+    "data_jogo": "2026-09-06 14:00:00",
+    "lado": "btts",
+    "linha_aposta": null,
+    "odd": 1.9,
+    "edge": 0.052844732948983175,
+    "data_registro": "2026-09-04",
+    "casa_ref": "bet365",
+    "resultado": "pendente",
+    "lucro": null
   }
 ]
