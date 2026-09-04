@@ -631,6 +631,11 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
             insight["odd_real_casa"] = odd_real_info["casa"]
             insight["probabilidade_implicita_real"] = round(odd_real_info["probabilidade_implicita"] * 100, 1)
             insight["ev_pct"] = round(ev_pct, 1)
+            # Horário que a PRÓPRIA casa deu como última atualização dessa linha (não é
+            # quando NÓS buscamos) — evidência de frescor pra auditar depois se uma odd
+            # capturada bateu com o que a casa mostrava ao vivo (ver odds_ao_vivo.py:
+            # já existe um filtro de idade máxima, mas isso registra o dado bruto também).
+            insight["odd_real_atualizada_em"] = odd_real_info.get("atualizado_em")
         insights.append(insight)
     return insights
 
