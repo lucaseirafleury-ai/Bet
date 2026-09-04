@@ -1,8 +1,14 @@
 __pycache__/
 *.pyc
 .venv/
+.claude/settings.local.json
 ligas_live_app/data/*.json
 ligas_live_app/data/*.csv
 pesquisa_gols/resultados/*.csv
 pesquisa_gols/dados/.checkpoint_*.json
 ligas_live_app/backtest_run.log
+metodologia_pesos/data/sportmonks_seriea/fixtures.jsonl
+metodologia_pesos/data/sportmonks_serieb/fixtures.jsonl
+metodologia_pesos/data/sportmonks_noruega1div/fixtures.jsonl
+metodologia_pesos/data/sportmonks_suecia_allsvenskan/fixtures.jsonl
+metodologia_pesos/data/sportmonks_suecia_superettan/fixtures.jsonl
