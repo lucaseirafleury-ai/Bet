@@ -1,10 +1,10 @@
-fixture_id,tipo,liga,jogo,data_jogo,alvo,direcao,linha,minuto,probabilidade_estimada,odd_minima,odd_real,odd_real_casa,ev_pct,resultado,valor_final_alvo,timestamp_sinal,timestamp_verificacao
-19636134,sinal_escanteios_mais_de,Superettan,Värnamo x Landskrona,2026-08-24,escanteios,mais_de,10.5,47,86.0,1.16,,,,red,9.0,2026-08-24T18:02:35.655996+00:00,2026-08-25T08:03:57.937751+00:00
-19636133,sinal_chutes_totais_menos_de,Superettan,Öster x GIF Sundsvall,2026-08-25,chutes_totais,menos_de,24.5,15,80.2,1.25,,,,green,21.0,2026-08-25T17:14:55.174905+00:00,2026-08-26T08:19:35.376040+00:00
-19631165,sinal_chutes_totais_menos_de,1. Division,Odd x Kongsvinger,2026-08-26,chutes_totais,menos_de,24.5,16,80.2,1.25,,,,green,18.0,2026-08-26T17:16:06.587953+00:00,2026-08-26T22:24:21.852934+00:00
-19631163,sinal_escanteios_menos_de,1. Division,Stabæk x Ranheim,2026-08-26,escanteios,menos_de,11.5,15,83.1,1.20,,,,red,12.0,2026-08-26T17:15:05.495628+00:00,2026-08-26T22:24:21.852934+00:00
-19631167,sinal_escanteios_menos_de,1. Division,Haugesund x Egersund,2026-08-26,escanteios,menos_de,9.5,15,76.3,1.31,,,,green,5.0,2026-08-26T17:15:04.784457+00:00,2026-08-26T22:24:21.852934+00:00
-19631161,sinal_chutes_totais_menos_de,1. Division,Strømsgodset x Hødd,2026-08-26,chutes_totais,menos_de,24.5,90,100.0,1.00,,,,green,22.0,2026-08-26T18:46:20.562127+00:00,2026-08-26T22:24:21.852934+00:00
-19621836,sinal_escanteios_mais_de,Serie A,Atlético Mineiro x Vitória,2026-08-29,escanteios,mais_de,8.5,60,70.9,1.41,,,,green,9.0,2026-08-29T22:48:28.978585+00:00,2026-08-30T08:07:23.517376+00:00
-19635971,sinal_escanteios_menos_de,Allsvenskan,Mjällby x Djurgården,2026-09-03,escanteios,menos_de,9.5,15,73.4,1.36,2.2,bet365,61.5,green,3.0,2026-09-03T17:15:45.606573+00:00,2026-09-04T08:09:54.531852+00:00
-19667180,sinal_escanteios_menos_de,Serie B,Náutico x Botafogo SP,2026-09-03,escanteios,menos_de,11.5,48,85.3,1.17,1.47,1xbet,25.4,green,7.0,2026-09-03T23:48:56.713839+00:00,2026-09-04T08:09:54.531852+00:00
+fixture_id,tipo,liga,jogo,data_jogo,alvo,direcao,linha,minuto,probabilidade_estimada,odd_minima,odd_real,odd_real_casa,ev_pct,resultado,valor_final_alvo,timestamp_sinal,timestamp_verificacao,odd_real_atualizada_em
+19636134,sinal_escanteios_mais_de,Superettan,Värnamo x Landskrona,2026-08-24,escanteios,mais_de,10.5,47,86.0,1.16,,,,red,9.0,2026-08-24T18:02:35.655996+00:00,2026-08-25T08:03:57.937751+00:00,
+19636133,sinal_chutes_totais_menos_de,Superettan,Öster x GIF Sundsvall,2026-08-25,chutes_totais,menos_de,24.5,15,80.2,1.25,,,,green,21.0,2026-08-25T17:14:55.174905+00:00,2026-08-26T08:19:35.376040+00:00,
+19631165,sinal_chutes_totais_menos_de,1. Division,Odd x Kongsvinger,2026-08-26,chutes_totais,menos_de,24.5,16,80.2,1.25,,,,green,18.0,2026-08-26T17:16:06.587953+00:00,2026-08-26T22:24:21.852934+00:00,
+19631163,sinal_escanteios_menos_de,1. Division,Stabæk x Ranheim,2026-08-26,escanteios,menos_de,11.5,15,83.1,1.20,,,,red,12.0,2026-08-26T17:15:05.495628+00:00,2026-08-26T22:24:21.852934+00:00,
+19631167,sinal_escanteios_menos_de,1. Division,Haugesund x Egersund,2026-08-26,escanteios,menos_de,9.5,15,76.3,1.31,,,,green,5.0,2026-08-26T17:15:04.784457+00:00,2026-08-26T22:24:21.852934+00:00,
+19631161,sinal_chutes_totais_menos_de,1. Division,Strømsgodset x Hødd,2026-08-26,chutes_totais,menos_de,24.5,90,100.0,1.00,,,,green,22.0,2026-08-26T18:46:20.562127+00:00,2026-08-26T22:24:21.852934+00:00,
+19621836,sinal_escanteios_mais_de,Serie A,Atlético Mineiro x Vitória,2026-08-29,escanteios,mais_de,8.5,60,70.9,1.41,,,,green,9.0,2026-08-29T22:48:28.978585+00:00,2026-08-30T08:07:23.517376+00:00,
+19635971,sinal_escanteios_menos_de,Allsvenskan,Mjällby x Djurgården,2026-09-03,escanteios,menos_de,9.5,15,73.4,1.36,2.2,bet365,61.5,green,3.0,2026-09-03T17:15:45.606573+00:00,2026-09-04T08:09:54.531852+00:00,
+19667180,sinal_escanteios_menos_de,Serie B,Náutico x Botafogo SP,2026-09-03,escanteios,menos_de,11.5,48,85.3,1.17,1.47,1xbet,25.4,green,7.0,2026-09-03T23:48:56.713839+00:00,2026-09-04T08:09:54.531852+00:00,

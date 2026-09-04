@@ -18,7 +18,23 @@ assinatura — por isso NENHUM dos 7 sinais gerados até aqui tinha achado odd
 real, mesmo em ligas com cobertura confirmada. Agora usa /fixtures/{id}
 ?include=odds, que tem os mesmos dados e funciona (confirmado ao vivo).
 """
+from datetime import datetime, timezone
+
 import sportmonks_client as sm
+
+# Quanto tempo uma linha pode ficar sem atualização da própria casa antes de
+# deixarmos de tratá-la como "preço ao vivo agora" — descoberto investigando
+# uma discrepância real (usuário viu 1.46 na bet365 pro mesmo mercado que o
+# painel mostrou 2.20, minutos depois do sinal, sem o placar de escanteios
+# ter mudado o suficiente pra justificar). Causa: outros mercados do mesmo
+# jogo (vencedor, over/under gols) tinham dezenas de timestamps distintos
+# ao longo do jogo, mas o grupo de ESCANTEIOS ficava parado num único
+# horário e nunca mais atualizava depois disso — bet365/Sportmonks parecem
+# atualizar esse mercado de nicho bem mais devagar que os principais. Sem
+# checar isso, o painel podia mostrar um preço morto como se fosse atual.
+# 10 minutos é uma primeira estimativa conservadora, a validar com checagens
+# ao vivo lado a lado com o app real (ver conversa) — pode precisar ajustar.
+IDADE_MAXIMA_ODD_MINUTOS = 10
 
 # stat_base do alvo -> market_id da Sportmonks para o mercado "total do jogo
 # Over/Under" equivalente (mesma estrutura nos 3: label "Over"/"Under",
@@ -50,6 +66,18 @@ MARKET_ID_FALLBACK_ESCANTEIOS = 68  # "Match Corners"
 # mesmo assim, dado que é a única opção com cobertura real de escanteios na
 # Série B.
 CASAS_ACEITAS = ["bet365", "1xbet"]
+
+
+def _idade_minutos(atualizado_em):
+    """Minutos desde latest_bookmaker_update até agora, ou None se não der pra calcular
+    (formato inesperado) — nesse caso o chamador trata como se não tivesse idade conhecida."""
+    if not atualizado_em:
+        return None
+    try:
+        dt = datetime.strptime(atualizado_em, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+    except (TypeError, ValueError):
+        return None
+    return (datetime.now(timezone.utc) - dt).total_seconds() / 60
 
 
 def _candidatas_no_mercado(linhas, market_id, label, total_alvo):
@@ -132,11 +160,20 @@ def buscar_odd_real(fixture_id, alvo, direcao, linha):
     por_nome_casa = {casas.get(o["bookmaker_id"], str(o["bookmaker_id"])): o for o in candidatas}
     escolhida = nome_casa = None
     for aceita in CASAS_ACEITAS:
-        if aceita in por_nome_casa:
-            escolhida, nome_casa = por_nome_casa[aceita], aceita
-            break
+        candidata = por_nome_casa.get(aceita)
+        if candidata is None:
+            continue
+        idade = _idade_minutos(candidata.get("latest_bookmaker_update"))
+        if idade is not None and idade > IDADE_MAXIMA_ODD_MINUTOS:
+            print(
+                f"  [odds ao vivo] fixture {fixture_id}: linha da {aceita} desatualizada há "
+                f"{idade:.0f}min (>{IDADE_MAXIMA_ODD_MINUTOS}min) — tratando como preço morto, ignorando"
+            )
+            continue
+        escolhida, nome_casa = candidata, aceita
+        break
     if escolhida is None:
-        print(f"  [odds ao vivo] fixture {fixture_id}: linha existe mas não em {CASAS_ACEITAS} agora — sem odd real")
+        print(f"  [odds ao vivo] fixture {fixture_id}: nenhuma linha fresca em {CASAS_ACEITAS} agora — sem odd real")
         return None
 
     return {
