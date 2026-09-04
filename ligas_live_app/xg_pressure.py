@@ -192,6 +192,19 @@ def extrair_minuto(fixture):
     e uma estimativa pelo tempo real decorrido desde o início do período
     (`started`), como piso de segurança — nunca deixa o minuto exibido ficar
     "atrás" de um placar que já mudou.
+
+    Achado depois (caso real, Superettan): o PRÓPRIO `started` do período às
+    vezes só é registrado pela Sportmonks bem depois do apito de verdade —
+    visto 12-14min de atraso em 2 jogos simultâneos (kickoff agendado
+    `starting_at_timestamp` batendo com o horário real do apito — confirmado
+    contra o relógio do app da bet365 — mas `started`/`minutes` do período só
+    apareceram bem depois). Como esse piso usa o `started` como origem, ele
+    herdava o mesmo atraso e não corrigia nada. Por isso soma-se mais um piso
+    baseado no `starting_at_timestamp` (só no 1º tempo — no 2º incluiria o
+    intervalo e superestimaria). Só chega até aqui se o jogo já está
+    confirmado "ao vivo" pela Sportmonks, então o apito real já rolou; o
+    risco de superestimar num jogo com apito genuinamente atrasado existe,
+    mas é bem menor que o atraso sistemático que isso corrige.
     """
     periods = fixture.get("periods", [])
     periodo_ativo = next((p for p in periods if p.get("ticking") is True), None)
@@ -201,10 +214,15 @@ def extrair_minuto(fixture):
         return 1
 
     minuto_informado = periodo_ativo.get("minutes", 1) or 1
-    started = periodo_ativo.get("started")
-    if not started:
-        return minuto_informado
+    candidatos = [minuto_informado]
 
+    started = periodo_ativo.get("started")
     counts_from = periodo_ativo.get("counts_from", 0) or 0
-    minuto_relogio = counts_from + int((time.time() - started) / 60) + 1
-    return max(minuto_informado, minuto_relogio)
+    if started:
+        candidatos.append(counts_from + int((time.time() - started) / 60) + 1)
+
+    inicio_agendado = fixture.get("starting_at_timestamp")
+    if inicio_agendado and (periodo_ativo.get("description") or "").lower() == "1st-half":
+        candidatos.append(int((time.time() - inicio_agendado) / 60) + 1)
+
+    return max(candidatos)
