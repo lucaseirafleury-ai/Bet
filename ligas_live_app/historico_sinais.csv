@@ -6,3 +6,5 @@ fixture_id,tipo,liga,jogo,data_jogo,alvo,direcao,linha,minuto,probabilidade_esti
 19631167,sinal_escanteios_menos_de,1. Division,Haugesund x Egersund,2026-08-26,escanteios,menos_de,9.5,15,76.3,1.31,,,,green,5.0,2026-08-26T17:15:04.784457+00:00,2026-08-26T22:24:21.852934+00:00
 19631161,sinal_chutes_totais_menos_de,1. Division,Strømsgodset x Hødd,2026-08-26,chutes_totais,menos_de,24.5,90,100.0,1.00,,,,green,22.0,2026-08-26T18:46:20.562127+00:00,2026-08-26T22:24:21.852934+00:00
 19621836,sinal_escanteios_mais_de,Serie A,Atlético Mineiro x Vitória,2026-08-29,escanteios,mais_de,8.5,60,70.9,1.41,,,,green,9.0,2026-08-29T22:48:28.978585+00:00,2026-08-30T08:07:23.517376+00:00
+19635971,sinal_escanteios_menos_de,Allsvenskan,Mjällby x Djurgården,2026-09-03,escanteios,menos_de,9.5,15,73.4,1.36,2.2,bet365,61.5,green,3.0,2026-09-03T17:15:45.606573+00:00,2026-09-04T08:09:54.531852+00:00
+19667180,sinal_escanteios_menos_de,Serie B,Náutico x Botafogo SP,2026-09-03,escanteios,menos_de,11.5,48,85.3,1.17,1.47,1xbet,25.4,green,7.0,2026-09-03T23:48:56.713839+00:00,2026-09-04T08:09:54.531852+00:00
