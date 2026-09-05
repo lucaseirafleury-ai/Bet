@@ -148,5 +148,22 @@
     "casa_ref": "bet365",
     "resultado": "pendente",
     "lucro": null
+  },
+  {
+    "fixture_id": 19621820,
+    "criterio": "BTTS",
+    "stake": "normal",
+    "liga": "Série A",
+    "liga_chave": "seriea",
+    "jogo": "Remo x Flamengo",
+    "data_jogo": "2026-09-06 19:00:00",
+    "lado": "btts",
+    "linha_aposta": null,
+    "odd": 1.95,
+    "edge": 0.06657234395980893,
+    "data_registro": "2026-09-05",
+    "casa_ref": "bet365",
+    "resultado": "pendente",
+    "lucro": null
   }
 ]
