@@ -125,14 +125,25 @@ def recalibrar_por_valor_atual(regras):
     descoberta de condição (já feita e confirmada antes), é só uma
     reestimativa mais fina de uma condição já fixada, então usar mais dado
     aqui não tem o mesmo risco de vazamento que teria na descoberta original.
+
+    Também recalcula a mesma coisa pras linhas VIZINHAS (±1, mesma direção) —
+    caso real reportado: casa de apostas só tinha "mais de 10.5" disponível
+    quando o sinal era calibrado pra "mais de 9.5"; sem isso, não dava pra
+    saber a probabilidade real de bater a linha que realmente estava
+    disponível pra apostar, só a da linha original. Guardado em
+    "linhas_vizinhas" pra não mexer no formato já existente (linha original
+    continua nas chaves de sempre, por compatibilidade).
     """
     snaps_por_fixture, resultados = _carregar_dados_pooled()
 
     for regra in regras:
         stat_alvo, linha, direcao = regra["mercado"]["stat"], regra["mercado"]["linha"], regra["mercado"]["direcao"]
         alvo = regra["alvo"]
+        linhas_a_calcular = {0: linha, -1: linha - 1, 1: linha + 1}
 
-        casos_condicao, casos_base = {}, {}  # valor_atual -> [bateu, ...]
+        # offset -> valor_atual -> [bateu, ...]
+        casos_condicao = {off: {} for off in linhas_a_calcular}
+        casos_base = {off: {} for off in linhas_a_calcular}
         for fid, snaps in snaps_por_fixture.items():
             snap = snaps.get(regra["minuto"])
             if not snap or snap.get("gols_momento") != regra["gols_momento"]:
@@ -141,19 +152,35 @@ def recalibrar_por_valor_atual(regras):
             if not res or res.get(alvo) is None or snap.get(stat_alvo) is None:
                 continue
             valor_atual = int(snap[stat_alvo])
-            bateu = (res[alvo] > linha) if direcao == "mais_de" else (res[alvo] < linha)
+            condicao_ok = _condicao_bate(regra["condicoes"], snap)
+            for off, linha_off in linhas_a_calcular.items():
+                bateu = (res[alvo] > linha_off) if direcao == "mais_de" else (res[alvo] < linha_off)
+                casos_base[off].setdefault(valor_atual, []).append(bateu)
+                if condicao_ok:
+                    casos_condicao[off].setdefault(valor_atual, []).append(bateu)
 
-            casos_base.setdefault(valor_atual, []).append(bateu)
-            if _condicao_bate(regra["condicoes"], snap):
-                casos_condicao.setdefault(valor_atual, []).append(bateu)
-
-        tabela_condicao = _tabela_com_fallback(casos_condicao)
-        tabela_base = _tabela_com_fallback(casos_base)
+        tabelas_condicao = {off: _tabela_com_fallback(casos_condicao[off]) for off in linhas_a_calcular}
+        tabelas_base = {off: _tabela_com_fallback(casos_base[off]) for off in linhas_a_calcular}
 
         por_valor_atual = {}
-        for valor, entrada in tabela_condicao.items():
+        for valor, entrada in tabelas_condicao[0].items():
             p_condicao = entrada["p"]
-            p_base = tabela_base.get(valor, {"p": regra["prob_base_confirmacao"]})["p"]
+            p_base = tabelas_base[0].get(valor, {"p": regra["prob_base_confirmacao"]})["p"]
+            linhas_vizinhas = {}
+            for off in (-1, 1):
+                entrada_off = tabelas_condicao[off].get(valor)
+                if entrada_off is None:
+                    continue
+                p_off = entrada_off["p"]
+                p_base_off = tabelas_base[off].get(valor, {"p": p_base})["p"]
+                linhas_vizinhas[str(off)] = {
+                    "linha": linhas_a_calcular[off],
+                    "n": entrada_off["n"],
+                    "n_usado": entrada_off["n_usado"],
+                    "p_condicao": round(p_off, 4),
+                    "impacto_pp": round((p_off - p_base_off) * 100, 2),
+                    "odd_minima": round(1 / p_off, 2) if p_off > 0 else None,
+                }
             por_valor_atual[str(valor)] = {
                 "n": entrada["n"],
                 "n_usado": entrada["n_usado"],
@@ -161,6 +188,7 @@ def recalibrar_por_valor_atual(regras):
                 "p_base": round(p_base, 4),
                 "impacto_pp": round((p_condicao - p_base) * 100, 2),
                 "odd_minima": round(1 / p_condicao, 2) if p_condicao > 0 else None,
+                "linhas_vizinhas": linhas_vizinhas,
             }
         regra["por_valor_atual"] = por_valor_atual
 
