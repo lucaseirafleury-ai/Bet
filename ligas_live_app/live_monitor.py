@@ -586,31 +586,67 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
             if n_condicoes > 1 else f" Condição: {melhor_regra['rotulo']}."
         )
         nome_alvo_valor = "escanteios" if alvo == "escanteios" else ("chutes totais" if alvo == "chutes_totais" else "chutes no alvo")
-        linha_mercado = melhor_regra["mercado"]["linha"]
+        linha_original = melhor_regra["mercado"]["linha"]
+        direcao_rotulo = "Mais de" if direcao == "mais_de" else "Menos de"
 
-        # Odd REAL de casa de apostas, quando o mercado existir na liga (hoje: escanteios
-        # nas nórdicas; escanteios/chutes no Brasil — ver odds_ao_vivo.py). Quando NÃO acha
-        # (mercado sem cobertura nessa liga/linha), não bloqueia — segue com o odd mínima
-        # sintético, como antes. Quando ACHA, só publica se o EV contra essa odd real for
-        # positivo — sem valor real contra o preço de mercado, os outros filtros sozinhos
-        # não bastam.
-        odd_real_info = odds_ao_vivo.buscar_odd_real(relatorio["fixture_id"], alvo, direcao, linha_mercado)
+        # Odd REAL de casa de apostas — tenta a linha original do sinal E as vizinhas
+        # (±1), porque a casa às vezes não oferece a linha exata (caso real reportado:
+        # sinal calibrado pra "mais de 9.5" escanteios, bet365/1xbet só tinham "mais de
+        # 10.5" disponível ao vivo). Cada linha usa a SUA PRÓPRIA probabilidade — nunca
+        # reaproveita a da linha original pra uma linha diferente (ver "linhas_vizinhas"
+        # em regras_sinais.json, calculado em pesquisa_gols/gerar_regras_sinais.py).
+        # Entre as linhas que acharem odd fresca, fica com a de MAIOR valor esperado; se
+        # nenhuma tiver EV positivo, não publica — mesma regra de antes, só que agora
+        # olhando todas as linhas realmente apostáveis, não só a "oficial" do sinal.
+        candidatos_linha = [(0, linha_original, melhor_stats["p_condicao"], melhor_stats["odd_minima"])]
+        for off_str, viz in (melhor_stats.get("linhas_vizinhas") or {}).items():
+            candidatos_linha.append((int(off_str), viz["linha"], viz["p_condicao"], viz["odd_minima"]))
+
+        melhor_odd = None
+        for off, linha_cand, p_cond, odd_min_cand in candidatos_linha:
+            info = odds_ao_vivo.buscar_odd_real(relatorio["fixture_id"], alvo, direcao, linha_cand)
+            if not info:
+                continue
+            ev_pct = (p_cond * info["odd"] - 1) * 100
+            if melhor_odd is None or ev_pct > melhor_odd["ev_pct"]:
+                melhor_odd = {
+                    **info, "linha": linha_cand, "offset": off, "p_condicao": p_cond,
+                    "odd_minima": odd_min_cand, "ev_pct": ev_pct,
+                }
+
+        if melhor_odd is not None and melhor_odd["ev_pct"] < 0:
+            continue  # nenhuma linha realmente apostável tem valor — não publica
+
+        # Linha/probabilidade/odd mínima "finais" — da linha original quando não há
+        # substituição, ou da linha vizinha escolhida quando a casa só tinha essa.
+        linha_final = melhor_odd["linha"] if melhor_odd is not None else linha_original
+        p_condicao_final = melhor_odd["p_condicao"] if melhor_odd is not None else melhor_stats["p_condicao"]
+        odd_minima_final = melhor_odd["odd_minima"] if melhor_odd is not None else melhor_stats["odd_minima"]
+        substituiu_linha = melhor_odd is not None and melhor_odd["offset"] != 0
+
+        mercado_curto_exibido = (
+            f"{direcao_rotulo} {linha_final:g} {nome_alvo_valor}" if substituiu_linha else melhor_regra["mercado_curto"]
+        )
         texto_odd_real = ""
-        if odd_real_info:
-            ev_pct = (melhor_stats["p_condicao"] * odd_real_info["odd"] - 1) * 100
-            if ev_pct < 0:
-                continue  # odd real conhecida e sem valor — não publica
+        if melhor_odd is not None:
+            texto_substituicao = (
+                f" (linha original do sinal era {direcao_rotulo.lower()} {linha_original:g} — trocada pra "
+                f"{direcao_rotulo.lower()} {linha_final:g} porque só essa tinha odd fresca na casa; probabilidade "
+                f"já é a específica dessa linha, não a da linha original.)"
+                if substituiu_linha else ""
+            )
             texto_odd_real = (
-                f" Odd real ao vivo ({odd_real_info['casa']}): {odd_real_info['odd']:.2f} (implica "
-                f"{odd_real_info['probabilidade_implicita']*100:.1f}%) — valor esperado positivo de {ev_pct:+.1f}%."
+                f" Odd real ao vivo ({melhor_odd['casa']}): {melhor_odd['odd']:.2f} (implica "
+                f"{melhor_odd['probabilidade_implicita']*100:.1f}%) — valor esperado positivo de "
+                f"{melhor_odd['ev_pct']:+.1f}%.{texto_substituicao}"
             )
 
         mensagem = (
-            f"min {minuto} — {melhor_regra['mercado_curto']}.{reforco} Recalculado já considerando que o jogo "
+            f"min {minuto} — {mercado_curto_exibido}.{reforco} Recalculado já considerando que o jogo "
             f"tem {melhor_stats['valor_atual_real']} {nome_alvo_valor} até agora: {melhor_stats['n']} jogos de "
             f"referência com esse mesmo valor (impacto +{melhor_stats['impacto_pp']:.1f} p.p. sobre a base nesse "
-            f"estado de jogo). Probabilidade estimada: {melhor_stats['p_condicao']*100:.1f}%. Odd mínima de "
-            f"referência: {melhor_stats['odd_minima']:.2f} (estimada da amostra histórica, não do modelo ao "
+            f"estado de jogo). Probabilidade estimada: {p_condicao_final*100:.1f}%. Odd mínima de "
+            f"referência: {odd_minima_final:.2f} (estimada da amostra histórica, não do modelo ao "
             f"vivo deste painel).{texto_odd_real}"
         )
         insight = _insight_base(
@@ -618,24 +654,29 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
         )
         # Campos extras (além do formato padrão de insight): permitem o painel
         # mostrar só "mercado + odd mínima" fechado — ver htmlSinalItem() em
-        # static/app.js — e o gate de contradição acima em partidas futuras.
-        insight["resumo"] = melhor_regra["mercado_curto"]
-        insight["odd_minima"] = melhor_stats["odd_minima"]
-        insight["probabilidade"] = round(melhor_stats["p_condicao"] * 100, 1)
+        # static/app.js — e o gate de contradição acima em partidas futuras. Todos os
+        # campos numéricos aqui já refletem a linha FINAL (com substituição, se houve) —
+        # é isso que decide green/red depois, então tem que ser a linha que valeria a
+        # pena apostar de verdade, não a linha "oficial" da regra.
+        insight["resumo"] = mercado_curto_exibido
+        insight["odd_minima"] = odd_minima_final
+        insight["probabilidade"] = round(p_condicao_final * 100, 1)
         insight["alvo"] = alvo
         insight["direcao"] = direcao
-        insight["linha"] = linha_mercado  # valor numérico limpo — permite avaliar green/red depois sem parsear texto
+        insight["linha"] = linha_final  # valor numérico limpo — permite avaliar green/red depois sem parsear texto
         insight["unidade_delta"] = "p.p."
-        if odd_real_info:
-            insight["odd_real"] = odd_real_info["odd"]
-            insight["odd_real_casa"] = odd_real_info["casa"]
-            insight["probabilidade_implicita_real"] = round(odd_real_info["probabilidade_implicita"] * 100, 1)
-            insight["ev_pct"] = round(ev_pct, 1)
+        if substituiu_linha:
+            insight["linha_original_sinal"] = linha_original
+        if melhor_odd is not None:
+            insight["odd_real"] = melhor_odd["odd"]
+            insight["odd_real_casa"] = melhor_odd["casa"]
+            insight["probabilidade_implicita_real"] = round(melhor_odd["probabilidade_implicita"] * 100, 1)
+            insight["ev_pct"] = round(melhor_odd["ev_pct"], 1)
             # Horário que a PRÓPRIA casa deu como última atualização dessa linha (não é
             # quando NÓS buscamos) — evidência de frescor pra auditar depois se uma odd
             # capturada bateu com o que a casa mostrava ao vivo (ver odds_ao_vivo.py:
             # já existe um filtro de idade máxima, mas isso registra o dado bruto também).
-            insight["odd_real_atualizada_em"] = odd_real_info.get("atualizado_em")
+            insight["odd_real_atualizada_em"] = melhor_odd.get("atualizado_em")
         insights.append(insight)
     return insights
 
