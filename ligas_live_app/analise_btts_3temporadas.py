@@ -22,6 +22,7 @@ Rodar: python3 analise_btts_3temporadas.py
 import json
 import os
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, timedelta
 
 import config
@@ -35,6 +36,13 @@ MARKET_ID_OVER_UNDER_GOLS = 80  # "Goals Over/Under" — confirmado label Over/U
 BOOKMAKER_ID_BET365 = 2
 CAMINHO_CHECKPOINT = os.path.join(config.DATA_DIR, ".checkpoint_prelive_3temporadas.json")
 SALVAR_A_CADA = 10
+# Cada jogo faz 3 chamadas de API (2 perfil + 1 odds), sequenciais entre si mas
+# independentes de jogo pra jogo — gargalo é rede/latência, não CPU, então
+# paralelizar entre jogos acelera bastante. Número conservador (não testamos
+# o teto real de rate limit da conta) — sportmonks_client._get agora tem
+# retry/backoff em 429, então um estouro ocasional não derruba o processo,
+# só desacelera aquela chamada específica.
+N_WORKERS = 20
 
 
 def _listar_fixtures_periodo(inicio, fim):
@@ -138,6 +146,20 @@ def _processar_fixture(f):
     return registro
 
 
+def _processar_com_retry(f):
+    tentativas = 0
+    while True:
+        try:
+            return f["id"], _processar_fixture(f)
+        except Exception as e:
+            tentativas += 1
+            if tentativas > 3:
+                print(f"  [erro definitivo] fixture {f['id']}: {e}")
+                return f["id"], None
+            print(f"  [erro, retry {tentativas}/3] fixture {f['id']}: {e} — esperando 5s...")
+            time.sleep(5)
+
+
 def rodar():
     print("Listando fixtures das 3 temporadas (2024-01-01 até hoje)...")
     fixtures = _listar_fixtures_periodo("2024-01-01", date.today().isoformat())
@@ -149,30 +171,20 @@ def rodar():
 
     pendentes = [f for f in fixtures if f["id"] not in ja_feitos]
     total = len(fixtures)
-    for i, f in enumerate(pendentes, 1):
-        tentativas = 0
-        while True:
-            try:
-                registro = _processar_fixture(f)
-                break
-            except Exception as e:
-                tentativas += 1
-                if tentativas > 3:
-                    print(f"  [erro definitivo] fixture {f['id']}: {e}")
-                    registro = None
-                    break
-                print(f"  [erro, retry {tentativas}/3] fixture {f['id']}: {e} — esperando 5s...")
-                time.sleep(5)
+    concluidos = 0
+    with ThreadPoolExecutor(max_workers=N_WORKERS) as executor:
+        futures = [executor.submit(_processar_com_retry, f) for f in pendentes]
+        for future in as_completed(futures):
+            fixture_id, registro = future.result()
+            estado["processados_ids"].append(fixture_id)
+            if registro is not None:
+                estado["registros"].append(registro)
+            concluidos += 1
 
-        estado["processados_ids"].append(f["id"])
-        if registro is not None:
-            estado["registros"].append(registro)
-
-        feitos_agora = len(ja_feitos) + i
-        if i % SALVAR_A_CADA == 0 or i == len(pendentes):
-            _salvar_checkpoint(estado)
-            print(f"  [{feitos_agora}/{total}] processados (checkpoint salvo, {len(estado['registros'])} com dados completos)")
-        time.sleep(0.05)
+            feitos_agora = len(ja_feitos) + concluidos
+            if concluidos % SALVAR_A_CADA == 0 or concluidos == len(pendentes):
+                _salvar_checkpoint(estado)
+                print(f"  [{feitos_agora}/{total}] processados (checkpoint salvo, {len(estado['registros'])} com dados completos)")
 
     print(f"\nConcluído: {len(estado['registros'])} registros com dados completos de {total} fixtures.")
     with open("/tmp/prelive_3temporadas_final.json", "w", encoding="utf-8") as fp:

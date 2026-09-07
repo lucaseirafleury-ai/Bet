@@ -2,11 +2,15 @@
 Wrapper fino sobre a API da Sportmonks.
 Centraliza autenticação, includes e tratamento de erro/paginação.
 """
+import time
+
 import requests
 import config
 
 CORE_BASE_URL = "https://api.sportmonks.com/v3/core"  # /types vive aqui, não em /football
 ODDS_BASE_URL = "https://api.sportmonks.com/v3/odds"  # odds vivem numa base própria, não em /football nem /core
+
+TENTATIVAS_429 = 5
 
 
 def _get(path, params=None, base_url=None):
@@ -15,10 +19,20 @@ def _get(path, params=None, base_url=None):
     # vazaria em texto puro em qualquer log/traceback (já aconteceu antes desta
     # correção). raise_for_status() também é evitado por isso: sua mensagem
     # inclui a URL completa da requisição.
-    r = requests.get(
-        f"{base_url or config.BASE_URL}{path}", params=params or {}, timeout=20,
-        headers={"Authorization": config.SPORTMONKS_TOKEN},
-    )
+    for tentativa in range(TENTATIVAS_429):
+        r = requests.get(
+            f"{base_url or config.BASE_URL}{path}", params=params or {}, timeout=20,
+            headers={"Authorization": config.SPORTMONKS_TOKEN},
+        )
+        if r.status_code == 429 and tentativa < TENTATIVAS_429 - 1:
+            # Retry-After da própria API quando presente; senão backoff curto —
+            # necessário desde que passamos a rodar chamadas em paralelo
+            # (analise_btts_3temporadas.py), que pode estourar o rate limit
+            # bem mais rápido que o uso sequencial original.
+            espera = float(r.headers.get("Retry-After", 2 * (tentativa + 1)))
+            time.sleep(espera)
+            continue
+        break
     try:
         r.raise_for_status()
     except requests.HTTPError:
