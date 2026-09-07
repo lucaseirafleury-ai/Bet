@@ -38,14 +38,18 @@ MARKET_ID_OVER_UNDER_GOLS = 80  # "Goals Over/Under" — confirmado label Over/U
 BOOKMAKER_ID_BET365 = 2
 CAMINHO_CHECKPOINT = os.path.join(config.DATA_DIR, ".checkpoint_prelive_3temporadas.json")
 SALVAR_A_CADA = 10
-# Cada jogo faz 3 chamadas de API (2 perfil + 1 odds), sequenciais entre si mas
-# independentes de jogo pra jogo — gargalo é rede/latência, não CPU, então
-# paralelizar entre jogos acelera bastante. N_WORKERS=20 estourou o rate
-# limit real da conta (a Sportmonks respondeu Retry-After=1281s, ~21min, e
-# as 20 threads travaram juntas esperando isso) — reduzido bem mais depois
-# desse teste real; o ganho de 5x sobre sequencial já é grande sem chutar
-# tão perto do teto.
-N_WORKERS = 5
+# Duas tentativas de paralelizar (20 workers, depois 5) bateram no rate
+# limit REAL da conta — não é sobre concorrência/latência de rede, é uma
+# cota fixa de volume total de chamadas na janela: com 20 workers, Retry-
+# After=1281s (~21min); tentamos de novo mais devagar (5 workers) e ainda
+# assim levou outro estouro, com Retry-After MAIOR (3050s, ~50min) —
+# sinal de penalidade progressiva por reincidência. A única rodagem que
+# completou sem NENHUM erro foi a sequencial original (1170 jogos em 87min,
+# ~2418 chamadas/hora) — por isso voltamos pra ela. N_WORKERS=1 mantém o
+# código de coordenação/retry (não faz mal ter, só não usa concorrência de
+# verdade), mais um espaçamento pequeno entre chamadas como margem extra.
+N_WORKERS = 1
+PAUSA_ENTRE_CHAMADAS = 0.3
 
 # Coordenação entre threads pra rate limit "de verdade" (RateLimitError,
 # Retry-After > sportmonks_client.ESPERA_MAXIMA_429): quando UMA thread
@@ -174,7 +178,9 @@ def _processar_com_retry(f):
     while True:
         _aguardar_rate_limit_se_necessario()
         try:
-            return f["id"], _processar_fixture(f)
+            registro = _processar_fixture(f)
+            time.sleep(PAUSA_ENTRE_CHAMADAS)
+            return f["id"], registro
         except sm.RateLimitError as e:
             # Não conta como uma das 3 tentativas normais — é a API dizendo
             # "cota estourada, espera X" pra QUALQUER chamada, não só esta.
