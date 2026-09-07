@@ -37,6 +37,30 @@ MARKET_ID_BTTS = 14
 MARKET_ID_OVER_UNDER_GOLS = 80  # "Goals Over/Under" — confirmado label Over/Under, total=2.5
 BOOKMAKER_ID_BET365 = 2
 CAMINHO_CHECKPOINT = os.path.join(config.DATA_DIR, ".checkpoint_prelive_3temporadas.json")
+# Rodagem anterior tinha um bug de lookahead bias no PERFIL dos times (ver
+# conversa/commit 2bdd606) — mas as odds da bet365 e os placares finais
+# vêm de uma fonte totalmente separada (odds_inplay_fixture/scores), não
+# foram afetados. Reaproveita esse arquivo (arquivado, não descartado) só
+# pra pular a chamada de odds — a parte cara e contaminada (perfil dos
+# times) é sempre recalculada do zero.
+CAMINHO_CACHE_ODDS_ANTIGO = "/tmp/claude-0/-home-user-Bet/0aa05055-40cd-539a-ad55-0528800b5057/scratchpad/prelive_3temporadas_CONTAMINADO.json"
+
+
+def _carregar_cache_odds():
+    if not os.path.exists(CAMINHO_CACHE_ODDS_ANTIGO):
+        return {}
+    with open(CAMINHO_CACHE_ODDS_ANTIGO, encoding="utf-8") as fp:
+        antigos = json.load(fp)
+    cache = {}
+    for r in antigos:
+        entrada = {k: r[k] for k in ("odd_sim", "odd_nao", "odd_over25", "odd_under25") if k in r}
+        if entrada:
+            cache[r["fixture_id"]] = entrada
+    print(f"[cache odds] {len(cache)} jogos com odds bet365 já conhecidas (reaproveitadas, sem refazer a chamada)")
+    return cache
+
+
+CACHE_ODDS = _carregar_cache_odds()
 SALVAR_A_CADA = 10
 # Duas tentativas de paralelizar (20 workers, depois 5) bateram no rate
 # limit REAL da conta — não é sobre concorrência/latência de rede, é uma
@@ -146,29 +170,32 @@ def _processar_fixture(f):
         "over25_real": gols_totais > 2.5,
     }
 
-    try:
-        linhas_odds = sm.odds_inplay_fixture(fixture_id)
-        btts = [o for o in linhas_odds if o.get("market_id") == MARKET_ID_BTTS and o.get("bookmaker_id") == BOOKMAKER_ID_BET365]
-        odd_sim = next((float(o["value"]) for o in btts if o["label"] == "Yes"), None)
-        odd_nao = next((float(o["value"]) for o in btts if o["label"] == "No"), None)
-        if odd_sim is not None and odd_nao is not None:
-            registro["odd_sim"] = odd_sim
-            registro["odd_nao"] = odd_nao
-
-        ou = [
-            o for o in linhas_odds
-            if o.get("market_id") == MARKET_ID_OVER_UNDER_GOLS and o.get("bookmaker_id") == BOOKMAKER_ID_BET365
-        ]
+    if fixture_id in CACHE_ODDS:
+        registro.update(CACHE_ODDS[fixture_id])  # já buscado na rodagem anterior — não afetado pelo bug de perfil
+    else:
         try:
-            odd_over25 = next((float(o["value"]) for o in ou if o["label"] == "Over" and float(o.get("total")) == 2.5), None)
-            odd_under25 = next((float(o["value"]) for o in ou if o["label"] == "Under" and float(o.get("total")) == 2.5), None)
-        except (TypeError, ValueError):
-            odd_over25 = odd_under25 = None
-        if odd_over25 is not None and odd_under25 is not None:
-            registro["odd_over25"] = odd_over25
-            registro["odd_under25"] = odd_under25
-    except Exception:
-        pass  # sem odd bet365 pra esse jogo — registro fica só com a parte de calibração
+            linhas_odds = sm.odds_inplay_fixture(fixture_id)
+            btts = [o for o in linhas_odds if o.get("market_id") == MARKET_ID_BTTS and o.get("bookmaker_id") == BOOKMAKER_ID_BET365]
+            odd_sim = next((float(o["value"]) for o in btts if o["label"] == "Yes"), None)
+            odd_nao = next((float(o["value"]) for o in btts if o["label"] == "No"), None)
+            if odd_sim is not None and odd_nao is not None:
+                registro["odd_sim"] = odd_sim
+                registro["odd_nao"] = odd_nao
+
+            ou = [
+                o for o in linhas_odds
+                if o.get("market_id") == MARKET_ID_OVER_UNDER_GOLS and o.get("bookmaker_id") == BOOKMAKER_ID_BET365
+            ]
+            try:
+                odd_over25 = next((float(o["value"]) for o in ou if o["label"] == "Over" and float(o.get("total")) == 2.5), None)
+                odd_under25 = next((float(o["value"]) for o in ou if o["label"] == "Under" and float(o.get("total")) == 2.5), None)
+            except (TypeError, ValueError):
+                odd_over25 = odd_under25 = None
+            if odd_over25 is not None and odd_under25 is not None:
+                registro["odd_over25"] = odd_over25
+                registro["odd_under25"] = odd_under25
+        except Exception:
+            pass  # sem odd bet365 pra esse jogo — registro fica só com a parte de calibração
 
     return registro
 
