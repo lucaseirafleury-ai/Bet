@@ -107,14 +107,20 @@ def fixture_com_trends(fixture_id, include="trends;statistics.type;participants;
 
 
 def fixtures_finalizadas_ligas(dias_para_tras=30):
-    """Jogos já finalizados das ligas monitoradas, dentro da janela de dias informada."""
+    """
+    Jogos já finalizados das ligas monitoradas, dentro da janela de dias informada.
+    Inclui "scores" — sem isso, o campo vem AUSENTE do dict (não None), então
+    qualquer leitura direta de placar teria que re-buscar cada fixture de novo
+    (como backtest.py já faz via fixture_com_trends); com scores aqui, quem só
+    precisa do placar final (não de trends) pode usar o resumo direto.
+    """
     from datetime import date, timedelta
 
     hoje = date.today()
     inicio = (hoje - timedelta(days=dias_para_tras)).isoformat()
     fim = hoje.isoformat()
 
-    fixtures = fixtures_between(inicio, fim, include="league;participants")
+    fixtures = fixtures_between(inicio, fim, include="league;participants;scores")
     return [
         f for f in fixtures
         if f.get("state_id") == 5 and f.get("league", {}).get("id") in config.LIGAS_MONITORADAS
