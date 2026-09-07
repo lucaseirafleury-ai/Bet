@@ -10,7 +10,24 @@ import config
 CORE_BASE_URL = "https://api.sportmonks.com/v3/core"  # /types vive aqui, não em /football
 ODDS_BASE_URL = "https://api.sportmonks.com/v3/odds"  # odds vivem numa base própria, não em /football nem /core
 
-TENTATIVAS_429 = 5
+TENTATIVAS_429 = 3
+ESPERA_MAXIMA_429 = 15  # segundos — nunca confiar cegamente no Retry-After da API
+
+
+class RateLimitError(Exception):
+    """
+    Levantado quando a API pede uma espera longa (Retry-After > ESPERA_MAXIMA_429)
+    — sinal de cota realmente estourada, não um soluço passageiro. Descoberto
+    rodando analise_btts_3temporadas.py em paralelo (20 threads): a Sportmonks
+    respondeu Retry-After=1281s (~21min), e como _get antes dormia esse valor
+    cru, as 20 threads travaram simultaneamente por ~21min — paralelizar sem
+    esse teto piora o problema (estoura a cota mais rápido, trava mais threads
+    de uma vez). Quem chama decide o que fazer (não insiste sozinho aqui):
+    normalmente esperar de verdade fora do _get, ou reduzir a concorrência.
+    """
+    def __init__(self, retry_after):
+        self.retry_after = retry_after
+        super().__init__(f"Rate limit: API pediu espera de {retry_after}s")
 
 
 def _get(path, params=None, base_url=None):
@@ -24,14 +41,13 @@ def _get(path, params=None, base_url=None):
             f"{base_url or config.BASE_URL}{path}", params=params or {}, timeout=20,
             headers={"Authorization": config.SPORTMONKS_TOKEN},
         )
-        if r.status_code == 429 and tentativa < TENTATIVAS_429 - 1:
-            # Retry-After da própria API quando presente; senão backoff curto —
-            # necessário desde que passamos a rodar chamadas em paralelo
-            # (analise_btts_3temporadas.py), que pode estourar o rate limit
-            # bem mais rápido que o uso sequencial original.
-            espera = float(r.headers.get("Retry-After", 2 * (tentativa + 1)))
-            time.sleep(espera)
-            continue
+        if r.status_code == 429:
+            retry_after = float(r.headers.get("Retry-After", 2 * (tentativa + 1)))
+            if retry_after > ESPERA_MAXIMA_429:
+                raise RateLimitError(retry_after)  # cota estourada de verdade — não adianta insistir aqui
+            if tentativa < TENTATIVAS_429 - 1:
+                time.sleep(retry_after)
+                continue
         break
     try:
         r.raise_for_status()

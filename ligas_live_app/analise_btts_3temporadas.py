@@ -21,6 +21,8 @@ Rodar: python3 analise_btts_3temporadas.py
 """
 import json
 import os
+import random
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, timedelta
@@ -38,11 +40,32 @@ CAMINHO_CHECKPOINT = os.path.join(config.DATA_DIR, ".checkpoint_prelive_3tempora
 SALVAR_A_CADA = 10
 # Cada jogo faz 3 chamadas de API (2 perfil + 1 odds), sequenciais entre si mas
 # independentes de jogo pra jogo — gargalo é rede/latência, não CPU, então
-# paralelizar entre jogos acelera bastante. Número conservador (não testamos
-# o teto real de rate limit da conta) — sportmonks_client._get agora tem
-# retry/backoff em 429, então um estouro ocasional não derruba o processo,
-# só desacelera aquela chamada específica.
-N_WORKERS = 20
+# paralelizar entre jogos acelera bastante. N_WORKERS=20 estourou o rate
+# limit real da conta (a Sportmonks respondeu Retry-After=1281s, ~21min, e
+# as 20 threads travaram juntas esperando isso) — reduzido bem mais depois
+# desse teste real; o ganho de 5x sobre sequencial já é grande sem chutar
+# tão perto do teto.
+N_WORKERS = 5
+
+# Coordenação entre threads pra rate limit "de verdade" (RateLimitError,
+# Retry-After > sportmonks_client.ESPERA_MAXIMA_429): quando UMA thread
+# leva um estouro, TODAS passam a esperar até o mesmo horário-alvo em vez
+# de cada uma tentar de novo e levar outro estouro individual — é o que
+# causou a trava de 21min quando isso não existia.
+_rate_limit_lock = threading.Lock()
+_rate_limit_ate = [0.0]
+
+
+def _aguardar_rate_limit_se_necessario():
+    with _rate_limit_lock:
+        alvo = _rate_limit_ate[0]
+    if alvo > time.time():
+        time.sleep(alvo - time.time() + random.uniform(0, 3))  # jitter pra não sincronizar todo mundo de novo
+
+
+def _registrar_rate_limit(retry_after):
+    with _rate_limit_lock:
+        _rate_limit_ate[0] = max(_rate_limit_ate[0], time.time() + retry_after)
 
 
 def _listar_fixtures_periodo(inicio, fim):
@@ -149,8 +172,16 @@ def _processar_fixture(f):
 def _processar_com_retry(f):
     tentativas = 0
     while True:
+        _aguardar_rate_limit_se_necessario()
         try:
             return f["id"], _processar_fixture(f)
+        except sm.RateLimitError as e:
+            # Não conta como uma das 3 tentativas normais — é a API dizendo
+            # "cota estourada, espera X" pra QUALQUER chamada, não só esta.
+            # Registra o alvo compartilhado e deixa o loop tentar de novo
+            # depois que _aguardar_rate_limit_se_necessario liberar.
+            _registrar_rate_limit(e.retry_after)
+            print(f"  [rate limit] fixture {f['id']}: API pediu {e.retry_after:.0f}s — todo o pool vai esperar até lá")
         except Exception as e:
             tentativas += 1
             if tentativas > 3:
