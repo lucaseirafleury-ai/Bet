@@ -4,11 +4,18 @@ analise_btts_odds_bet365.py), agora para as ÚLTIMAS 3 TEMPORADAS (2024,
 2025, 2026-parcial) das 5 ligas monitoradas — ~3.978 jogos, em vez dos 298
 da janela de 45 dias.
 
-Faz as duas coisas por jogo (perfil pré-live + odd bet365) numa passada só,
-com CHECKPOINT incremental (salva a cada N jogos em
-data/.checkpoint_btts_3temporadas.json, fora do git) — se o processo cair
-no meio (proxy, rede, timeout de sessão — já aconteceu antes neste
-projeto), rodar de novo CONTINUA de onde parou em vez de recomeçar do zero.
+Cobre BTTS **e** Over/Under 2.5 gols na mesma rodagem: o perfil pré-live de
+cada time (a parte cara, 2 chamadas de API por jogo) já alimenta
+probabilidades_ao_vivo(), que devolve os dois mercados de graça na mesma
+chamada — rodar separado pra cada mercado seria refazer o trabalho caro
+duas vezes à toa. Busca também a odd bet365 pré-live dos dois mercados
+(BTTS market_id=14, Goals Over/Under market_id=80, total=2.5).
+
+Faz tudo por jogo numa passada só, com CHECKPOINT incremental (salva a
+cada N jogos em data/.checkpoint_prelive_3temporadas.json, fora do git) —
+se o processo cair no meio (proxy, rede, timeout de sessão — já aconteceu
+antes neste projeto), rodar de novo CONTINUA de onde parou em vez de
+recomeçar do zero.
 
 Rodar: python3 analise_btts_3temporadas.py
 """
@@ -24,8 +31,9 @@ from prelive_analysis import montar_perfil_time
 from live_poisson import probabilidades_ao_vivo
 
 MARKET_ID_BTTS = 14
+MARKET_ID_OVER_UNDER_GOLS = 80  # "Goals Over/Under" — confirmado label Over/Under, total=2.5
 BOOKMAKER_ID_BET365 = 2
-CAMINHO_CHECKPOINT = os.path.join(config.DATA_DIR, ".checkpoint_btts_3temporadas.json")
+CAMINHO_CHECKPOINT = os.path.join(config.DATA_DIR, ".checkpoint_prelive_3temporadas.json")
 SALVAR_A_CADA = 10
 
 
@@ -85,13 +93,22 @@ def _processar_fixture(f):
     lambda_h, lambda_a = poisson.expected_goals(perfil_casa, perfil_fora)
     probs = probabilidades_ao_vivo(lambda_h, lambda_a, 0, 0, 0)
 
+    gols_totais = gols_home + gols_away
     registro = {
         "fixture_id": fixture_id, "liga": liga_nome, "data_jogo": data_jogo,
         "jogo": f"{home['name']} x {away['name']}",
         "placar": f"{gols_home}-{gols_away}",
+        "gols_totais": gols_totais,
+        # BTTS
         "prob_btts_sim": probs["prob_btts_sim"],
         "prob_btts_nao": probs["prob_btts_nao"],
         "btts_real_sim": gols_home >= 1 and gols_away >= 1,
+        # Over/Under 2.5 gols — mesma chamada de probabilidades_ao_vivo já devolve
+        # isso de graça junto com o BTTS (o caro é o perfil dos times, não esse
+        # cálculo), por isso capturamos os dois mercados na mesma rodagem.
+        "prob_over25": probs["prob_over25"],
+        "prob_under25": probs["prob_under25"],
+        "over25_real": gols_totais > 2.5,
     }
 
     try:
@@ -102,6 +119,19 @@ def _processar_fixture(f):
         if odd_sim is not None and odd_nao is not None:
             registro["odd_sim"] = odd_sim
             registro["odd_nao"] = odd_nao
+
+        ou = [
+            o for o in linhas_odds
+            if o.get("market_id") == MARKET_ID_OVER_UNDER_GOLS and o.get("bookmaker_id") == BOOKMAKER_ID_BET365
+        ]
+        try:
+            odd_over25 = next((float(o["value"]) for o in ou if o["label"] == "Over" and float(o.get("total")) == 2.5), None)
+            odd_under25 = next((float(o["value"]) for o in ou if o["label"] == "Under" and float(o.get("total")) == 2.5), None)
+        except (TypeError, ValueError):
+            odd_over25 = odd_under25 = None
+        if odd_over25 is not None and odd_under25 is not None:
+            registro["odd_over25"] = odd_over25
+            registro["odd_under25"] = odd_under25
     except Exception:
         pass  # sem odd bet365 pra esse jogo — registro fica só com a parte de calibração
 
@@ -145,9 +175,9 @@ def rodar():
         time.sleep(0.05)
 
     print(f"\nConcluído: {len(estado['registros'])} registros com dados completos de {total} fixtures.")
-    with open("/tmp/btts_3temporadas_final.json", "w", encoding="utf-8") as fp:
+    with open("/tmp/prelive_3temporadas_final.json", "w", encoding="utf-8") as fp:
         json.dump(estado["registros"], fp, ensure_ascii=False, indent=2)
-    print("Salvo em /tmp/btts_3temporadas_final.json")
+    print("Salvo em /tmp/prelive_3temporadas_final.json")
 
 
 if __name__ == "__main__":
