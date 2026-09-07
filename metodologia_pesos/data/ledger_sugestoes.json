@@ -146,8 +146,8 @@
     "edge": 0.052844732948983175,
     "data_registro": "2026-09-04",
     "casa_ref": "bet365",
-    "resultado": "pendente",
-    "lucro": null
+    "resultado": "green",
+    "lucro": 0.8999999999999999
   },
   {
     "fixture_id": 19621820,
@@ -163,7 +163,7 @@
     "edge": 0.06657234395980893,
     "data_registro": "2026-09-05",
     "casa_ref": "bet365",
-    "resultado": "pendente",
-    "lucro": null
+    "resultado": "red",
+    "lucro": -1.0
   }
 ]
