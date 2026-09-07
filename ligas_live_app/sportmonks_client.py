@@ -87,9 +87,20 @@ def team_recent_fixtures(team_id, n, include="statistics.type;participants;score
     Últimos N jogos finalizados de um time, com estatísticas.
     Usado para montar o perfil (médias) do time.
 
-    ate_data: se informado (string YYYY-MM-DD), limita a busca a jogos ATÉ essa data —
-    essencial para backtest, evitando usar informação futura (lookahead bias) ao montar
-    o perfil de um time para uma partida do passado.
+    ate_data: se informado (string YYYY-MM-DD), limita a busca a jogos ANTES dessa
+    data (exclusive) — essencial para backtest, evitando usar informação futura
+    (lookahead bias) ao montar o perfil de um time para uma partida do passado.
+
+    BUG REAL já encontrado com isso (ver conversa, análise BTTS/Over-Under 3
+    temporadas): a versão anterior usava `fim = ate_data` (INCLUSIVE) — como
+    "ate_data" é sempre a própria data da partida sendo analisada, e essa
+    partida já está com state_id=5 (finalizada) no momento em que rodamos o
+    backtest, ela mesma entrava na lista de "jogos recentes" do time,
+    contaminando o perfil com o PRÓPRIO resultado que estávamos tentando
+    prever. Isso inflava artificialmente qualquer backtest que use
+    ate_data (aqui e em backtest.py) — ROI/acurácia saíam bons demais pra
+    serem reais (chegou a dar +40% de ROI contra a bet365 em todas as 5
+    ligas, o que não se sustenta metodologicamente).
 
     A Sportmonks v3 não tem um filtro direto de "fixtures por time" no endpoint
     genérico /fixtures — o caminho correto é o endpoint dedicado
@@ -97,7 +108,7 @@ def team_recent_fixtures(team_id, n, include="statistics.type;participants;score
     """
     from datetime import date, timedelta
 
-    fim_ref = date.fromisoformat(ate_data) if ate_data else date.today()
+    fim_ref = (date.fromisoformat(ate_data) - timedelta(days=1)) if ate_data else date.today()
     inicio = (fim_ref - timedelta(days=dias_para_tras)).isoformat()
     fim = fim_ref.isoformat()
 
