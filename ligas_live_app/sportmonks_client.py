@@ -27,9 +27,24 @@ def _get(path, params=None, base_url=None):
 
 
 def fixtures_between(date_from, date_to, include="participants;league;scores"):
-    """Todas as fixtures (das ligas assinadas) entre duas datas ISO (YYYY-MM-DD)."""
-    data = _get(f"/fixtures/between/{date_from}/{date_to}", {"include": include})
-    return data.get("data", [])
+    """
+    Todas as fixtures (das ligas assinadas) entre duas datas ISO (YYYY-MM-DD).
+    Pagina até o fim (a API devolve só 25 por página, "has_more"/"next_page"
+    em "pagination") — sem isso, qualquer janela com mais de 25 jogos ficava
+    silenciosamente truncada na primeira página, sem erro nem aviso (bug
+    real encontrado analisando BTTS pré-live: backtest.py/fixtures_finalizadas_ligas
+    vinham usando só os 25 jogos mais recentes de cada janela, não a janela
+    inteira pedida).
+    """
+    todas = []
+    page = 1
+    while True:
+        data = _get(f"/fixtures/between/{date_from}/{date_to}", {"include": include, "page": page})
+        todas.extend(data.get("data", []))
+        if not data.get("pagination", {}).get("has_more"):
+            break
+        page += 1
+    return todas
 
 
 def fixture_by_id(fixture_id, include=""):
