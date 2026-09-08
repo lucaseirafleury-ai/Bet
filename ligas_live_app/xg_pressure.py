@@ -67,6 +67,7 @@ CAMPO_API_REGRAS = {
     "goal_attempts": "Goal Attempts",
     "successful_dribbles": "Successful Dribbles",
     "successful_dribbles_percentage": "Successful Dribbles Percentage",
+    "hit_woodwork": "Hit Woodwork",
 }
 
 
