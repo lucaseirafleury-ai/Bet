@@ -26,6 +26,12 @@ AMOSTRA_MINIMA = 200
 IMPACTO_MINIMO_PP = 5.0
 
 ALVOS = ["escanteios", "chutes_totais", "chutes_no_alvo", "gols", "cartoes"]
+# Alvos com regras "regiao=brasil" — confirmam contra Série A/B mas NÃO
+# confirmaram nas ligas nórdicas, então só entram no painel restritas a jogos
+# do Brasil (ver live_monitor.py::_regra_vale_para_liga). Ver histórico da
+# decisão na conversa: cartões confirma forte no Brasil (28/32 + 72/128,
+# vários p<0.0001) mas 0/14 + 0/46 nas nórdicas.
+ALVOS_REGIAO_BRASIL = ["cartoes"]
 ALVO_TITULO = {
     "escanteios": "Escanteios", "chutes_totais": "Chutes totais",
     "chutes_no_alvo": "Chutes no alvo", "gols": "Gols", "cartoes": "Cartões",
@@ -67,17 +73,42 @@ def ler_csv(caminho):
     return [r for r in linhas if r["confirmado_bh"] == "True"]
 
 
+LIGAS_BRASIL = {648, 651}  # Série A, Série B — ver REGIOES_REGRA abaixo
+
+
 def _carregar_dados_pooled():
-    """fixture_id -> {minuto: snapshot}, fixture_id -> resultados_alvo — as 5 ligas juntas."""
+    """fixture_id -> {minuto: snapshot}, fixture_id -> resultados_alvo, fixture_id -> league_id
+    (extraído do próprio nome do arquivo .checkpoint_<league_id>.json) — todas as ligas juntas."""
     snaps_por_fixture = {}
     resultados = {}
+    liga_por_fixture = {}
     for caminho in glob.glob(f"{DADOS_DIR}/.checkpoint_*.json"):
+        league_id = int(os.path.basename(caminho).removeprefix(".checkpoint_").removesuffix(".json"))
         d = json.load(open(caminho, encoding="utf-8"))
         for fid_str, res in d["resultados_alvo"].items():
             resultados[int(fid_str)] = res
+            liga_por_fixture[int(fid_str)] = league_id
         for snap in d["snapshots"]:
             snaps_por_fixture.setdefault(snap["fixture_id"], {})[snap["minuto"]] = snap
-    return snaps_por_fixture, resultados
+    return snaps_por_fixture, resultados, liga_por_fixture
+
+
+def _valor_stat_alvo(snap, stat_alvo):
+    """
+    Valor da estatística-ALVO (não das condições) num snapshot. Caso especial
+    "cards" (cartões): o snapshot não tem esse campo direto, só
+    "yellowcards"/"redcards" separados (mesmo motivo do fix em
+    ligas_live_app/xg_pressure.py::extrair_stats_para_regras) — soma os dois
+    aqui, do jeito que resultados_alvo[fid]["cartoes"] também soma pro
+    resultado FINAL.
+    """
+    if stat_alvo == "cards":
+        amarelos = snap.get("yellowcards")
+        vermelhos = snap.get("redcards")
+        if amarelos is None or vermelhos is None:
+            return None
+        return amarelos + vermelhos
+    return snap.get(stat_alvo)
 
 
 def _condicao_bate(condicoes, snap):
@@ -134,24 +165,36 @@ def recalibrar_por_valor_atual(regras):
     "linhas_vizinhas" pra não mexer no formato já existente (linha original
     continua nas chaves de sempre, por compatibilidade).
     """
-    snaps_por_fixture, resultados = _carregar_dados_pooled()
+    snaps_por_fixture, resultados, liga_por_fixture = _carregar_dados_pooled()
 
     for regra in regras:
         stat_alvo, linha, direcao = regra["mercado"]["stat"], regra["mercado"]["linha"], regra["mercado"]["direcao"]
         alvo = regra["alvo"]
         linhas_a_calcular = {0: linha, -1: linha - 1, 1: linha + 1}
 
+        # Regra "brasil" (ver REGIOES_REGRA) só vale pra Série A/B — nunca foi
+        # confirmada nas ligas nórdicas, então recalibrar com elas misturadas
+        # diluiria/distorceria o efeito real com dado de uma região onde ele
+        # nem se sustentou. Regra "universal" usa o pool inteiro, como sempre.
+        fixtures_desta_regiao = (
+            {fid for fid, lid in liga_por_fixture.items() if lid in LIGAS_BRASIL}
+            if regra.get("regiao") == "brasil" else None
+        )
+
         # offset -> valor_atual -> [bateu, ...]
         casos_condicao = {off: {} for off in linhas_a_calcular}
         casos_base = {off: {} for off in linhas_a_calcular}
         for fid, snaps in snaps_por_fixture.items():
+            if fixtures_desta_regiao is not None and fid not in fixtures_desta_regiao:
+                continue
             snap = snaps.get(regra["minuto"])
             if not snap or snap.get("gols_momento") != regra["gols_momento"]:
                 continue
             res = resultados.get(fid)
-            if not res or res.get(alvo) is None or snap.get(stat_alvo) is None:
+            valor_stat_alvo = _valor_stat_alvo(snap, stat_alvo)
+            if not res or res.get(alvo) is None or valor_stat_alvo is None:
                 continue
-            valor_atual = int(snap[stat_alvo])
+            valor_atual = int(valor_stat_alvo)
             condicao_ok = _condicao_bate(regra["condicoes"], snap)
             for off, linha_off in linhas_a_calcular.items():
                 bateu = (res[alvo] > linha_off) if direcao == "mais_de" else (res[alvo] < linha_off)
@@ -195,53 +238,64 @@ def recalibrar_por_valor_atual(regras):
     return regras
 
 
-brutas = []
-for alvo_id in ALVOS:
-    for r in ler_csv(f"{BASE}/{alvo_id}_confirmacao_1stat.csv"):
-        brutas.append({
-            "alvo_id": alvo_id,
-            "minuto": int(r["minuto"]),
-            "gols_momento": int(r["gols_momento"]),
-            "condicao_chave": (r["stat"], r["operador"], r["limite"]),
-            "condicoes": [{"stat": r["stat"], "operador": r["operador"], "limite": float(r["limite"])}],
-            "linha_mercado": float(r["mercado"][1:]),
-            "sinal_mercado": r["mercado"][0],
-            "amostra": int(r["amostra_outras_ligas"]),
-            "p_base": float(r["p_base_outras_ligas"]),
-            "p_condicao": float(r["p_final_outras_ligas"]),
-            "impacto": float(r["impacto_outras_ligas_pp"]),
-            "p_valor": float(r["p_valor_outras_ligas"]),
-        })
-    for r in ler_csv(f"{BASE}/{alvo_id}_confirmacao_2stats.csv"):
-        p_base = float(r["p_base_outras_ligas"])
-        p_cond = float(r["p_conjunta_outras_ligas"])
-        brutas.append({
-            "alvo_id": alvo_id,
-            "minuto": int(r["minuto"]),
-            "gols_momento": int(r["gols_momento"]),
-            "condicao_chave": (r["stat1"], r["operador1"], r["limite1"], r["stat2"], r["operador2"], r["limite2"]),
-            "condicoes": [
-                {"stat": r["stat1"], "operador": r["operador1"], "limite": float(r["limite1"])},
-                {"stat": r["stat2"], "operador": r["operador2"], "limite": float(r["limite2"])},
-            ],
-            "linha_mercado": float(r["mercado"][1:]),
-            "sinal_mercado": r["mercado"][0],
-            "amostra": int(r["amostra_outras_ligas"]),
-            "p_base": p_base,
-            "p_condicao": p_cond,
-            "impacto": (p_cond - p_base) * 100,
-            "p_valor": float(r["p_valor_outras_ligas"]),
-        })
+def _carregar_brutas(alvos_lista, sufixo=""):
+    """
+    Lê {alvo}_confirmacao{sufixo}_1stat.csv/_2stats.csv (confirmado_bh=True)
+    pra cada alvo em alvos_lista. sufixo="" lê a confirmação nórdica de
+    sempre; sufixo="_brasil" lê a confirmação contra Série A/B, usada pra
+    montar o caminho "regiao=brasil" (ver REGIOES_REGRA).
+    """
+    brutas = []
+    for alvo_id in alvos_lista:
+        for r in ler_csv(f"{BASE}/{alvo_id}_confirmacao{sufixo}_1stat.csv"):
+            brutas.append({
+                "alvo_id": alvo_id,
+                "minuto": int(r["minuto"]),
+                "gols_momento": int(r["gols_momento"]),
+                "condicao_chave": (r["stat"], r["operador"], r["limite"]),
+                "condicoes": [{"stat": r["stat"], "operador": r["operador"], "limite": float(r["limite"])}],
+                "linha_mercado": float(r["mercado"][1:]),
+                "sinal_mercado": r["mercado"][0],
+                "amostra": int(r["amostra_outras_ligas"]),
+                "p_base": float(r["p_base_outras_ligas"]),
+                "p_condicao": float(r["p_final_outras_ligas"]),
+                "impacto": float(r["impacto_outras_ligas_pp"]),
+                "p_valor": float(r["p_valor_outras_ligas"]),
+            })
+        for r in ler_csv(f"{BASE}/{alvo_id}_confirmacao{sufixo}_2stats.csv"):
+            p_base = float(r["p_base_outras_ligas"])
+            p_cond = float(r["p_conjunta_outras_ligas"])
+            brutas.append({
+                "alvo_id": alvo_id,
+                "minuto": int(r["minuto"]),
+                "gols_momento": int(r["gols_momento"]),
+                "condicao_chave": (r["stat1"], r["operador1"], r["limite1"], r["stat2"], r["operador2"], r["limite2"]),
+                "condicoes": [
+                    {"stat": r["stat1"], "operador": r["operador1"], "limite": float(r["limite1"])},
+                    {"stat": r["stat2"], "operador": r["operador2"], "limite": float(r["limite2"])},
+                ],
+                "linha_mercado": float(r["mercado"][1:]),
+                "sinal_mercado": r["mercado"][0],
+                "amostra": int(r["amostra_outras_ligas"]),
+                "p_base": p_base,
+                "p_condicao": p_cond,
+                "impacto": (p_cond - p_base) * 100,
+                "p_valor": float(r["p_valor_outras_ligas"]),
+            })
+    return brutas
 
-# Colapsa cada par mais-de/menos-de da mesma linha, ficando só com o lado
-# favorável — mesmo critério já usado no Excel "Sinais" (ver conversa: linha
-# 28 vs 29 do achados_confirmados.xlsx eram o mesmo achado, sinais opostos).
-grupos = {}
-for item in brutas:
-    chave = (item["alvo_id"], item["minuto"], item["gols_momento"], item["condicao_chave"], item["linha_mercado"])
-    grupos.setdefault(chave, []).append(item)
 
-sinais = [max(itens, key=lambda x: x["impacto"]) for itens in grupos.values()]
+def _colapsar(brutas):
+    """Colapsa cada par mais-de/menos-de da mesma linha, ficando só com o lado
+    favorável — mesmo critério já usado no Excel "Sinais"."""
+    grupos = {}
+    for item in brutas:
+        chave = (item["alvo_id"], item["minuto"], item["gols_momento"], item["condicao_chave"], item["linha_mercado"])
+        grupos.setdefault(chave, []).append(item)
+    return [max(itens, key=lambda x: x["impacto"]) for itens in grupos.values()]
+
+
+sinais = _colapsar(_carregar_brutas(ALVOS))
 
 
 def _carregar_confirmadas_brasil():
@@ -281,13 +335,36 @@ fortes = [
     if s["amostra"] >= AMOSTRA_MINIMA and s["impacto"] >= IMPACTO_MINIMO_PP
     and _chave_brasil(s) in CONFIRMADAS_BRASIL
 ]
+for s in fortes:
+    s["regiao"] = "universal"
+
+# Regras que confirmam SÓ no Brasil (não nas nórdicas) — achado real: cartões
+# (faltas -> cartões) confirma forte em Série A/B (28/32 + 72/128, várias com
+# p<0.0001) mas não confirma nas ligas nórdicas — pode ser um efeito real,
+# só que específico de como os árbitros brasileiros apitam, não universal.
+# Escopo deliberadamente restrito a ALVOS_REGIAO_BRASIL — não generalizamos
+# pra outros alvos sem essa mesma investigação específica. Nunca duplica uma
+# regra que já é "universal" (passou nas duas regiões).
+chaves_universais = {_chave_brasil(s) for s in fortes}
+sinais_brasil = _colapsar(_carregar_brutas(ALVOS_REGIAO_BRASIL, sufixo="_brasil"))
+fortes_brasil = [
+    s for s in sinais_brasil
+    if s["amostra"] >= AMOSTRA_MINIMA and s["impacto"] >= IMPACTO_MINIMO_PP
+    and _chave_brasil(s) not in chaves_universais
+]
+for s in fortes_brasil:
+    s["regiao"] = "brasil"
+
+fortes = fortes + fortes_brasil
 fortes.sort(key=lambda x: (x["alvo_id"], -x["impacto"]))
 
 print(f"sinais totais: {len(sinais)} | subconjunto forte (amostra>={AMOSTRA_MINIMA}, impacto>={IMPACTO_MINIMO_PP}pp): {len(fortes)}")
 for alvo_id in ALVOS:
-    n = sum(1 for s in fortes if s["alvo_id"] == alvo_id)
-    if n:
-        print(f"  {ALVO_TITULO[alvo_id]}: {n}")
+    n_universal = sum(1 for s in fortes if s["alvo_id"] == alvo_id and s["regiao"] == "universal")
+    n_brasil = sum(1 for s in fortes if s["alvo_id"] == alvo_id and s["regiao"] == "brasil")
+    if n_universal or n_brasil:
+        sufixo_brasil = f" (+ {n_brasil} só Brasil)" if n_brasil else ""
+        print(f"  {ALVO_TITULO[alvo_id]}: {n_universal}{sufixo_brasil}")
 
 campos_usados = set()
 for s in fortes:
@@ -334,6 +411,10 @@ for s in fortes:
         "p_valor_confirmacao": s["p_valor"],
         "odd_minima_referencia": round(1 / s["p_condicao"], 2) if s["p_condicao"] > 0 else None,
         "rotulo": rotulo,
+        # "universal" (confirmou nórdicas E Brasil) ou "brasil" (só confirmou
+        # no Brasil — live_monitor.py só aplica essa regra a jogos de Série
+        # A/B, nunca às ligas nórdicas, ver _regra_vale_para_liga).
+        "regiao": s["regiao"],
     })
 
 print("\nrecalibrando cada regra por valor atual do próprio alvo (escanteios/chutes já ocorridos)...")
@@ -345,11 +426,13 @@ print(f"  cobertura: {sum(coberturas)/len(coberturas):.1f} valores distintos por
 print(f"  amostra usada por valor: pior caso = {min(amostras_min)} jogos (após fallback pro vizinho)")
 
 payload = {
-    "criterio": f"amostra_confirmacao >= {AMOSTRA_MINIMA} e impacto_pp >= {IMPACTO_MINIMO_PP}, "
-                "confirmado nas nórdicas E no Brasil (Série A + Série B)",
+    "criterio": f"amostra_confirmacao >= {AMOSTRA_MINIMA} e impacto_pp >= {IMPACTO_MINIMO_PP}; "
+                "regiao=universal confirmado nas nórdicas E no Brasil; regiao=brasil confirmado só "
+                f"no Brasil (alvos {ALVOS_REGIAO_BRASIL}, aplicadas só a jogos de Série A/B)",
     "fonte": "pesquisa_gols/resultados/*_confirmacao_*.csv (confirmado_bh=True) + "
              "*_confirmacao_brasil_*.csv (confirmado_bh=True) + recalibração por valor atual "
-             "do alvo sobre as 7 ligas (ver recalibrar_por_valor_atual em gerar_regras_sinais.py)",
+             "do alvo (universal: pool de todas as ligas; brasil: só Série A/B — "
+             "ver recalibrar_por_valor_atual em gerar_regras_sinais.py)",
     "total_regras": len(regras),
     "regras": regras,
 }

@@ -78,12 +78,20 @@ def extrair_stats_para_regras(lista_stats, campos):
     lista — evitar quebrar o painel por uma estatística ainda não coberta,
     mas value 0.0 nunca deveria bater um limiar >=1, então o pior caso é a
     regra simplesmente não disparar, não disparar errado).
+
+    "cards" (stat_base do alvo "cartões" — ver pesquisa_gols/gerar_regras_
+    sinais.py) é caso especial: não é 1 campo só da API, é amarelos+vermelhos
+    somados (mesma soma de calcular_cartoes) — por isso fica fora de
+    CAMPO_API_REGRAS (que é sempre 1 nome de API por stat_base).
     """
-    return {
+    valores = {
         campo: extrair_stat(lista_stats, CAMPO_API_REGRAS[campo])
         for campo in campos
         if campo in CAMPO_API_REGRAS
     }
+    if "cards" in campos:
+        valores["cards"] = calcular_cartoes(lista_stats)
+    return valores
 
 
 def calcular_xg_proxy(lista_stats):
