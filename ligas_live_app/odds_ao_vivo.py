@@ -12,6 +12,24 @@ a linha exata e devolve None quando não encontra (liga sem o mercado, linha
 específica não ofertada, linha fechada/suspensa no momento, ou erro de
 rede). Nunca deve derrubar o monitor por causa disso.
 
+ATUALIZAÇÃO (cartões): mercado 255 ("Number of Cards") existe na bet365 pra
+quase todos os jogos de Série A/B (confirmado em 24/25 fixtures recentes) —
+a checagem manual anterior tinha simplesmente deixado esse market_id de
+fora. Diferente de escanteios (que na bet365 usa linha INTEIRA, formato
+Over/Under/Exactly), cartões já vem em linha .5 direto (Over 4.5/Under 4.5
+etc.) — mesmo formato de qualquer outra casa, sem precisar de conversão
+nem fallback. A frequência de atualização AO VIVO (depois do apito inicial)
+parece variar por jogo — em alguns o bet365 só manda a foto pré-jogo, em
+outros manda pelo menos uma atualização já dentro da partida — exatamente
+o mesmo padrão observado em escanteios/chutes nos mesmos jogos (timestamps
+idênticos entre os mercados quando há atualização ao vivo, o que sugere um
+único pulso de atualização da bet365 por jogo que atinge todos os mercados
+juntos, não um mercado "mais vivo" que o outro). Por isso o filtro de
+IDADE_MAXIMA_ODD_MINUTOS já existente cobre isso sem nenhum ajuste: quando
+não há atualização recente o suficiente, simplesmente não acha odd fresca
+(cai no odd_minima sintético, como já acontece hoje pra escanteios/chutes
+em boa parte dos sinais).
+
 NOTA: até esta correção, sportmonks_client.odds_inplay_fixture() chamava um
 endpoint (/odds/inplay/fixtures/{id}) que sempre devolvia "no access" nesta
 assinatura — por isso NENHUM dos 7 sinais gerados até aqui tinha achado odd
@@ -44,6 +62,7 @@ MARKET_ID_POR_ALVO = {
     "escanteios": 67,       # "Corners Over Under" (linha .5 — mercado principal)
     "chutes_totais": 292,   # "Match Shots"
     "chutes_no_alvo": 291,  # "Match Shots on Target"
+    "cartoes": 255,         # "Number of Cards" (linha .5 direto, sem fallback — ver docstring do módulo)
 }
 
 # Fallback só pra escanteios: "Match Corners" (linha INTEIRA, 3 vias
