@@ -118,6 +118,8 @@ def flat_para_linha(flat, bookmaker_id=BOOKMAKER_BET365):
     shots_away = -1 if stats_ausentes else (flat.get("shots_away") or 0)
     shots_on_target_home = -1 if stats_ausentes else (flat.get("shots_on_target_home") or 0)
     shots_on_target_away = -1 if stats_ausentes else (flat.get("shots_on_target_away") or 0)
+    fouls_home = -1 if stats_ausentes else (flat.get("fouls_home") or 0)
+    fouls_away = -1 if stats_ausentes else (flat.get("fouls_away") or 0)
 
     return {
         "home_team_name": flat["home_team"], "away_team_name": flat["away_team"],
@@ -136,7 +138,7 @@ def flat_para_linha(flat, bookmaker_id=BOOKMAKER_BET365):
         "home_team_shots_on_target": shots_on_target_home,
         "away_team_shots_on_target": shots_on_target_away,
         "home_team_possession": flat.get("possession_home") or 50, "away_team_possession": flat.get("possession_away") or 50,
-        "home_team_fouls": flat.get("fouls_home") or 0, "away_team_fouls": flat.get("fouls_away") or 0,
+        "home_team_fouls": fouls_home, "away_team_fouls": fouls_away,
         "odds_ft_home_team_win": _media_odd(odds_1x2, "Home", bookmaker_id=bookmaker_id),
         "odds_ft_draw": _media_odd(odds_1x2, "Draw", bookmaker_id=bookmaker_id),
         "odds_ft_away_team_win": _media_odd(odds_1x2, "Away", bookmaker_id=bookmaker_id),

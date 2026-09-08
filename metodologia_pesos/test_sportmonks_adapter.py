@@ -78,6 +78,8 @@ def test_flat_para_linha_stats_faltando_aciona_sentinela_tambem_em_cartoes_e_chu
     assert linha["away_team_shots"] == -1
     assert linha["home_team_shots_on_target"] == -1
     assert linha["away_team_shots_on_target"] == -1
+    assert linha["home_team_fouls"] == -1
+    assert linha["away_team_fouls"] == -1
 
 
 def test_flat_para_linha_cartao_vermelho_individualmente_ausente_vira_zero():
