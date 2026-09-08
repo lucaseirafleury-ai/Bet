@@ -640,12 +640,29 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
         # Entre as linhas que acharem odd fresca, fica com a de MAIOR valor esperado; se
         # nenhuma tiver EV positivo, não publica — mesma regra de antes, só que agora
         # olhando todas as linhas realmente apostáveis, não só a "oficial" do sinal.
-        candidatos_linha = [(0, linha_original, melhor_stats["p_condicao"], melhor_stats["odd_minima"])]
-        for off_str, viz in (melhor_stats.get("linhas_vizinhas") or {}).items():
-            candidatos_linha.append((int(off_str), viz["linha"], viz["p_condicao"], viz["odd_minima"]))
+        #
+        # Filtro de CONFIABILIDADE (amostra/impacto) primeiro, antes de sequer
+        # tentar odd real: uma linha vizinha vinha entrando só pela conta de EV
+        # (p_condição × odd_real), sem nunca checar se essa linha específica
+        # tem impacto/amostra estatisticamente sólidos (bug real, ver conversa
+        # — algumas linhas vizinhas têm n=4-10 jogos de referência). A
+        # probabilidade mínima de 70% (calibrada só contra odd SINTÉTICA, ver
+        # PROBABILIDADE_MINIMA_VALOR_ATUAL) não se aplica aqui — uma vez que
+        # exista odd REAL, o próprio gate de EV positivo abaixo já é o
+        # filtro de valor de mercado correto, melhor que aquele corte.
+        candidatos_linha = [
+            c for c in [
+                (0, linha_original, melhor_stats["p_condicao"], melhor_stats["odd_minima"], melhor_stats["impacto_pp"]),
+                *[
+                    (int(off_str), viz["linha"], viz["p_condicao"], viz["odd_minima"], viz["impacto_pp"])
+                    for off_str, viz in (melhor_stats.get("linhas_vizinhas") or {}).items()
+                ],
+            ]
+            if c[4] >= IMPACTO_MINIMO_PP_VALOR_ATUAL
+        ]
 
         melhor_odd = None
-        for off, linha_cand, p_cond, odd_min_cand in candidatos_linha:
+        for off, linha_cand, p_cond, odd_min_cand, _impacto_pp_cand in candidatos_linha:
             info = odds_ao_vivo.buscar_odd_real(relatorio["fixture_id"], alvo, direcao, linha_cand)
             if not info:
                 continue
