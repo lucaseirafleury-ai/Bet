@@ -84,6 +84,48 @@ todo lugar), `ledger_apostas.calcular_resumo` (agregação de
 ROI/lucro), `gerar_painel_dia.py` (geração de HTML, filtro de
 resultados recentes) — nada de suspeito encontrado nessas partes.
 
+## Auditoria de fechamento (mesmo dia) — smoke test de ponta a ponta + cross-check por formato diferente
+
+Depois dos 2 bugs acima, três verificações adicionais, cada uma um
+ângulo diferente do "reler o código de novo":
+
+**1. Auditoria do ledger real** (10 apostas resolvidas em produção):
+nenhuma pendente travada, nenhuma inconsistência de lucro/stake/odd
+contra a fórmula. 2 "edges abaixo do limiar atual" investigados —
+ambos são registros de 27/08/2026, um dia antes do limiar de edge≥10%
+entrar em vigor (28/08) — registro histórico correto, não bug ativo.
+
+**2. Smoke test real de ponta a ponta**: rodei
+`previsao_dia.gerar_sugestoes_do_dia()` e
+`checar_decaimento.rodar_checagem()` de verdade, com API ao vivo e
+`data/sportmonks_{seriea,serieb}` atualizado (11 jogos novos/liga via
+`atualizar_fixtures_finalizados`, testando o Bug 2 na prática). Pipeline
+inteiro roda sem erro. BTTS e Over 2.5 reproduzem EXATAMENTE o número
+já documentado; Cartões+Árbitro sobe de n=206→208 (2 jogos novos reais
+entraram na amostra — decaimento normal), mantendo z=+2,56.
+
+**3. Cross-check por formato de cálculo diferente** (pedido do Lucas —
+mais forte que só rodar o mesmo código de novo, que sempre concorda
+consigo mesmo mesmo se tiver um erro sistemático):
+- `pesos.probabilidade_over`/`probabilidade_btts`/`probabilidade_resultado`
+  (fórmula fechada, soma de Poisson analítica) comparadas contra
+  **simulação Monte Carlo** (`numpy`, 2 milhões de sorteios por ponto,
+  7 valores de λ × 5 linhas pra `over`, 6 combinações pra BTTS, 5 pra
+  1x2) — maior diferença encontrada: 0,00065, dentro do ruído esperado
+  de Monte Carlo (~1/√N ≈ 0,0007). Fórmula fechada confirmada correta
+  por um caminho de cálculo totalmente diferente (simulação numérica,
+  não a mesma álgebra).
+- `checar_decaimento.zscore()` (fórmula escrita à mão) comparado contra
+  `scipy.stats.ttest_1samp` (biblioteca estatística padrão, testada por
+  terceiros) nos lucros REAIS dos 3 critérios em produção — diferença
+  na ordem de 1e-15/1e-16 (ruído de ponto flutuante, essencialmente
+  idêntico). Confirma que o z-score do projeto é matematicamente
+  equivalente ao t-statistic padrão de uma amostra.
+
+Nenhum dos dois cross-checks achou divergência — reforça que os 3
+bugs já corrigidos hoje eram os problemas reais, não sintoma de um
+erro matemático mais profundo nas fórmulas centrais do motor.
+
 ## Verificação
 
 `pytest metodologia_pesos/` — 208 testes passando (4 novos: 2 em

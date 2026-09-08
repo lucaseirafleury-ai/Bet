@@ -960,6 +960,23 @@ atualizada, esta lista aqui não é mantida em detalhe:
    folgadamente acima do limiar z≈2. `gerar_painel_dia.CRITERIOS_INFO`
    atualizado com o z mais recente. Ver
    `docs/retrospectiva_conferencia_geral_2026-09-08.md`.
+60. **Auditoria de fechamento — ledger real, smoke test de ponta a
+   ponta, e cross-check por formato de cálculo diferente (pedido do
+   Lucas).** Ledger real (10 apostas) sem pendente travada nem
+   inconsistência. Smoke test real (`gerar_sugestoes_do_dia`/
+   `rodar_checagem`, API ao vivo, dado atualizado) roda sem erro — BTTS/
+   Over 2.5 idênticos ao documentado, Cartões sobe pra n=208 (2 jogos
+   novos, decaimento normal) mantendo z=+2,56. Cross-check mais forte
+   que só rodar o mesmo código de novo: `pesos.probabilidade_over/
+   btts/resultado` (fórmula fechada de Poisson) comparadas contra
+   **simulação Monte Carlo** (numpy, 2M sorteios/ponto) — maior
+   diferença 0,00065, dentro do ruído esperado (~0,0007); e
+   `checar_decaimento.zscore()` comparado contra
+   `scipy.stats.ttest_1samp` nos lucros reais dos 3 critérios —
+   diferença na ordem de 1e-15 (ruído de ponto flutuante). Nenhuma
+   divergência achada — as fórmulas centrais do motor estão
+   matematicamente corretas, confirmado por um caminho de cálculo
+   independente. Ver `docs/retrospectiva_conferencia_geral_2026-09-08.md`.
 
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
