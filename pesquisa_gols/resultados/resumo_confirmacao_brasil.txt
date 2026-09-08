@@ -2,13 +2,15 @@
 Resumo geral
 ======================================================================
 Gols            :    4+  38 testadas no Brasil (amostra suficiente) ->   0+  0 confirmadas
+Ambas Marcam (BTTS):    0+  18 testadas no Brasil (amostra suficiente) ->   0+  0 confirmadas
 Escanteios      :  260+1434 testadas no Brasil (amostra suficiente) -> 246+1100 confirmadas
 Cartões         :   32+ 128 testadas no Brasil (amostra suficiente) ->  28+ 72 confirmadas
+Impedimentos    :    0+   0 testadas no Brasil (amostra suficiente) ->   0+  0 confirmadas
 Chutes totais   :  378+1024 testadas no Brasil (amostra suficiente) -> 356+858 confirmadas
 Chutes no alvo  :   68+  98 testadas no Brasil (amostra suficiente) ->  64+ 84 confirmadas
 
-Das 85 regras hoje ativas no painel, 85 tiveram amostra suficiente no Brasil pra testar. Dessas:
-  52 se confirmaram (mesma direção + significativas, BH) no Brasil
+Das 79 regras hoje ativas no painel, 79 tiveram amostra suficiente no Brasil pra testar. Dessas:
+  79 se confirmaram (mesma direção + significativas, BH) no Brasil
     [escanteios] Chutes totais ≥ 21 aos 90' (3 gol(s) no jogo) → Mais de 8.5 escanteios (p=0.0001, n=330)
     [escanteios] Chutes totais ≥ 6 aos 30' (1 gol(s) no jogo) → Mais de 10.5 escanteios (p=0.0108, n=507)
     [escanteios] Chutes totais ≥ 7 aos 30' (1 gol(s) no jogo) → Mais de 11.5 escanteios (p=0.0001, n=408)
@@ -20,6 +22,7 @@ Das 85 regras hoje ativas no painel, 85 tiveram amostra suficiente no Brasil pra
     [escanteios] Impedimentos ≤ 1 E Chutes totais ≥ 6 aos 30' (1 gol(s) no jogo) → Mais de 9.5 escanteios (p=0.0237, n=384)
     [escanteios] Impedimentos ≤ 1 E Chutes totais ≥ 7 aos 30' (1 gol(s) no jogo) → Mais de 9.5 escanteios (p=0.0002, n=312)
     [escanteios] Ataques ≥ 56 E Chutes totais ≤ 8 aos 30' (1 gol(s) no jogo) → Menos de 9.5 escanteios (p=0.0002, n=261)
+    [escanteios] Ataques perigosos ≤ 29 E Cruzamentos ≤ 12 aos 30' (1 gol(s) no jogo) → Menos de 11.5 escanteios (p=0.0000, n=457)
     [escanteios] Chutes no alvo ≤ 6 E Cruzamentos ≤ 27 aos 60' (2 gol(s) no jogo) → Menos de 10.5 escanteios (p=0.0000, n=251)
     [escanteios] Chutes no alvo ≤ 6 E Cruzamentos ≤ 27 aos 60' (2 gol(s) no jogo) → Menos de 11.5 escanteios (p=0.0000, n=251)
     [escanteios] Defesas ≤ 5 E Chutes no alvo ≤ 7 aos 75' (2 gol(s) no jogo) → Menos de 9.5 escanteios (p=0.0137, n=321)
@@ -53,6 +56,32 @@ Das 85 regras hoje ativas no painel, 85 tiveram amostra suficiente no Brasil pra
     [escanteios] Ataques perigosos ≤ 65 E Chutes totais ≤ 18 aos 60' (1 gol(s) no jogo) → Menos de 8.5 escanteios (p=0.0015, n=482)
     [escanteios] Faltas ≤ 17 E Chutes totais ≥ 13 aos 60' (1 gol(s) no jogo) → Mais de 11.5 escanteios (p=0.0000, n=345)
     [escanteios] Chutes no alvo ≥ 4 E Chutes totais ≥ 13 aos 60' (1 gol(s) no jogo) → Mais de 11.5 escanteios (p=0.0001, n=466)
+    [cartoes] Faltas ≥ 11 aos 45' (0 gol(s) no jogo) → Mais de 4.5 cartões (p=0.0001, n=447)
+    [cartoes] Faltas ≤ 6 aos 30' (0 gol(s) no jogo) → Menos de 4.5 cartões (p=0.0000, n=401)
+    [cartoes] Faltas ≤ 7 aos 30' (0 gol(s) no jogo) → Menos de 4.5 cartões (p=0.0001, n=565)
+    [cartoes] Faltas ≥ 8 aos 30' (0 gol(s) no jogo) → Mais de 4.5 cartões (p=0.0001, n=525)
+    [cartoes] Faltas ≤ 15 aos 60' (1 gol(s) no jogo) → Menos de 3.5 cartões (p=0.0001, n=309)
+    [cartoes] Faltas ≤ 8 aos 30' (0 gol(s) no jogo) → Menos de 4.5 cartões (p=0.0000, n=712)
+    [cartoes] Faltas ≤ 15 aos 60' (1 gol(s) no jogo) → Menos de 4.5 cartões (p=0.0000, n=309)
+    [cartoes] Faltas ≤ 17 aos 60' (1 gol(s) no jogo) → Menos de 4.5 cartões (p=0.0000, n=438)
+    [cartoes] Faltas ≤ 7 E hit_woodwork ≤ 0 aos 30' (0 gol(s) no jogo) → Menos de 5.5 cartões (p=0.0003, n=474)
+    [cartoes] Ataques ≥ 86 E Faltas ≤ 12 aos 45' (1 gol(s) no jogo) → Menos de 4.5 cartões (p=0.0000, n=287)
+    [cartoes] Faltas ≤ 4 E Interceptações ≥ 3 aos 15' (0 gol(s) no jogo) → Menos de 4.5 cartões (p=0.0031, n=511)
+    [cartoes] Faltas ≥ 8 E Cruzamentos ≤ 12 aos 30' (0 gol(s) no jogo) → Mais de 3.5 cartões (p=0.0000, n=401)
+    [cartoes] Ataques perigosos ≤ 33 E Faltas ≥ 8 aos 30' (0 gol(s) no jogo) → Mais de 4.5 cartões (p=0.0003, n=496)
+    [cartoes] Faltas ≥ 6 E Chutes totais ≤ 7 aos 30' (0 gol(s) no jogo) → Mais de 4.5 cartões (p=0.0002, n=589)
+    [cartoes] Faltas ≥ 7 E Chutes totais ≤ 7 aos 30' (0 gol(s) no jogo) → Mais de 4.5 cartões (p=0.0001, n=486)
+    [cartoes] Faltas ≥ 8 E Dribles certos ≤ 4 aos 30' (0 gol(s) no jogo) → Mais de 4.5 cartões (p=0.0014, n=380)
+    [cartoes] Faltas ≤ 8 E Interceptações ≥ 4 aos 30' (0 gol(s) no jogo) → Menos de 4.5 cartões (p=0.0000, n=515)
+    [cartoes] Faltas ≤ 8 E % dribles certos ≥ 71 aos 30' (0 gol(s) no jogo) → Menos de 4.5 cartões (p=0.0014, n=489)
+    [cartoes] Ataques perigosos ≤ 29 E Faltas ≥ 6 aos 30' (0 gol(s) no jogo) → Mais de 5.5 cartões (p=0.0000, n=700)
+    [cartoes] Ataques perigosos ≤ 29 E Faltas ≥ 7 aos 30' (0 gol(s) no jogo) → Mais de 5.5 cartões (p=0.0000, n=578)
+    [cartoes] Faltas ≥ 6 E Chutes totais ≤ 6 aos 30' (0 gol(s) no jogo) → Mais de 5.5 cartões (p=0.0004, n=458)
+    [cartoes] Faltas ≥ 6 E Chutes de fora da área ≤ 2 aos 30' (0 gol(s) no jogo) → Mais de 5.5 cartões (p=0.0037, n=372)
+    [cartoes] Faltas ≥ 8 E % dribles certos ≤ 125 aos 30' (0 gol(s) no jogo) → Mais de 5.5 cartões (p=0.0009, n=380)
+    [cartoes] Faltas ≥ 8 E Cruzamentos ≤ 12 aos 30' (0 gol(s) no jogo) → Mais de 5.5 cartões (p=0.0000, n=401)
+    [cartoes] Faltas ≤ 11 E Chutes de dentro da área ≥ 5 aos 45' (1 gol(s) no jogo) → Menos de 3.5 cartões (p=0.0000, n=289)
+    [cartoes] Faltas ≤ 12 E Chutes de dentro da área ≥ 5 aos 45' (1 gol(s) no jogo) → Menos de 3.5 cartões (p=0.0000, n=351)
     [chutes_totais] Escanteios ≤ 6 aos 60' (1 gol(s) no jogo) → Menos de 20.5 chutes totais (p=0.0008, n=394)
     [chutes_totais] Escanteios ≤ 10 aos 90' (2 gol(s) no jogo) → Menos de 24.5 chutes totais (p=0.0000, n=383)
     [chutes_totais] Escanteios ≤ 1 E Ataques perigosos ≤ 16 aos 15' (0 gol(s) no jogo) → Menos de 20.5 chutes totais (p=0.0005, n=822)
