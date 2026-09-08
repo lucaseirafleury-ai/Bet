@@ -30,12 +30,33 @@ ALLSVENSKAN_LEAGUE_ID = 573  # mesmo id já usado em ligas_live_app/config.py
 INTERVALO_ENTRE_FIXTURES_SEGUNDOS = 0.3
 INTERVALO_CHECKPOINT_FIXTURES = 20  # salva o progresso a cada N fixtures processadas
 
-# Mesmos ids de ligas_live_app/config.py -> LIGAS_MONITORADAS
+# Bug real corrigido aqui (ver conversa, cross-check das regras): este dict
+# tinha ficado desatualizado — ainda tinha A Lyga (405) e 1. Lyga (408), que
+# a Sportmonks não é mais monitorada ao vivo pelo painel real, no lugar de
+# Série A/B. O comentário abaixo sempre disse "mesmos ids de
+# ligas_live_app/config.py", mas não era mais verdade — a confirmação em
+# "outras ligas" (buscar_multiliga.py) estava validando regras contra duas
+# ligas retiradas em vez das que realmente rodam em produção.
+#
+# Decisão (ver conversa): A Lyga/1. Lyga ficam de fora do pool ativo de
+# confirmação — não vamos mais monitorar jogos delas, então uma regra não
+# precisa (nem deveria) depender de confirmar lá. Os checkpoints delas
+# continuam em dados/ (não apagados) — servem de referência/comparação se
+# precisar no futuro, só não entram mais em LIGAS_MONITORADAS. Série A/B
+# não entram aqui (nesse dict que vira o pool "outras ligas" nórdico) —
+# elas já têm seu próprio caminho de confirmação dedicado, mais rigoroso,
+# em confirmar_brasil.py (testado separadamente, não misturado com as
+# nórdicas — evita mascarar um efeito região-específico ao juntar tudo
+# numa pool só, tipo paradoxo de Simpson, caso real encontrado com
+# chutes_totais: confirmava no pool antigo com A Lyga/1.Lyga mas não
+# sobrevivia trocando por Série A/B).
+#
+# Mesmos ids de ligas_live_app/config.py -> LIGAS_MONITORADAS, exceto que
+# Série A (648) e Série B (651) são tratadas à parte (ver acima) — não
+# entram neste dict.
 LIGAS_MONITORADAS = {
     573: "Allsvenskan",
     579: "Superettan",
-    405: "A Lyga",
-    408: "1. Lyga",
     447: "1. Division",
 }
 
