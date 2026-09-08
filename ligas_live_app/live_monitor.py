@@ -47,6 +47,17 @@ from live_poisson import (
 # aparecem no painel como "ao vivo" travados no minuto 1, com tudo zerado.
 ESTADOS_REALMENTE_AO_VIVO = {2, 3, 4, 6, 9, 21, 22, 23, 25}
 
+# Estados que confirmam que o jogo REALMENTE terminou (Full Time / After Extra
+# Time / After Penalties) — usado só em _arquivar_jogo_finalizado, pra nunca
+# tratar um placar PARCIAL como final. Um fixture pode sumir de
+# /livescores/inplay por não estar mais em ESTADOS_REALMENTE_AO_VIVO por
+# outros motivos além de "acabou" (Suspenso, Interrompido, Atrasado — estados
+# reais da API), e sem essa checagem esses casos eram arquivados igual, com o
+# placar do momento da suspensão tratado como resultado final — corrompendo
+# silenciosamente o green/red do histórico de assertividade (bug real, ver
+# conversa).
+ESTADOS_FIM_DE_JOGO = {5, 7, 8}
+
 
 # ── Persistência simples em JSON ──────────────────────────────
 
@@ -148,37 +159,50 @@ def _arquivar_jogo_finalizado(fixture_id, snapshot_final, insights):
     final e os eventos de gol direto na Sportmonks (uma chamada extra, só
     aqui, pra pegar o minuto de cada gol) e arquiva junto com o último
     snapshot conhecido e todos os sinais que dispararam nesse jogo.
+
+    Só arquiva de verdade quando a Sportmonks CONFIRMA que o jogo terminou
+    (state_id em ESTADOS_FIM_DE_JOGO). Sumir de /livescores/inplay não quer
+    dizer necessariamente "acabou" — pode ser Suspenso/Interrompido/Atrasado,
+    estados reais que também saem de ESTADOS_REALMENTE_AO_VIVO — e uma falha
+    passageira ao buscar os detalhes também não deveria virar "fim de jogo"
+    por padrão. Em qualquer um desses casos devolve None: quem chama (ciclo())
+    mantém o snapshot antigo pra tentar arquivar de novo no próximo ciclo, em
+    vez de arquivar um placar PARCIAL como se fosse o resultado final (bug
+    real, ver conversa — corrompia silenciosamente o green/red do histórico).
     """
     if snapshot_final is None:
-        return
+        return None
 
-    eventos_gols = []
-    gols_home_final = snapshot_final.get("gols_home")
-    gols_away_final = snapshot_final.get("gols_away")
     try:
         fixture = sm.fixture_by_id(fixture_id, include="events.type;participants;scores")
     except Exception as e:
-        fixture = None
-        print(f"[arquivo] não deu pra buscar detalhes finais do fixture {fixture_id}: {e}")
+        print(f"[arquivo] não deu pra buscar detalhes finais do fixture {fixture_id}: {e} — tentando de novo no próximo ciclo")
+        return None
 
-    if fixture:
-        eventos_gols = extrair_eventos_gols(fixture)
-        participants = fixture.get("participants", [])
-        home_p = next((p for p in participants if p["meta"]["location"] == "home"), None)
-        away_p = next((p for p in participants if p["meta"]["location"] == "away"), None)
-        scores = fixture.get("scores", [])
-        if home_p:
-            gols_home_final = next(
-                (s["score"]["goals"] for s in scores
-                 if s.get("description") == "CURRENT" and s.get("participant_id") == home_p["id"]),
-                gols_home_final,
-            )
-        if away_p:
-            gols_away_final = next(
-                (s["score"]["goals"] for s in scores
-                 if s.get("description") == "CURRENT" and s.get("participant_id") == away_p["id"]),
-                gols_away_final,
-            )
+    if not fixture or fixture.get("state_id") not in ESTADOS_FIM_DE_JOGO:
+        estado = fixture.get("state_id") if fixture else None
+        print(f"[arquivo] fixture {fixture_id} sumiu do feed ao vivo mas state_id={estado} não confirma fim de jogo — tentando de novo no próximo ciclo")
+        return None
+
+    eventos_gols = extrair_eventos_gols(fixture)
+    gols_home_final = snapshot_final.get("gols_home")
+    gols_away_final = snapshot_final.get("gols_away")
+    participants = fixture.get("participants", [])
+    home_p = next((p for p in participants if p["meta"]["location"] == "home"), None)
+    away_p = next((p for p in participants if p["meta"]["location"] == "away"), None)
+    scores = fixture.get("scores", [])
+    if home_p:
+        gols_home_final = next(
+            (s["score"]["goals"] for s in scores
+             if s.get("description") == "CURRENT" and s.get("participant_id") == home_p["id"]),
+            gols_home_final,
+        )
+    if away_p:
+        gols_away_final = next(
+            (s["score"]["goals"] for s in scores
+             if s.get("description") == "CURRENT" and s.get("participant_id") == away_p["id"]),
+            gols_away_final,
+        )
 
     sinais_do_jogo = [i for i in insights if i.get("fixture_id") == fixture_id]
 
@@ -796,6 +820,14 @@ def ciclo():
                 estado_gols["pendentes"] = [
                     s for s in estado_gols["pendentes"] if s["fixture_id"] != fixture_id_antigo
                 ]
+            else:
+                # Fim de jogo ainda não confirmado (suspenso/interrompido/erro
+                # passageiro) — mantém o snapshot pro próximo ciclo tentar
+                # arquivar de novo, em vez de simplesmente perder o jogo da
+                # lista (o que faria o "sumiu do feed" nunca mais disparar
+                # pra ele, já que a comparação é sempre contra o snapshot do
+                # ciclo anterior).
+                snapshots[fixture_id_str] = snap
 
     for f in fixtures_monitoradas:
         fixture_id = f["id"]
