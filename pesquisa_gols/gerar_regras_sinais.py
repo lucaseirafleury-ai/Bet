@@ -25,6 +25,16 @@ AMOSTRA_MINIMA_VALOR_ATUAL = 30  # abaixo disso, a proporção não é confiáve
 AMOSTRA_MINIMA = 200
 IMPACTO_MINIMO_PP = 5.0
 
+# Piso mais permissivo só pra confirmação nórdica (Superettan+1.Division) —
+# ver conversa: esse pool tem só 1.448 jogos no total (Allsvenskan fica de
+# fora, é a liga de descoberta), contra ~2.284 do Brasil, então exigir os
+# mesmos 200 de lá deixa MUITA condição sem amostra suficiente pra sequer ser
+# testada. Baixar pra 150 recupera sinal genuíno ali (12 -> 23 aplicáveis em
+# jogo nórdico, a maioria virando "universal"). NÃO se aplica ao Brasil — lá
+# a amostra já é abundante, e afrouxar o piso só pioraria o problema que a
+# dedup por âncora foi criada pra conter (excesso de sinal, não falta).
+AMOSTRA_MINIMA_NORDICAS = 150
+
 ALVOS = ["escanteios", "chutes_totais", "chutes_no_alvo", "gols", "cartoes"]
 # Alvos com regras "regiao=brasil" — confirmam contra Série A/B mas NÃO
 # confirmaram nas ligas nórdicas (ou nem chegaram a amostra_confirmacao>=200
@@ -495,7 +505,7 @@ CONFIRMADAS_BRASIL = _carregar_confirmadas_brasil()
 # completo (nunca virava regra nem pras próprias ligas nórdicas onde already
 # se provou fora da amostra — achado real, ver conversa: 17 condições de
 # escanteios/chutes_totais estavam sendo jogadas fora assim).
-fortes_nordicas_bruto = [s for s in sinais if s["amostra"] >= AMOSTRA_MINIMA and s["impacto"] >= IMPACTO_MINIMO_PP]
+fortes_nordicas_bruto = [s for s in sinais if s["amostra"] >= AMOSTRA_MINIMA_NORDICAS and s["impacto"] >= IMPACTO_MINIMO_PP]
 
 fortes_universal_pre = [s for s in fortes_nordicas_bruto if _chave_brasil(s) in CONFIRMADAS_BRASIL]
 for s in fortes_universal_pre:
