@@ -113,6 +113,7 @@ def _avaliar_sinais_confirmados(sinais_do_jogo, registro):
         "escanteios": (registro.get("escanteios_home") or 0) + (registro.get("escanteios_away") or 0),
         "chutes_totais": (sc_home.get("finalizacoes") or 0) + (sc_away.get("finalizacoes") or 0),
         "chutes_no_alvo": (sc_home.get("chutes_no_alvo") or 0) + (sc_away.get("chutes_no_alvo") or 0),
+        "cartoes": (registro.get("cartoes_home") or 0) + (registro.get("cartoes_away") or 0),
     }
     for sinal in sinais_do_jogo:
         alvo = sinal.get("alvo")
@@ -505,6 +506,20 @@ def _regra_bate(regra, valores):
     return True
 
 
+# Ligas onde uma regra "regiao": "brasil" pode disparar — ver
+# pesquisa_gols/gerar_regras_sinais.py: cartões confirma forte em Série A/B
+# mas não confirmou nas ligas nórdicas (pode ser efeito real, só que
+# específico de como os árbitros brasileiros apitam) — regra assim nunca
+# deve avaliar como válida fora dessas duas ligas.
+LIGAS_REGIAO_BRASIL = {"Série A", "Série B"}
+
+
+def _regra_vale_para_liga(regra, liga):
+    if regra.get("regiao") == "brasil":
+        return liga in LIGAS_REGIAO_BRASIL
+    return True  # "universal" (ou regra antiga sem o campo) vale em qualquer liga monitorada
+
+
 def _stats_para_valor_atual(regra, valores_combinados):
     """
     Busca a estimativa de probabilidade/impacto da regra CONDICIONADA ao
@@ -585,7 +600,10 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
             f" Confirmado por {n_condicoes} condições independentes (a mais forte: {melhor_regra['rotulo']})."
             if n_condicoes > 1 else f" Condição: {melhor_regra['rotulo']}."
         )
-        nome_alvo_valor = "escanteios" if alvo == "escanteios" else ("chutes totais" if alvo == "chutes_totais" else "chutes no alvo")
+        nome_alvo_valor = {
+            "escanteios": "escanteios", "chutes_totais": "chutes totais",
+            "chutes_no_alvo": "chutes no alvo", "cartoes": "cartões",
+        }[alvo]
         linha_original = melhor_regra["mercado"]["linha"]
         direcao_rotulo = "Mais de" if direcao == "mais_de" else "Menos de"
 
@@ -693,6 +711,8 @@ def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combi
         if not (checkpoint <= minuto <= checkpoint + JANELA_MINUTOS_REGRA):
             continue
         for regra in REGRAS_POR_CHECKPOINT_PLACAR.get((checkpoint, gols_totais_jogo), []):
+            if not _regra_vale_para_liga(regra, relatorio["liga"]):
+                continue
             if not _regra_bate(regra, valores_combinados):
                 continue
             stats = _stats_para_valor_atual(regra, valores_combinados)

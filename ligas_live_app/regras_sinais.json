@@ -1,8 +1,5428 @@
 {
-  "criterio": "amostra_confirmacao >= 200 e impacto_pp >= 5.0, confirmado nas nórdicas E no Brasil (Série A + Série B)",
-  "fonte": "pesquisa_gols/resultados/*_confirmacao_*.csv (confirmado_bh=True) + *_confirmacao_brasil_*.csv (confirmado_bh=True) + recalibração por valor atual do alvo sobre as 7 ligas (ver recalibrar_por_valor_atual em gerar_regras_sinais.py)",
-  "total_regras": 52,
+  "criterio": "amostra_confirmacao >= 200 e impacto_pp >= 5.0; regiao=universal confirmado nas nórdicas E no Brasil; regiao=brasil confirmado só no Brasil (alvos ['cartoes'], aplicadas só a jogos de Série A/B)",
+  "fonte": "pesquisa_gols/resultados/*_confirmacao_*.csv (confirmado_bh=True) + *_confirmacao_brasil_*.csv (confirmado_bh=True) + recalibração por valor atual do alvo (universal: pool de todas as ligas; brasil: só Série A/B — ver recalibrar_por_valor_atual em gerar_regras_sinais.py)",
+  "total_regras": 78,
   "regras": [
+    {
+      "id": "cartoes_001",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 45,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "attacks",
+          "operador": ">=",
+          "limite": 86.0
+        },
+        {
+          "stat": "fouls",
+          "operador": "<=",
+          "limite": 12.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "menos_de",
+        "linha": 4.5
+      },
+      "mercado_curto": "Menos de 4.5 cartões",
+      "amostra_confirmacao": 287,
+      "prob_base_confirmacao": 0.3866,
+      "prob_condicao_confirmacao": 0.5122,
+      "impacto_pp": 12.56,
+      "p_valor_confirmacao": 4.2701930441916304e-08,
+      "odd_minima_referencia": 1.95,
+      "rotulo": "Ataques ≥ 86 E Faltas ≤ 12 aos 45' (1 gol(s) no jogo) → Menos de 4.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "2": {
+          "n": 61,
+          "n_usado": 61,
+          "p_condicao": 0.4426,
+          "p_base": 0.28,
+          "impacto_pp": 16.26,
+          "odd_minima": 2.26,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 61,
+              "n_usado": 61,
+              "p_condicao": 0.1967,
+              "impacto_pp": 8.24,
+              "odd_minima": 5.08
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 61,
+              "n_usado": 61,
+              "p_condicao": 0.623,
+              "impacto_pp": 14.87,
+              "odd_minima": 1.61
+            }
+          }
+        },
+        "1": {
+          "n": 94,
+          "n_usado": 94,
+          "p_condicao": 0.5532,
+          "p_base": 0.4603,
+          "impacto_pp": 9.29,
+          "odd_minima": 1.81,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 94,
+              "n_usado": 94,
+              "p_condicao": 0.4468,
+              "impacto_pp": 14.14,
+              "odd_minima": 2.24
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 94,
+              "n_usado": 94,
+              "p_condicao": 0.6809,
+              "impacto_pp": 4.07,
+              "odd_minima": 1.47
+            }
+          }
+        },
+        "4": {
+          "n": 10,
+          "n_usado": 61,
+          "p_condicao": 0.4426,
+          "p_base": 0.0732,
+          "impacto_pp": 36.95,
+          "odd_minima": 2.26,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 10,
+              "n_usado": 61,
+              "p_condicao": 0.1967,
+              "impacto_pp": 17.23,
+              "odd_minima": 5.08
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 10,
+              "n_usado": 61,
+              "p_condicao": 0.623,
+              "impacto_pp": 47.66,
+              "odd_minima": 1.61
+            }
+          }
+        },
+        "5": {
+          "n": 4,
+          "n_usado": 61,
+          "p_condicao": 0.4426,
+          "p_base": 0.0732,
+          "impacto_pp": 36.95,
+          "odd_minima": 2.26,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 4,
+              "n_usado": 61,
+              "p_condicao": 0.1967,
+              "impacto_pp": 17.23,
+              "odd_minima": 5.08
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 4,
+              "n_usado": 61,
+              "p_condicao": 0.623,
+              "impacto_pp": 47.66,
+              "odd_minima": 1.61
+            }
+          }
+        },
+        "3": {
+          "n": 25,
+          "n_usado": 61,
+          "p_condicao": 0.4426,
+          "p_base": 0.1827,
+          "impacto_pp": 25.99,
+          "odd_minima": 2.26,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 25,
+              "n_usado": 61,
+              "p_condicao": 0.1967,
+              "impacto_pp": 12.94,
+              "odd_minima": 5.08
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 25,
+              "n_usado": 61,
+              "p_condicao": 0.623,
+              "impacto_pp": 32.49,
+              "odd_minima": 1.61
+            }
+          }
+        },
+        "0": {
+          "n": 93,
+          "n_usado": 93,
+          "p_condicao": 0.6559,
+          "p_base": 0.6294,
+          "impacto_pp": 2.65,
+          "odd_minima": 1.52,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 93,
+              "n_usado": 93,
+              "p_condicao": 0.4731,
+              "impacto_pp": 6.7,
+              "odd_minima": 2.11
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 93,
+              "n_usado": 93,
+              "p_condicao": 0.7527,
+              "impacto_pp": -1.89,
+              "odd_minima": 1.33
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_002",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 60,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": "<=",
+          "limite": 15.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "menos_de",
+        "linha": 4.5
+      },
+      "mercado_curto": "Menos de 4.5 cartões",
+      "amostra_confirmacao": 309,
+      "prob_base_confirmacao": 0.3757,
+      "prob_condicao_confirmacao": 0.4887,
+      "impacto_pp": 11.3,
+      "p_valor_confirmacao": 6.852310627838788e-08,
+      "odd_minima_referencia": 2.05,
+      "rotulo": "Faltas ≤ 15 aos 60' (1 gol(s) no jogo) → Menos de 4.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "4": {
+          "n": 38,
+          "n_usado": 38,
+          "p_condicao": 0.1579,
+          "p_base": 0.1359,
+          "impacto_pp": 2.2,
+          "odd_minima": 6.33,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 38,
+              "n_usado": 38,
+              "p_condicao": 0.0526,
+              "impacto_pp": 0.41,
+              "odd_minima": 19.0
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 38,
+              "n_usado": 38,
+              "p_condicao": 0.4211,
+              "impacto_pp": 17.83,
+              "odd_minima": 2.38
+            }
+          }
+        },
+        "6": {
+          "n": 9,
+          "n_usado": 38,
+          "p_condicao": 0.1579,
+          "p_base": 0.0,
+          "impacto_pp": 15.79,
+          "odd_minima": 6.33,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 9,
+              "n_usado": 38,
+              "p_condicao": 0.0526,
+              "impacto_pp": 5.26,
+              "odd_minima": 19.0
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 9,
+              "n_usado": 38,
+              "p_condicao": 0.4211,
+              "impacto_pp": 42.11,
+              "odd_minima": 2.38
+            }
+          }
+        },
+        "2": {
+          "n": 73,
+          "n_usado": 73,
+          "p_condicao": 0.4521,
+          "p_base": 0.4233,
+          "impacto_pp": 2.87,
+          "odd_minima": 2.21,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 73,
+              "n_usado": 73,
+              "p_condicao": 0.2329,
+              "impacto_pp": -0.64,
+              "odd_minima": 4.29
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 73,
+              "n_usado": 73,
+              "p_condicao": 0.6849,
+              "impacto_pp": 0.39,
+              "odd_minima": 1.46
+            }
+          }
+        },
+        "0": {
+          "n": 40,
+          "n_usado": 40,
+          "p_condicao": 0.85,
+          "p_base": 0.8615,
+          "impacto_pp": -1.15,
+          "odd_minima": 1.18,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 40,
+              "n_usado": 40,
+              "p_condicao": 0.675,
+              "impacto_pp": -0.19,
+              "odd_minima": 1.48
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 40,
+              "n_usado": 40,
+              "p_condicao": 0.9,
+              "impacto_pp": 0.77,
+              "odd_minima": 1.11
+            }
+          }
+        },
+        "5": {
+          "n": 11,
+          "n_usado": 38,
+          "p_condicao": 0.1579,
+          "p_base": 0.0,
+          "impacto_pp": 15.79,
+          "odd_minima": 6.33,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 11,
+              "n_usado": 38,
+              "p_condicao": 0.0526,
+              "impacto_pp": 5.26,
+              "odd_minima": 19.0
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 11,
+              "n_usado": 38,
+              "p_condicao": 0.4211,
+              "impacto_pp": 34.7,
+              "odd_minima": 2.38
+            }
+          }
+        },
+        "3": {
+          "n": 54,
+          "n_usado": 54,
+          "p_condicao": 0.3519,
+          "p_base": 0.2695,
+          "impacto_pp": 8.23,
+          "odd_minima": 2.84,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 54,
+              "n_usado": 54,
+              "p_condicao": 0.1296,
+              "impacto_pp": 3.03,
+              "odd_minima": 7.71
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 54,
+              "n_usado": 54,
+              "p_condicao": 0.463,
+              "impacto_pp": 2.32,
+              "odd_minima": 2.16
+            }
+          }
+        },
+        "1": {
+          "n": 82,
+          "n_usado": 82,
+          "p_condicao": 0.7195,
+          "p_base": 0.6364,
+          "impacto_pp": 8.31,
+          "odd_minima": 1.39,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 82,
+              "n_usado": 82,
+              "p_condicao": 0.5244,
+              "impacto_pp": 6.34,
+              "odd_minima": 1.91
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 82,
+              "n_usado": 82,
+              "p_condicao": 0.8537,
+              "impacto_pp": 8.09,
+              "odd_minima": 1.17
+            }
+          }
+        },
+        "8": {
+          "n": 2,
+          "n_usado": 38,
+          "p_condicao": 0.1579,
+          "p_base": 0.0,
+          "impacto_pp": 15.79,
+          "odd_minima": 6.33,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 2,
+              "n_usado": 38,
+              "p_condicao": 0.0526,
+              "impacto_pp": 5.26,
+              "odd_minima": 19.0
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 2,
+              "n_usado": 38,
+              "p_condicao": 0.4211,
+              "impacto_pp": 42.11,
+              "odd_minima": 2.38
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_003",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": ">=",
+          "limite": 8.0
+        },
+        {
+          "stat": "total_crosses",
+          "operador": "<=",
+          "limite": 12.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "mais_de",
+        "linha": 5.5
+      },
+      "mercado_curto": "Mais de 5.5 cartões",
+      "amostra_confirmacao": 401,
+      "prob_base_confirmacao": 0.4633,
+      "prob_condicao_confirmacao": 0.5761,
+      "impacto_pp": 11.28,
+      "p_valor_confirmacao": 1.2309853172509382e-08,
+      "odd_minima_referencia": 1.74,
+      "rotulo": "Faltas ≥ 8 E Cruzamentos ≤ 12 aos 30' (0 gol(s) no jogo) → Mais de 5.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "2": {
+          "n": 65,
+          "n_usado": 65,
+          "p_condicao": 0.7077,
+          "p_base": 0.6577,
+          "impacto_pp": 5.0,
+          "odd_minima": 1.41,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 65,
+              "n_usado": 65,
+              "p_condicao": 0.7692,
+              "impacto_pp": 1.08,
+              "odd_minima": 1.3
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 65,
+              "n_usado": 65,
+              "p_condicao": 0.5385,
+              "impacto_pp": 8.21,
+              "odd_minima": 1.86
+            }
+          }
+        },
+        "4": {
+          "n": 11,
+          "n_usado": 37,
+          "p_condicao": 0.8649,
+          "p_base": 0.807,
+          "impacto_pp": 5.78,
+          "odd_minima": 1.16,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 11,
+              "n_usado": 37,
+              "p_condicao": 0.9189,
+              "impacto_pp": 0.66,
+              "odd_minima": 1.09
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 11,
+              "n_usado": 37,
+              "p_condicao": 0.7568,
+              "impacto_pp": 3.75,
+              "odd_minima": 1.32
+            }
+          }
+        },
+        "3": {
+          "n": 37,
+          "n_usado": 37,
+          "p_condicao": 0.8649,
+          "p_base": 0.807,
+          "impacto_pp": 5.78,
+          "odd_minima": 1.16,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 37,
+              "n_usado": 37,
+              "p_condicao": 0.9189,
+              "impacto_pp": 0.66,
+              "odd_minima": 1.09
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 37,
+              "n_usado": 37,
+              "p_condicao": 0.7568,
+              "impacto_pp": 3.75,
+              "odd_minima": 1.32
+            }
+          }
+        },
+        "1": {
+          "n": 132,
+          "n_usado": 132,
+          "p_condicao": 0.6364,
+          "p_base": 0.5327,
+          "impacto_pp": 10.36,
+          "odd_minima": 1.57,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 132,
+              "n_usado": 132,
+              "p_condicao": 0.8106,
+              "impacto_pp": 9.63,
+              "odd_minima": 1.23
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 132,
+              "n_usado": 132,
+              "p_condicao": 0.4242,
+              "impacto_pp": 6.41,
+              "odd_minima": 2.36
+            }
+          }
+        },
+        "0": {
+          "n": 154,
+          "n_usado": 154,
+          "p_condicao": 0.3636,
+          "p_base": 0.3068,
+          "impacto_pp": 5.68,
+          "odd_minima": 2.75,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 154,
+              "n_usado": 154,
+              "p_condicao": 0.513,
+              "impacto_pp": 4.9,
+              "odd_minima": 1.95
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 154,
+              "n_usado": 154,
+              "p_condicao": 0.2208,
+              "impacto_pp": 2.76,
+              "odd_minima": 4.53
+            }
+          }
+        },
+        "7": {
+          "n": 1,
+          "n_usado": 37,
+          "p_condicao": 0.8649,
+          "p_base": 0.807,
+          "impacto_pp": 5.78,
+          "odd_minima": 1.16,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 1,
+              "n_usado": 37,
+              "p_condicao": 0.9189,
+              "impacto_pp": 0.66,
+              "odd_minima": 1.09
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 1,
+              "n_usado": 37,
+              "p_condicao": 0.7568,
+              "impacto_pp": 3.75,
+              "odd_minima": 1.32
+            }
+          }
+        },
+        "5": {
+          "n": 1,
+          "n_usado": 37,
+          "p_condicao": 0.8649,
+          "p_base": 0.807,
+          "impacto_pp": 5.78,
+          "odd_minima": 1.16,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 1,
+              "n_usado": 37,
+              "p_condicao": 0.9189,
+              "impacto_pp": 0.66,
+              "odd_minima": 1.09
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 1,
+              "n_usado": 37,
+              "p_condicao": 0.7568,
+              "impacto_pp": 3.75,
+              "odd_minima": 1.32
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_004",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 45,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": "<=",
+          "limite": 11.0
+        },
+        {
+          "stat": "shots_insidebox",
+          "operador": ">=",
+          "limite": 5.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "menos_de",
+        "linha": 3.5
+      },
+      "mercado_curto": "Menos de 3.5 cartões",
+      "amostra_confirmacao": 289,
+      "prob_base_confirmacao": 0.2294,
+      "prob_condicao_confirmacao": 0.3183,
+      "impacto_pp": 8.89,
+      "p_valor_confirmacao": 6.269128409637313e-06,
+      "odd_minima_referencia": 3.14,
+      "rotulo": "Faltas ≤ 11 E Chutes de dentro da área ≥ 5 aos 45' (1 gol(s) no jogo) → Menos de 3.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "3": {
+          "n": 27,
+          "n_usado": 67,
+          "p_condicao": 0.1194,
+          "p_base": 0.0673,
+          "impacto_pp": 5.21,
+          "odd_minima": 8.38,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 27,
+              "n_usado": 67,
+              "p_condicao": 0.0448,
+              "impacto_pp": 1.59,
+              "odd_minima": 22.33
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 27,
+              "n_usado": 67,
+              "p_condicao": 0.3134,
+              "impacto_pp": 13.07,
+              "odd_minima": 3.19
+            }
+          }
+        },
+        "2": {
+          "n": 67,
+          "n_usado": 67,
+          "p_condicao": 0.1194,
+          "p_base": 0.1143,
+          "impacto_pp": 0.51,
+          "odd_minima": 8.38,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 67,
+              "n_usado": 67,
+              "p_condicao": 0.0448,
+              "impacto_pp": 0.48,
+              "odd_minima": 22.33
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 67,
+              "n_usado": 67,
+              "p_condicao": 0.3134,
+              "impacto_pp": 3.34,
+              "odd_minima": 3.19
+            }
+          }
+        },
+        "1": {
+          "n": 82,
+          "n_usado": 82,
+          "p_condicao": 0.4268,
+          "p_base": 0.3054,
+          "impacto_pp": 12.14,
+          "odd_minima": 2.34,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 82,
+              "n_usado": 82,
+              "p_condicao": 0.2317,
+              "impacto_pp": 5.18,
+              "odd_minima": 4.32
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 82,
+              "n_usado": 82,
+              "p_condicao": 0.5854,
+              "impacto_pp": 12.51,
+              "odd_minima": 1.71
+            }
+          }
+        },
+        "4": {
+          "n": 6,
+          "n_usado": 67,
+          "p_condicao": 0.1194,
+          "p_base": 0.0244,
+          "impacto_pp": 9.5,
+          "odd_minima": 8.38,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 6,
+              "n_usado": 67,
+              "p_condicao": 0.0448,
+              "impacto_pp": 2.04,
+              "odd_minima": 22.33
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 6,
+              "n_usado": 67,
+              "p_condicao": 0.3134,
+              "impacto_pp": 24.03,
+              "odd_minima": 3.19
+            }
+          }
+        },
+        "0": {
+          "n": 99,
+          "n_usado": 99,
+          "p_condicao": 0.4747,
+          "p_base": 0.4061,
+          "impacto_pp": 6.87,
+          "odd_minima": 2.11,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 99,
+              "n_usado": 99,
+              "p_condicao": 0.3131,
+              "impacto_pp": 5.93,
+              "odd_minima": 3.19
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 99,
+              "n_usado": 99,
+              "p_condicao": 0.6768,
+              "impacto_pp": 4.73,
+              "odd_minima": 1.48
+            }
+          }
+        },
+        "5": {
+          "n": 6,
+          "n_usado": 67,
+          "p_condicao": 0.1194,
+          "p_base": 0.0244,
+          "impacto_pp": 9.5,
+          "odd_minima": 8.38,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 6,
+              "n_usado": 67,
+              "p_condicao": 0.0448,
+              "impacto_pp": 2.04,
+              "odd_minima": 22.33
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 6,
+              "n_usado": 67,
+              "p_condicao": 0.3134,
+              "impacto_pp": 24.03,
+              "odd_minima": 3.19
+            }
+          }
+        },
+        "6": {
+          "n": 2,
+          "n_usado": 67,
+          "p_condicao": 0.1194,
+          "p_base": 0.0244,
+          "impacto_pp": 9.5,
+          "odd_minima": 8.38,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 2,
+              "n_usado": 67,
+              "p_condicao": 0.0448,
+              "impacto_pp": 2.04,
+              "odd_minima": 22.33
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 2,
+              "n_usado": 67,
+              "p_condicao": 0.3134,
+              "impacto_pp": 24.03,
+              "odd_minima": 3.19
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_005",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": "<=",
+          "limite": 8.0
+        },
+        {
+          "stat": "interceptions",
+          "operador": ">=",
+          "limite": 4.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "menos_de",
+        "linha": 4.5
+      },
+      "mercado_curto": "Menos de 4.5 cartões",
+      "amostra_confirmacao": 515,
+      "prob_base_confirmacao": 0.3853,
+      "prob_condicao_confirmacao": 0.468,
+      "impacto_pp": 8.26,
+      "p_valor_confirmacao": 1.1227640455710596e-07,
+      "odd_minima_referencia": 2.14,
+      "rotulo": "Faltas ≤ 8 E Interceptações ≥ 4 aos 30' (0 gol(s) no jogo) → Menos de 4.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "1": {
+          "n": 157,
+          "n_usado": 157,
+          "p_condicao": 0.3885,
+          "p_base": 0.2857,
+          "impacto_pp": 10.28,
+          "odd_minima": 2.57,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 157,
+              "n_usado": 157,
+              "p_condicao": 0.1911,
+              "impacto_pp": 4.52,
+              "odd_minima": 5.23
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 157,
+              "n_usado": 157,
+              "p_condicao": 0.5541,
+              "impacto_pp": 8.69,
+              "odd_minima": 1.8
+            }
+          }
+        },
+        "2": {
+          "n": 60,
+          "n_usado": 60,
+          "p_condicao": 0.25,
+          "p_base": 0.2416,
+          "impacto_pp": 0.84,
+          "odd_minima": 4.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 60,
+              "n_usado": 60,
+              "p_condicao": 0.1,
+              "impacto_pp": -1.41,
+              "odd_minima": 10.0
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 60,
+              "n_usado": 60,
+              "p_condicao": 0.3833,
+              "impacto_pp": 4.11,
+              "odd_minima": 2.61
+            }
+          }
+        },
+        "3": {
+          "n": 19,
+          "n_usado": 60,
+          "p_condicao": 0.25,
+          "p_base": 0.0877,
+          "impacto_pp": 16.23,
+          "odd_minima": 4.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 19,
+              "n_usado": 60,
+              "p_condicao": 0.1,
+              "impacto_pp": 8.25,
+              "odd_minima": 10.0
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 19,
+              "n_usado": 60,
+              "p_condicao": 0.3833,
+              "impacto_pp": 19.04,
+              "odd_minima": 2.61
+            }
+          }
+        },
+        "0": {
+          "n": 278,
+          "n_usado": 278,
+          "p_condicao": 0.5899,
+          "p_base": 0.536,
+          "impacto_pp": 5.39,
+          "odd_minima": 1.7,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 278,
+              "n_usado": 278,
+              "p_condicao": 0.4209,
+              "impacto_pp": 6.1,
+              "odd_minima": 2.38
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 278,
+              "n_usado": 278,
+              "p_condicao": 0.7302,
+              "impacto_pp": 3.7,
+              "odd_minima": 1.37
+            }
+          }
+        },
+        "4": {
+          "n": 1,
+          "n_usado": 60,
+          "p_condicao": 0.25,
+          "p_base": 0.0877,
+          "impacto_pp": 16.23,
+          "odd_minima": 4.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 1,
+              "n_usado": 60,
+              "p_condicao": 0.1,
+              "impacto_pp": 8.25,
+              "odd_minima": 10.0
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 1,
+              "n_usado": 60,
+              "p_condicao": 0.3833,
+              "impacto_pp": 19.04,
+              "odd_minima": 2.61
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_006",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": "<=",
+          "limite": 6.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "menos_de",
+        "linha": 4.5
+      },
+      "mercado_curto": "Menos de 4.5 cartões",
+      "amostra_confirmacao": 401,
+      "prob_base_confirmacao": 0.3853,
+      "prob_condicao_confirmacao": 0.4638,
+      "impacto_pp": 7.85,
+      "p_valor_confirmacao": 4.8310497516548524e-05,
+      "odd_minima_referencia": 2.16,
+      "rotulo": "Faltas ≤ 6 aos 30' (0 gol(s) no jogo) → Menos de 4.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "1": {
+          "n": 115,
+          "n_usado": 115,
+          "p_condicao": 0.3739,
+          "p_base": 0.2857,
+          "impacto_pp": 8.82,
+          "odd_minima": 2.67,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 115,
+              "n_usado": 115,
+              "p_condicao": 0.2087,
+              "impacto_pp": 6.29,
+              "odd_minima": 4.79
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 115,
+              "n_usado": 115,
+              "p_condicao": 0.5826,
+              "impacto_pp": 11.53,
+              "odd_minima": 1.72
+            }
+          }
+        },
+        "0": {
+          "n": 234,
+          "n_usado": 234,
+          "p_condicao": 0.5726,
+          "p_base": 0.536,
+          "impacto_pp": 3.67,
+          "odd_minima": 1.75,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 234,
+              "n_usado": 234,
+              "p_condicao": 0.4188,
+              "impacto_pp": 5.9,
+              "odd_minima": 2.39
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 234,
+              "n_usado": 234,
+              "p_condicao": 0.7479,
+              "impacto_pp": 5.47,
+              "odd_minima": 1.34
+            }
+          }
+        },
+        "3": {
+          "n": 10,
+          "n_usado": 39,
+          "p_condicao": 0.2051,
+          "p_base": 0.0877,
+          "impacto_pp": 11.74,
+          "odd_minima": 4.88,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 10,
+              "n_usado": 39,
+              "p_condicao": 0.1026,
+              "impacto_pp": 8.5,
+              "odd_minima": 9.75
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 10,
+              "n_usado": 39,
+              "p_condicao": 0.359,
+              "impacto_pp": 16.6,
+              "odd_minima": 2.79
+            }
+          }
+        },
+        "2": {
+          "n": 39,
+          "n_usado": 39,
+          "p_condicao": 0.2051,
+          "p_base": 0.2416,
+          "impacto_pp": -3.65,
+          "odd_minima": 4.88,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 39,
+              "n_usado": 39,
+              "p_condicao": 0.1026,
+              "impacto_pp": -1.15,
+              "odd_minima": 9.75
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 39,
+              "n_usado": 39,
+              "p_condicao": 0.359,
+              "impacto_pp": 1.67,
+              "odd_minima": 2.79
+            }
+          }
+        },
+        "4": {
+          "n": 2,
+          "n_usado": 39,
+          "p_condicao": 0.2051,
+          "p_base": 0.0877,
+          "impacto_pp": 11.74,
+          "odd_minima": 4.88,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 2,
+              "n_usado": 39,
+              "p_condicao": 0.1026,
+              "impacto_pp": 8.5,
+              "odd_minima": 9.75
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 2,
+              "n_usado": 39,
+              "p_condicao": 0.359,
+              "impacto_pp": 16.6,
+              "odd_minima": 2.79
+            }
+          }
+        },
+        "5": {
+          "n": 1,
+          "n_usado": 39,
+          "p_condicao": 0.2051,
+          "p_base": 0.0877,
+          "impacto_pp": 11.74,
+          "odd_minima": 4.88,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 1,
+              "n_usado": 39,
+              "p_condicao": 0.1026,
+              "impacto_pp": 8.5,
+              "odd_minima": 9.75
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 1,
+              "n_usado": 39,
+              "p_condicao": 0.359,
+              "impacto_pp": 16.6,
+              "odd_minima": 2.79
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_007",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": ">=",
+          "limite": 8.0
+        },
+        {
+          "stat": "total_crosses",
+          "operador": "<=",
+          "limite": 12.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "mais_de",
+        "linha": 3.5
+      },
+      "mercado_curto": "Mais de 3.5 cartões",
+      "amostra_confirmacao": 401,
+      "prob_base_confirmacao": 0.7642,
+      "prob_condicao_confirmacao": 0.8404,
+      "impacto_pp": 7.62,
+      "p_valor_confirmacao": 6.181209162351558e-06,
+      "odd_minima_referencia": 1.19,
+      "rotulo": "Faltas ≥ 8 E Cruzamentos ≤ 12 aos 30' (0 gol(s) no jogo) → Mais de 3.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "2": {
+          "n": 65,
+          "n_usado": 65,
+          "p_condicao": 0.9231,
+          "p_base": 0.8859,
+          "impacto_pp": 3.72,
+          "odd_minima": 1.08,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 65,
+              "n_usado": 65,
+              "p_condicao": 0.9846,
+              "impacto_pp": -0.2,
+              "odd_minima": 1.02
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 65,
+              "n_usado": 65,
+              "p_condicao": 0.7692,
+              "impacto_pp": 1.08,
+              "odd_minima": 1.3
+            }
+          }
+        },
+        "4": {
+          "n": 11,
+          "n_usado": 37,
+          "p_condicao": 0.973,
+          "p_base": 0.9825,
+          "impacto_pp": -0.95,
+          "odd_minima": 1.03,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 11,
+              "n_usado": 37,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 11,
+              "n_usado": 37,
+              "p_condicao": 0.9189,
+              "impacto_pp": 0.66,
+              "odd_minima": 1.09
+            }
+          }
+        },
+        "3": {
+          "n": 37,
+          "n_usado": 37,
+          "p_condicao": 0.973,
+          "p_base": 0.9825,
+          "impacto_pp": -0.95,
+          "odd_minima": 1.03,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 37,
+              "n_usado": 37,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 37,
+              "n_usado": 37,
+              "p_condicao": 0.9189,
+              "impacto_pp": 0.66,
+              "odd_minima": 1.09
+            }
+          }
+        },
+        "1": {
+          "n": 132,
+          "n_usado": 132,
+          "p_condicao": 0.9015,
+          "p_base": 0.8542,
+          "impacto_pp": 4.73,
+          "odd_minima": 1.11,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 132,
+              "n_usado": 132,
+              "p_condicao": 0.9242,
+              "impacto_pp": 1.95,
+              "odd_minima": 1.08
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 132,
+              "n_usado": 132,
+              "p_condicao": 0.8106,
+              "impacto_pp": 9.63,
+              "odd_minima": 1.23
+            }
+          }
+        },
+        "0": {
+          "n": 154,
+          "n_usado": 154,
+          "p_condicao": 0.7078,
+          "p_base": 0.6402,
+          "impacto_pp": 6.76,
+          "odd_minima": 1.41,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 154,
+              "n_usado": 154,
+              "p_condicao": 0.8377,
+              "impacto_pp": 3.84,
+              "odd_minima": 1.19
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 154,
+              "n_usado": 154,
+              "p_condicao": 0.513,
+              "impacto_pp": 4.9,
+              "odd_minima": 1.95
+            }
+          }
+        },
+        "7": {
+          "n": 1,
+          "n_usado": 37,
+          "p_condicao": 0.973,
+          "p_base": 0.9825,
+          "impacto_pp": -0.95,
+          "odd_minima": 1.03,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 1,
+              "n_usado": 37,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 1,
+              "n_usado": 37,
+              "p_condicao": 0.9189,
+              "impacto_pp": 0.66,
+              "odd_minima": 1.09
+            }
+          }
+        },
+        "5": {
+          "n": 1,
+          "n_usado": 37,
+          "p_condicao": 0.973,
+          "p_base": 0.9825,
+          "impacto_pp": -0.95,
+          "odd_minima": 1.03,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 1,
+              "n_usado": 37,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 1,
+              "n_usado": 37,
+              "p_condicao": 0.9189,
+              "impacto_pp": 0.66,
+              "odd_minima": 1.09
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_008",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "dangerous_attacks",
+          "operador": "<=",
+          "limite": 29.0
+        },
+        {
+          "stat": "fouls",
+          "operador": ">=",
+          "limite": 7.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "mais_de",
+        "linha": 5.5
+      },
+      "mercado_curto": "Mais de 5.5 cartões",
+      "amostra_confirmacao": 578,
+      "prob_base_confirmacao": 0.4633,
+      "prob_condicao_confirmacao": 0.5381,
+      "impacto_pp": 7.48,
+      "p_valor_confirmacao": 1.4476019670485537e-07,
+      "odd_minima_referencia": 1.86,
+      "rotulo": "Ataques perigosos ≤ 29 E Faltas ≥ 7 aos 30' (0 gol(s) no jogo) → Mais de 5.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "2": {
+          "n": 96,
+          "n_usado": 96,
+          "p_condicao": 0.6667,
+          "p_base": 0.6577,
+          "impacto_pp": 0.89,
+          "odd_minima": 1.5,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 96,
+              "n_usado": 96,
+              "p_condicao": 0.7604,
+              "impacto_pp": 0.2,
+              "odd_minima": 1.32
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 96,
+              "n_usado": 96,
+              "p_condicao": 0.4792,
+              "impacto_pp": 2.28,
+              "odd_minima": 2.09
+            }
+          }
+        },
+        "3": {
+          "n": 44,
+          "n_usado": 44,
+          "p_condicao": 0.8409,
+          "p_base": 0.807,
+          "impacto_pp": 3.39,
+          "odd_minima": 1.19,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 44,
+              "n_usado": 44,
+              "p_condicao": 0.9091,
+              "impacto_pp": -0.32,
+              "odd_minima": 1.1
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 44,
+              "n_usado": 44,
+              "p_condicao": 0.7727,
+              "impacto_pp": 5.34,
+              "odd_minima": 1.29
+            }
+          }
+        },
+        "1": {
+          "n": 184,
+          "n_usado": 184,
+          "p_condicao": 0.5978,
+          "p_base": 0.5327,
+          "impacto_pp": 6.51,
+          "odd_minima": 1.67,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 184,
+              "n_usado": 184,
+              "p_condicao": 0.7609,
+              "impacto_pp": 4.66,
+              "odd_minima": 1.31
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 184,
+              "n_usado": 184,
+              "p_condicao": 0.4022,
+              "impacto_pp": 4.21,
+              "odd_minima": 2.49
+            }
+          }
+        },
+        "4": {
+          "n": 14,
+          "n_usado": 44,
+          "p_condicao": 0.8409,
+          "p_base": 0.807,
+          "impacto_pp": 3.39,
+          "odd_minima": 1.19,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 14,
+              "n_usado": 44,
+              "p_condicao": 0.9091,
+              "impacto_pp": -0.32,
+              "odd_minima": 1.1
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 14,
+              "n_usado": 44,
+              "p_condicao": 0.7727,
+              "impacto_pp": 5.34,
+              "odd_minima": 1.29
+            }
+          }
+        },
+        "0": {
+          "n": 237,
+          "n_usado": 237,
+          "p_condicao": 0.3502,
+          "p_base": 0.3068,
+          "impacto_pp": 4.34,
+          "odd_minima": 2.86,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 237,
+              "n_usado": 237,
+              "p_condicao": 0.481,
+              "impacto_pp": 1.7,
+              "odd_minima": 2.08
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 237,
+              "n_usado": 237,
+              "p_condicao": 0.2236,
+              "impacto_pp": 3.04,
+              "odd_minima": 4.47
+            }
+          }
+        },
+        "7": {
+          "n": 1,
+          "n_usado": 44,
+          "p_condicao": 0.8409,
+          "p_base": 0.807,
+          "impacto_pp": 3.39,
+          "odd_minima": 1.19,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 1,
+              "n_usado": 44,
+              "p_condicao": 0.9091,
+              "impacto_pp": -0.32,
+              "odd_minima": 1.1
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 1,
+              "n_usado": 44,
+              "p_condicao": 0.7727,
+              "impacto_pp": 5.34,
+              "odd_minima": 1.29
+            }
+          }
+        },
+        "5": {
+          "n": 2,
+          "n_usado": 44,
+          "p_condicao": 0.8409,
+          "p_base": 0.807,
+          "impacto_pp": 3.39,
+          "odd_minima": 1.19,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 2,
+              "n_usado": 44,
+              "p_condicao": 0.9091,
+              "impacto_pp": -0.32,
+              "odd_minima": 1.1
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 2,
+              "n_usado": 44,
+              "p_condicao": 0.7727,
+              "impacto_pp": 5.34,
+              "odd_minima": 1.29
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_009",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 60,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": "<=",
+          "limite": 15.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "menos_de",
+        "linha": 3.5
+      },
+      "mercado_curto": "Menos de 3.5 cartões",
+      "amostra_confirmacao": 309,
+      "prob_base_confirmacao": 0.2363,
+      "prob_condicao_confirmacao": 0.3107,
+      "impacto_pp": 7.43,
+      "p_valor_confirmacao": 5.200052563184676e-05,
+      "odd_minima_referencia": 3.22,
+      "rotulo": "Faltas ≤ 15 aos 60' (1 gol(s) no jogo) → Menos de 3.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "4": {
+          "n": 38,
+          "n_usado": 38,
+          "p_condicao": 0.0526,
+          "p_base": 0.0485,
+          "impacto_pp": 0.41,
+          "odd_minima": 19.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 38,
+              "n_usado": 38,
+              "p_condicao": 0.0526,
+              "impacto_pp": 0.41,
+              "odd_minima": 19.0
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 38,
+              "n_usado": 38,
+              "p_condicao": 0.1579,
+              "impacto_pp": 2.2,
+              "odd_minima": 6.33
+            }
+          }
+        },
+        "6": {
+          "n": 9,
+          "n_usado": 38,
+          "p_condicao": 0.0526,
+          "p_base": 0.0,
+          "impacto_pp": 5.26,
+          "odd_minima": 19.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 9,
+              "n_usado": 38,
+              "p_condicao": 0.0526,
+              "impacto_pp": 5.26,
+              "odd_minima": 19.0
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 9,
+              "n_usado": 38,
+              "p_condicao": 0.1579,
+              "impacto_pp": 15.79,
+              "odd_minima": 6.33
+            }
+          }
+        },
+        "2": {
+          "n": 73,
+          "n_usado": 73,
+          "p_condicao": 0.2329,
+          "p_base": 0.2393,
+          "impacto_pp": -0.64,
+          "odd_minima": 4.29,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 73,
+              "n_usado": 73,
+              "p_condicao": 0.1096,
+              "impacto_pp": -0.08,
+              "odd_minima": 9.12
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 73,
+              "n_usado": 73,
+              "p_condicao": 0.4521,
+              "impacto_pp": 2.87,
+              "odd_minima": 2.21
+            }
+          }
+        },
+        "0": {
+          "n": 40,
+          "n_usado": 40,
+          "p_condicao": 0.675,
+          "p_base": 0.6769,
+          "impacto_pp": -0.19,
+          "odd_minima": 1.48,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 40,
+              "n_usado": 40,
+              "p_condicao": 0.525,
+              "impacto_pp": 1.73,
+              "odd_minima": 1.9
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 40,
+              "n_usado": 40,
+              "p_condicao": 0.85,
+              "impacto_pp": -1.15,
+              "odd_minima": 1.18
+            }
+          }
+        },
+        "5": {
+          "n": 11,
+          "n_usado": 38,
+          "p_condicao": 0.0526,
+          "p_base": 0.0,
+          "impacto_pp": 5.26,
+          "odd_minima": 19.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 11,
+              "n_usado": 38,
+              "p_condicao": 0.0526,
+              "impacto_pp": 5.26,
+              "odd_minima": 19.0
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 11,
+              "n_usado": 38,
+              "p_condicao": 0.1579,
+              "impacto_pp": 15.79,
+              "odd_minima": 6.33
+            }
+          }
+        },
+        "3": {
+          "n": 54,
+          "n_usado": 54,
+          "p_condicao": 0.1296,
+          "p_base": 0.0993,
+          "impacto_pp": 3.03,
+          "odd_minima": 7.71,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 54,
+              "n_usado": 54,
+              "p_condicao": 0.037,
+              "impacto_pp": 0.16,
+              "odd_minima": 27.0
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 54,
+              "n_usado": 54,
+              "p_condicao": 0.3519,
+              "impacto_pp": 8.23,
+              "odd_minima": 2.84
+            }
+          }
+        },
+        "1": {
+          "n": 82,
+          "n_usado": 82,
+          "p_condicao": 0.5244,
+          "p_base": 0.461,
+          "impacto_pp": 6.34,
+          "odd_minima": 1.91,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 82,
+              "n_usado": 82,
+              "p_condicao": 0.3537,
+              "impacto_pp": 6.15,
+              "odd_minima": 2.83
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 82,
+              "n_usado": 82,
+              "p_condicao": 0.7195,
+              "impacto_pp": 8.31,
+              "odd_minima": 1.39
+            }
+          }
+        },
+        "8": {
+          "n": 2,
+          "n_usado": 38,
+          "p_condicao": 0.0526,
+          "p_base": 0.0,
+          "impacto_pp": 5.26,
+          "odd_minima": 19.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 2,
+              "n_usado": 38,
+              "p_condicao": 0.0526,
+              "impacto_pp": 5.26,
+              "odd_minima": 19.0
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 2,
+              "n_usado": 38,
+              "p_condicao": 0.1579,
+              "impacto_pp": 15.79,
+              "odd_minima": 6.33
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_010",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 60,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": "<=",
+          "limite": 17.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "menos_de",
+        "linha": 4.5
+      },
+      "mercado_curto": "Menos de 4.5 cartões",
+      "amostra_confirmacao": 438,
+      "prob_base_confirmacao": 0.3757,
+      "prob_condicao_confirmacao": 0.4498,
+      "impacto_pp": 7.41,
+      "p_valor_confirmacao": 4.3737330296705896e-07,
+      "odd_minima_referencia": 2.22,
+      "rotulo": "Faltas ≤ 17 aos 60' (1 gol(s) no jogo) → Menos de 4.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "4": {
+          "n": 55,
+          "n_usado": 55,
+          "p_condicao": 0.1636,
+          "p_base": 0.1359,
+          "impacto_pp": 2.77,
+          "odd_minima": 6.11,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 55,
+              "n_usado": 55,
+              "p_condicao": 0.0545,
+              "impacto_pp": 0.6,
+              "odd_minima": 18.33
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 55,
+              "n_usado": 55,
+              "p_condicao": 0.3636,
+              "impacto_pp": 12.09,
+              "odd_minima": 2.75
+            }
+          }
+        },
+        "6": {
+          "n": 16,
+          "n_usado": 55,
+          "p_condicao": 0.1636,
+          "p_base": 0.0,
+          "impacto_pp": 16.36,
+          "odd_minima": 6.11,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 16,
+              "n_usado": 55,
+              "p_condicao": 0.0545,
+              "impacto_pp": 5.45,
+              "odd_minima": 18.33
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 16,
+              "n_usado": 55,
+              "p_condicao": 0.3636,
+              "impacto_pp": 36.36,
+              "odd_minima": 2.75
+            }
+          }
+        },
+        "2": {
+          "n": 105,
+          "n_usado": 105,
+          "p_condicao": 0.4381,
+          "p_base": 0.4233,
+          "impacto_pp": 1.48,
+          "odd_minima": 2.28,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 105,
+              "n_usado": 105,
+              "p_condicao": 0.2381,
+              "impacto_pp": -0.12,
+              "odd_minima": 4.2
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 105,
+              "n_usado": 105,
+              "p_condicao": 0.6857,
+              "impacto_pp": 0.47,
+              "odd_minima": 1.46
+            }
+          }
+        },
+        "1": {
+          "n": 107,
+          "n_usado": 107,
+          "p_condicao": 0.6916,
+          "p_base": 0.6364,
+          "impacto_pp": 5.52,
+          "odd_minima": 1.45,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 107,
+              "n_usado": 107,
+              "p_condicao": 0.486,
+              "impacto_pp": 2.49,
+              "odd_minima": 2.06
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 107,
+              "n_usado": 107,
+              "p_condicao": 0.8131,
+              "impacto_pp": 4.04,
+              "odd_minima": 1.23
+            }
+          }
+        },
+        "0": {
+          "n": 52,
+          "n_usado": 52,
+          "p_condicao": 0.8462,
+          "p_base": 0.8615,
+          "impacto_pp": -1.54,
+          "odd_minima": 1.18,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 52,
+              "n_usado": 52,
+              "p_condicao": 0.6538,
+              "impacto_pp": -2.31,
+              "odd_minima": 1.53
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 52,
+              "n_usado": 52,
+              "p_condicao": 0.8846,
+              "impacto_pp": -0.77,
+              "odd_minima": 1.13
+            }
+          }
+        },
+        "5": {
+          "n": 21,
+          "n_usado": 55,
+          "p_condicao": 0.1636,
+          "p_base": 0.0,
+          "impacto_pp": 16.36,
+          "odd_minima": 6.11,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 21,
+              "n_usado": 55,
+              "p_condicao": 0.0545,
+              "impacto_pp": 5.45,
+              "odd_minima": 18.33
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 21,
+              "n_usado": 55,
+              "p_condicao": 0.3636,
+              "impacto_pp": 28.96,
+              "odd_minima": 2.75
+            }
+          }
+        },
+        "3": {
+          "n": 79,
+          "n_usado": 79,
+          "p_condicao": 0.3038,
+          "p_base": 0.2695,
+          "impacto_pp": 3.43,
+          "odd_minima": 3.29,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 79,
+              "n_usado": 79,
+              "p_condicao": 0.1392,
+              "impacto_pp": 3.99,
+              "odd_minima": 7.18
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 79,
+              "n_usado": 79,
+              "p_condicao": 0.4177,
+              "impacto_pp": -2.2,
+              "odd_minima": 2.39
+            }
+          }
+        },
+        "8": {
+          "n": 2,
+          "n_usado": 55,
+          "p_condicao": 0.1636,
+          "p_base": 0.0,
+          "impacto_pp": 16.36,
+          "odd_minima": 6.11,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 2,
+              "n_usado": 55,
+              "p_condicao": 0.0545,
+              "impacto_pp": 5.45,
+              "odd_minima": 18.33
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 2,
+              "n_usado": 55,
+              "p_condicao": 0.3636,
+              "impacto_pp": 36.36,
+              "odd_minima": 2.75
+            }
+          }
+        },
+        "7": {
+          "n": 1,
+          "n_usado": 55,
+          "p_condicao": 0.1636,
+          "p_base": 0.0,
+          "impacto_pp": 16.36,
+          "odd_minima": 6.11,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 1,
+              "n_usado": 55,
+              "p_condicao": 0.0545,
+              "impacto_pp": 5.45,
+              "odd_minima": 18.33
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 1,
+              "n_usado": 55,
+              "p_condicao": 0.3636,
+              "impacto_pp": 36.36,
+              "odd_minima": 2.75
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_011",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 45,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": "<=",
+          "limite": 12.0
+        },
+        {
+          "stat": "shots_insidebox",
+          "operador": ">=",
+          "limite": 5.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "menos_de",
+        "linha": 3.5
+      },
+      "mercado_curto": "Menos de 3.5 cartões",
+      "amostra_confirmacao": 351,
+      "prob_base_confirmacao": 0.2294,
+      "prob_condicao_confirmacao": 0.2991,
+      "impacto_pp": 6.97,
+      "p_valor_confirmacao": 3.0340844485100437e-05,
+      "odd_minima_referencia": 3.34,
+      "rotulo": "Faltas ≤ 12 E Chutes de dentro da área ≥ 5 aos 45' (1 gol(s) no jogo) → Menos de 3.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "3": {
+          "n": 37,
+          "n_usado": 37,
+          "p_condicao": 0.0811,
+          "p_base": 0.0673,
+          "impacto_pp": 1.38,
+          "odd_minima": 12.33,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 37,
+              "n_usado": 37,
+              "p_condicao": 0.0,
+              "impacto_pp": -2.88,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 37,
+              "n_usado": 37,
+              "p_condicao": 0.2162,
+              "impacto_pp": 3.35,
+              "odd_minima": 4.62
+            }
+          }
+        },
+        "2": {
+          "n": 77,
+          "n_usado": 77,
+          "p_condicao": 0.1299,
+          "p_base": 0.1143,
+          "impacto_pp": 1.56,
+          "odd_minima": 7.7,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 77,
+              "n_usado": 77,
+              "p_condicao": 0.0649,
+              "impacto_pp": 2.49,
+              "odd_minima": 15.4
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 77,
+              "n_usado": 77,
+              "p_condicao": 0.3117,
+              "impacto_pp": 3.17,
+              "odd_minima": 3.21
+            }
+          }
+        },
+        "1": {
+          "n": 103,
+          "n_usado": 103,
+          "p_condicao": 0.3883,
+          "p_base": 0.3054,
+          "impacto_pp": 8.29,
+          "odd_minima": 2.58,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 103,
+              "n_usado": 103,
+              "p_condicao": 0.2136,
+              "impacto_pp": 3.37,
+              "odd_minima": 4.68
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 103,
+              "n_usado": 103,
+              "p_condicao": 0.5243,
+              "impacto_pp": 6.4,
+              "odd_minima": 1.91
+            }
+          }
+        },
+        "5": {
+          "n": 11,
+          "n_usado": 37,
+          "p_condicao": 0.0811,
+          "p_base": 0.0244,
+          "impacto_pp": 5.67,
+          "odd_minima": 12.33,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 11,
+              "n_usado": 37,
+              "p_condicao": 0.0,
+              "impacto_pp": -2.44,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 11,
+              "n_usado": 37,
+              "p_condicao": 0.2162,
+              "impacto_pp": 14.3,
+              "odd_minima": 4.62
+            }
+          }
+        },
+        "4": {
+          "n": 11,
+          "n_usado": 37,
+          "p_condicao": 0.0811,
+          "p_base": 0.0244,
+          "impacto_pp": 5.67,
+          "odd_minima": 12.33,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 11,
+              "n_usado": 37,
+              "p_condicao": 0.0,
+              "impacto_pp": -2.44,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 11,
+              "n_usado": 37,
+              "p_condicao": 0.2162,
+              "impacto_pp": 14.3,
+              "odd_minima": 4.62
+            }
+          }
+        },
+        "0": {
+          "n": 108,
+          "n_usado": 108,
+          "p_condicao": 0.4815,
+          "p_base": 0.4061,
+          "impacto_pp": 7.54,
+          "odd_minima": 2.08,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 108,
+              "n_usado": 108,
+              "p_condicao": 0.3241,
+              "impacto_pp": 7.03,
+              "odd_minima": 3.09
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 108,
+              "n_usado": 108,
+              "p_condicao": 0.6852,
+              "impacto_pp": 5.57,
+              "odd_minima": 1.46
+            }
+          }
+        },
+        "6": {
+          "n": 4,
+          "n_usado": 37,
+          "p_condicao": 0.0811,
+          "p_base": 0.0244,
+          "impacto_pp": 5.67,
+          "odd_minima": 12.33,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 2.5,
+              "n": 4,
+              "n_usado": 37,
+              "p_condicao": 0.0,
+              "impacto_pp": -2.44,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 4.5,
+              "n": 4,
+              "n_usado": 37,
+              "p_condicao": 0.2162,
+              "impacto_pp": 14.3,
+              "odd_minima": 4.62
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_012",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": ">=",
+          "limite": 8.0
+        },
+        {
+          "stat": "successful_dribbles_percentage",
+          "operador": "<=",
+          "limite": 125.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "mais_de",
+        "linha": 5.5
+      },
+      "mercado_curto": "Mais de 5.5 cartões",
+      "amostra_confirmacao": 380,
+      "prob_base_confirmacao": 0.4633,
+      "prob_condicao_confirmacao": 0.5316,
+      "impacto_pp": 6.83,
+      "p_valor_confirmacao": 0.000942653578390802,
+      "odd_minima_referencia": 1.88,
+      "rotulo": "Faltas ≥ 8 E % dribles certos ≤ 125 aos 30' (0 gol(s) no jogo) → Mais de 5.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "4": {
+          "n": 8,
+          "n_usado": 33,
+          "p_condicao": 0.8788,
+          "p_base": 0.807,
+          "impacto_pp": 7.18,
+          "odd_minima": 1.14,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 8,
+              "n_usado": 33,
+              "p_condicao": 0.9394,
+              "impacto_pp": 2.71,
+              "odd_minima": 1.06
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 8,
+              "n_usado": 33,
+              "p_condicao": 0.8182,
+              "impacto_pp": 9.89,
+              "odd_minima": 1.22
+            }
+          }
+        },
+        "2": {
+          "n": 64,
+          "n_usado": 64,
+          "p_condicao": 0.6094,
+          "p_base": 0.6577,
+          "impacto_pp": -4.83,
+          "odd_minima": 1.64,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 64,
+              "n_usado": 64,
+              "p_condicao": 0.6875,
+              "impacto_pp": -7.09,
+              "odd_minima": 1.45
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 64,
+              "n_usado": 64,
+              "p_condicao": 0.4531,
+              "impacto_pp": -0.33,
+              "odd_minima": 2.21
+            }
+          }
+        },
+        "3": {
+          "n": 33,
+          "n_usado": 33,
+          "p_condicao": 0.8788,
+          "p_base": 0.807,
+          "impacto_pp": 7.18,
+          "odd_minima": 1.14,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 33,
+              "n_usado": 33,
+              "p_condicao": 0.9394,
+              "impacto_pp": 2.71,
+              "odd_minima": 1.06
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 33,
+              "n_usado": 33,
+              "p_condicao": 0.8182,
+              "impacto_pp": 9.89,
+              "odd_minima": 1.22
+            }
+          }
+        },
+        "1": {
+          "n": 121,
+          "n_usado": 121,
+          "p_condicao": 0.562,
+          "p_base": 0.5327,
+          "impacto_pp": 2.92,
+          "odd_minima": 1.78,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 121,
+              "n_usado": 121,
+              "p_condicao": 0.7603,
+              "impacto_pp": 4.6,
+              "odd_minima": 1.32
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 121,
+              "n_usado": 121,
+              "p_condicao": 0.3719,
+              "impacto_pp": 1.18,
+              "odd_minima": 2.69
+            }
+          }
+        },
+        "0": {
+          "n": 151,
+          "n_usado": 151,
+          "p_condicao": 0.3642,
+          "p_base": 0.3068,
+          "impacto_pp": 5.74,
+          "odd_minima": 2.75,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 151,
+              "n_usado": 151,
+              "p_condicao": 0.5099,
+              "impacto_pp": 4.59,
+              "odd_minima": 1.96
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 151,
+              "n_usado": 151,
+              "p_condicao": 0.2185,
+              "impacto_pp": 2.54,
+              "odd_minima": 4.58
+            }
+          }
+        },
+        "7": {
+          "n": 1,
+          "n_usado": 33,
+          "p_condicao": 0.8788,
+          "p_base": 0.807,
+          "impacto_pp": 7.18,
+          "odd_minima": 1.14,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 1,
+              "n_usado": 33,
+              "p_condicao": 0.9394,
+              "impacto_pp": 2.71,
+              "odd_minima": 1.06
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 1,
+              "n_usado": 33,
+              "p_condicao": 0.8182,
+              "impacto_pp": 9.89,
+              "odd_minima": 1.22
+            }
+          }
+        },
+        "5": {
+          "n": 2,
+          "n_usado": 33,
+          "p_condicao": 0.8788,
+          "p_base": 0.807,
+          "impacto_pp": 7.18,
+          "odd_minima": 1.14,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 2,
+              "n_usado": 33,
+              "p_condicao": 0.9394,
+              "impacto_pp": 2.71,
+              "odd_minima": 1.06
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 2,
+              "n_usado": 33,
+              "p_condicao": 0.8182,
+              "impacto_pp": 9.89,
+              "odd_minima": 1.22
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_013",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": ">=",
+          "limite": 7.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": "<=",
+          "limite": 7.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "mais_de",
+        "linha": 4.5
+      },
+      "mercado_curto": "Mais de 4.5 cartões",
+      "amostra_confirmacao": 486,
+      "prob_base_confirmacao": 0.6147,
+      "prob_condicao_confirmacao": 0.679,
+      "impacto_pp": 6.43,
+      "p_valor_confirmacao": 9.046361145278264e-05,
+      "odd_minima_referencia": 1.47,
+      "rotulo": "Faltas ≥ 7 E Chutes totais ≤ 7 aos 30' (0 gol(s) no jogo) → Mais de 4.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "2": {
+          "n": 83,
+          "n_usado": 83,
+          "p_condicao": 0.7229,
+          "p_base": 0.7584,
+          "impacto_pp": -3.55,
+          "odd_minima": 1.38,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 83,
+              "n_usado": 83,
+              "p_condicao": 0.8675,
+              "impacto_pp": -1.84,
+              "odd_minima": 1.15
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 83,
+              "n_usado": 83,
+              "p_condicao": 0.6265,
+              "impacto_pp": -3.12,
+              "odd_minima": 1.6
+            }
+          }
+        },
+        "3": {
+          "n": 36,
+          "n_usado": 36,
+          "p_condicao": 0.9167,
+          "p_base": 0.9123,
+          "impacto_pp": 0.44,
+          "odd_minima": 1.09,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 36,
+              "n_usado": 36,
+              "p_condicao": 0.9722,
+              "impacto_pp": -1.02,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 36,
+              "n_usado": 36,
+              "p_condicao": 0.8611,
+              "impacto_pp": 5.41,
+              "odd_minima": 1.16
+            }
+          }
+        },
+        "4": {
+          "n": 13,
+          "n_usado": 36,
+          "p_condicao": 0.9167,
+          "p_base": 0.9123,
+          "impacto_pp": 0.44,
+          "odd_minima": 1.09,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 13,
+              "n_usado": 36,
+              "p_condicao": 0.9722,
+              "impacto_pp": -1.02,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 13,
+              "n_usado": 36,
+              "p_condicao": 0.8611,
+              "impacto_pp": 5.41,
+              "odd_minima": 1.16
+            }
+          }
+        },
+        "1": {
+          "n": 143,
+          "n_usado": 143,
+          "p_condicao": 0.7832,
+          "p_base": 0.7143,
+          "impacto_pp": 6.89,
+          "odd_minima": 1.28,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 143,
+              "n_usado": 143,
+              "p_condicao": 0.8881,
+              "impacto_pp": 3.39,
+              "odd_minima": 1.13
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 143,
+              "n_usado": 143,
+              "p_condicao": 0.6224,
+              "impacto_pp": 8.96,
+              "odd_minima": 1.61
+            }
+          }
+        },
+        "0": {
+          "n": 208,
+          "n_usado": 208,
+          "p_condicao": 0.524,
+          "p_base": 0.464,
+          "impacto_pp": 6.0,
+          "odd_minima": 1.91,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 208,
+              "n_usado": 208,
+              "p_condicao": 0.7067,
+              "impacto_pp": 6.66,
+              "odd_minima": 1.41
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 208,
+              "n_usado": 208,
+              "p_condicao": 0.3654,
+              "impacto_pp": 5.86,
+              "odd_minima": 2.74
+            }
+          }
+        },
+        "7": {
+          "n": 1,
+          "n_usado": 36,
+          "p_condicao": 0.9167,
+          "p_base": 0.9123,
+          "impacto_pp": 0.44,
+          "odd_minima": 1.09,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 1,
+              "n_usado": 36,
+              "p_condicao": 0.9722,
+              "impacto_pp": -1.02,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 1,
+              "n_usado": 36,
+              "p_condicao": 0.8611,
+              "impacto_pp": 5.41,
+              "odd_minima": 1.16
+            }
+          }
+        },
+        "5": {
+          "n": 2,
+          "n_usado": 36,
+          "p_condicao": 0.9167,
+          "p_base": 0.9123,
+          "impacto_pp": 0.44,
+          "odd_minima": 1.09,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 2,
+              "n_usado": 36,
+              "p_condicao": 0.9722,
+              "impacto_pp": -1.02,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 2,
+              "n_usado": 36,
+              "p_condicao": 0.8611,
+              "impacto_pp": 5.41,
+              "odd_minima": 1.16
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_014",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": ">=",
+          "limite": 8.0
+        },
+        {
+          "stat": "successful_dribbles",
+          "operador": "<=",
+          "limite": 4.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "mais_de",
+        "linha": 4.5
+      },
+      "mercado_curto": "Mais de 4.5 cartões",
+      "amostra_confirmacao": 380,
+      "prob_base_confirmacao": 0.6147,
+      "prob_condicao_confirmacao": 0.6789,
+      "impacto_pp": 6.43,
+      "p_valor_confirmacao": 0.0014246238749523754,
+      "odd_minima_referencia": 1.47,
+      "rotulo": "Faltas ≥ 8 E Dribles certos ≤ 4 aos 30' (0 gol(s) no jogo) → Mais de 4.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "2": {
+          "n": 69,
+          "n_usado": 69,
+          "p_condicao": 0.7246,
+          "p_base": 0.7584,
+          "impacto_pp": -3.38,
+          "odd_minima": 1.38,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 69,
+              "n_usado": 69,
+              "p_condicao": 0.8841,
+              "impacto_pp": -0.18,
+              "odd_minima": 1.13
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 69,
+              "n_usado": 69,
+              "p_condicao": 0.6377,
+              "impacto_pp": -2.0,
+              "odd_minima": 1.57
+            }
+          }
+        },
+        "4": {
+          "n": 7,
+          "n_usado": 32,
+          "p_condicao": 0.9375,
+          "p_base": 0.9123,
+          "impacto_pp": 2.52,
+          "odd_minima": 1.07,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 7,
+              "n_usado": 32,
+              "p_condicao": 0.9688,
+              "impacto_pp": -1.37,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 7,
+              "n_usado": 32,
+              "p_condicao": 0.8438,
+              "impacto_pp": 3.67,
+              "odd_minima": 1.19
+            }
+          }
+        },
+        "3": {
+          "n": 32,
+          "n_usado": 32,
+          "p_condicao": 0.9375,
+          "p_base": 0.9123,
+          "impacto_pp": 2.52,
+          "odd_minima": 1.07,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 32,
+              "n_usado": 32,
+              "p_condicao": 0.9688,
+              "impacto_pp": -1.37,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 32,
+              "n_usado": 32,
+              "p_condicao": 0.8438,
+              "impacto_pp": 3.67,
+              "odd_minima": 1.19
+            }
+          }
+        },
+        "1": {
+          "n": 117,
+          "n_usado": 117,
+          "p_condicao": 0.7863,
+          "p_base": 0.7143,
+          "impacto_pp": 7.2,
+          "odd_minima": 1.27,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 117,
+              "n_usado": 117,
+              "p_condicao": 0.8718,
+              "impacto_pp": 1.76,
+              "odd_minima": 1.15
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 117,
+              "n_usado": 117,
+              "p_condicao": 0.5897,
+              "impacto_pp": 5.7,
+              "odd_minima": 1.7
+            }
+          }
+        },
+        "0": {
+          "n": 152,
+          "n_usado": 152,
+          "p_condicao": 0.5,
+          "p_base": 0.464,
+          "impacto_pp": 3.6,
+          "odd_minima": 2.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 152,
+              "n_usado": 152,
+              "p_condicao": 0.7039,
+              "impacto_pp": 6.38,
+              "odd_minima": 1.42
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 152,
+              "n_usado": 152,
+              "p_condicao": 0.3421,
+              "impacto_pp": 3.53,
+              "odd_minima": 2.92
+            }
+          }
+        },
+        "7": {
+          "n": 1,
+          "n_usado": 32,
+          "p_condicao": 0.9375,
+          "p_base": 0.9123,
+          "impacto_pp": 2.52,
+          "odd_minima": 1.07,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 1,
+              "n_usado": 32,
+              "p_condicao": 0.9688,
+              "impacto_pp": -1.37,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 1,
+              "n_usado": 32,
+              "p_condicao": 0.8438,
+              "impacto_pp": 3.67,
+              "odd_minima": 1.19
+            }
+          }
+        },
+        "5": {
+          "n": 2,
+          "n_usado": 32,
+          "p_condicao": 0.9375,
+          "p_base": 0.9123,
+          "impacto_pp": 2.52,
+          "odd_minima": 1.07,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 2,
+              "n_usado": 32,
+              "p_condicao": 0.9688,
+              "impacto_pp": -1.37,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 2,
+              "n_usado": 32,
+              "p_condicao": 0.8438,
+              "impacto_pp": 3.67,
+              "odd_minima": 1.19
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_015",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": ">=",
+          "limite": 6.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": "<=",
+          "limite": 6.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "mais_de",
+        "linha": 5.5
+      },
+      "mercado_curto": "Mais de 5.5 cartões",
+      "amostra_confirmacao": 458,
+      "prob_base_confirmacao": 0.4633,
+      "prob_condicao_confirmacao": 0.5262,
+      "impacto_pp": 6.29,
+      "p_valor_confirmacao": 0.0003924701585439708,
+      "odd_minima_referencia": 1.9,
+      "rotulo": "Faltas ≥ 6 E Chutes totais ≤ 6 aos 30' (0 gol(s) no jogo) → Mais de 5.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "2": {
+          "n": 72,
+          "n_usado": 72,
+          "p_condicao": 0.6528,
+          "p_base": 0.6577,
+          "impacto_pp": -0.49,
+          "odd_minima": 1.53,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 72,
+              "n_usado": 72,
+              "p_condicao": 0.7361,
+              "impacto_pp": -2.23,
+              "odd_minima": 1.36
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 72,
+              "n_usado": 72,
+              "p_condicao": 0.4167,
+              "impacto_pp": -3.97,
+              "odd_minima": 2.4
+            }
+          }
+        },
+        "3": {
+          "n": 31,
+          "n_usado": 31,
+          "p_condicao": 0.9032,
+          "p_base": 0.807,
+          "impacto_pp": 9.62,
+          "odd_minima": 1.11,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 31,
+              "n_usado": 31,
+              "p_condicao": 0.9355,
+              "impacto_pp": 2.32,
+              "odd_minima": 1.07
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 31,
+              "n_usado": 31,
+              "p_condicao": 0.8387,
+              "impacto_pp": 11.94,
+              "odd_minima": 1.19
+            }
+          }
+        },
+        "4": {
+          "n": 10,
+          "n_usado": 31,
+          "p_condicao": 0.9032,
+          "p_base": 0.807,
+          "impacto_pp": 9.62,
+          "odd_minima": 1.11,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 10,
+              "n_usado": 31,
+              "p_condicao": 0.9355,
+              "impacto_pp": 2.32,
+              "odd_minima": 1.07
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 10,
+              "n_usado": 31,
+              "p_condicao": 0.8387,
+              "impacto_pp": 11.94,
+              "odd_minima": 1.19
+            }
+          }
+        },
+        "1": {
+          "n": 140,
+          "n_usado": 140,
+          "p_condicao": 0.5786,
+          "p_base": 0.5327,
+          "impacto_pp": 4.58,
+          "odd_minima": 1.73,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 140,
+              "n_usado": 140,
+              "p_condicao": 0.7714,
+              "impacto_pp": 5.71,
+              "odd_minima": 1.3
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 140,
+              "n_usado": 140,
+              "p_condicao": 0.3929,
+              "impacto_pp": 3.27,
+              "odd_minima": 2.55
+            }
+          }
+        },
+        "0": {
+          "n": 201,
+          "n_usado": 201,
+          "p_condicao": 0.3532,
+          "p_base": 0.3068,
+          "impacto_pp": 4.64,
+          "odd_minima": 2.83,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 201,
+              "n_usado": 201,
+              "p_condicao": 0.5274,
+              "impacto_pp": 6.33,
+              "odd_minima": 1.9
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 201,
+              "n_usado": 201,
+              "p_condicao": 0.2289,
+              "impacto_pp": 3.57,
+              "odd_minima": 4.37
+            }
+          }
+        },
+        "7": {
+          "n": 1,
+          "n_usado": 31,
+          "p_condicao": 0.9032,
+          "p_base": 0.807,
+          "impacto_pp": 9.62,
+          "odd_minima": 1.11,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 1,
+              "n_usado": 31,
+              "p_condicao": 0.9355,
+              "impacto_pp": 2.32,
+              "odd_minima": 1.07
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 1,
+              "n_usado": 31,
+              "p_condicao": 0.8387,
+              "impacto_pp": 11.94,
+              "odd_minima": 1.19
+            }
+          }
+        },
+        "5": {
+          "n": 3,
+          "n_usado": 31,
+          "p_condicao": 0.9032,
+          "p_base": 0.807,
+          "impacto_pp": 9.62,
+          "odd_minima": 1.11,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 3,
+              "n_usado": 31,
+              "p_condicao": 0.9355,
+              "impacto_pp": 2.32,
+              "odd_minima": 1.07
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 3,
+              "n_usado": 31,
+              "p_condicao": 0.8387,
+              "impacto_pp": 11.94,
+              "odd_minima": 1.19
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_016",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": "<=",
+          "limite": 7.0
+        },
+        {
+          "stat": "hit_woodwork",
+          "operador": "<=",
+          "limite": 0.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "menos_de",
+        "linha": 5.5
+      },
+      "mercado_curto": "Menos de 5.5 cartões",
+      "amostra_confirmacao": 474,
+      "prob_base_confirmacao": 0.5367,
+      "prob_condicao_confirmacao": 0.5992,
+      "impacto_pp": 6.25,
+      "p_valor_confirmacao": 0.0002861635580001879,
+      "odd_minima_referencia": 1.67,
+      "rotulo": "Faltas ≤ 7 E hit_woodwork ≤ 0 aos 30' (0 gol(s) no jogo) → Menos de 5.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "1": {
+          "n": 134,
+          "n_usado": 134,
+          "p_condicao": 0.5373,
+          "p_base": 0.4673,
+          "impacto_pp": 7.01,
+          "odd_minima": 1.86,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 134,
+              "n_usado": 134,
+              "p_condicao": 0.3507,
+              "impacto_pp": 6.5,
+              "odd_minima": 2.85
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 134,
+              "n_usado": 134,
+              "p_condicao": 0.7015,
+              "impacto_pp": 6.16,
+              "odd_minima": 1.43
+            }
+          }
+        },
+        "3": {
+          "n": 12,
+          "n_usado": 55,
+          "p_condicao": 0.3091,
+          "p_base": 0.193,
+          "impacto_pp": 11.61,
+          "odd_minima": 3.24,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 12,
+              "n_usado": 55,
+              "p_condicao": 0.1636,
+              "impacto_pp": 7.59,
+              "odd_minima": 6.11
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 12,
+              "n_usado": 55,
+              "p_condicao": 0.5273,
+              "impacto_pp": 24.66,
+              "odd_minima": 1.9
+            }
+          }
+        },
+        "0": {
+          "n": 268,
+          "n_usado": 268,
+          "p_condicao": 0.7201,
+          "p_base": 0.6932,
+          "impacto_pp": 2.7,
+          "odd_minima": 1.39,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 268,
+              "n_usado": 268,
+              "p_condicao": 0.556,
+              "impacto_pp": 2.0,
+              "odd_minima": 1.8
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 268,
+              "n_usado": 268,
+              "p_condicao": 0.8284,
+              "impacto_pp": 2.15,
+              "odd_minima": 1.21
+            }
+          }
+        },
+        "2": {
+          "n": 55,
+          "n_usado": 55,
+          "p_condicao": 0.3091,
+          "p_base": 0.3423,
+          "impacto_pp": -3.32,
+          "odd_minima": 3.24,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 55,
+              "n_usado": 55,
+              "p_condicao": 0.1636,
+              "impacto_pp": -7.8,
+              "odd_minima": 6.11
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 55,
+              "n_usado": 55,
+              "p_condicao": 0.5273,
+              "impacto_pp": -1.64,
+              "odd_minima": 1.9
+            }
+          }
+        },
+        "4": {
+          "n": 4,
+          "n_usado": 55,
+          "p_condicao": 0.3091,
+          "p_base": 0.193,
+          "impacto_pp": 11.61,
+          "odd_minima": 3.24,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 4,
+              "n_usado": 55,
+              "p_condicao": 0.1636,
+              "impacto_pp": 7.59,
+              "odd_minima": 6.11
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 4,
+              "n_usado": 55,
+              "p_condicao": 0.5273,
+              "impacto_pp": 24.66,
+              "odd_minima": 1.9
+            }
+          }
+        },
+        "5": {
+          "n": 1,
+          "n_usado": 55,
+          "p_condicao": 0.3091,
+          "p_base": 0.193,
+          "impacto_pp": 11.61,
+          "odd_minima": 3.24,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 1,
+              "n_usado": 55,
+              "p_condicao": 0.1636,
+              "impacto_pp": 7.59,
+              "odd_minima": 6.11
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 1,
+              "n_usado": 55,
+              "p_condicao": 0.5273,
+              "impacto_pp": 24.66,
+              "odd_minima": 1.9
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_017",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": ">=",
+          "limite": 6.0
+        },
+        {
+          "stat": "shots_outsidebox",
+          "operador": "<=",
+          "limite": 2.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "mais_de",
+        "linha": 5.5
+      },
+      "mercado_curto": "Mais de 5.5 cartões",
+      "amostra_confirmacao": 372,
+      "prob_base_confirmacao": 0.4633,
+      "prob_condicao_confirmacao": 0.5242,
+      "impacto_pp": 6.09,
+      "p_valor_confirmacao": 0.00370949781689465,
+      "odd_minima_referencia": 1.91,
+      "rotulo": "Faltas ≥ 6 E Chutes de fora da área ≤ 2 aos 30' (0 gol(s) no jogo) → Mais de 5.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "2": {
+          "n": 59,
+          "n_usado": 59,
+          "p_condicao": 0.661,
+          "p_base": 0.6577,
+          "impacto_pp": 0.33,
+          "odd_minima": 1.51,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 59,
+              "n_usado": 59,
+              "p_condicao": 0.7458,
+              "impacto_pp": -1.26,
+              "odd_minima": 1.34
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 59,
+              "n_usado": 59,
+              "p_condicao": 0.4746,
+              "impacto_pp": 1.82,
+              "odd_minima": 2.11
+            }
+          }
+        },
+        "3": {
+          "n": 27,
+          "n_usado": 59,
+          "p_condicao": 0.661,
+          "p_base": 0.807,
+          "impacto_pp": -14.6,
+          "odd_minima": 1.51,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 27,
+              "n_usado": 59,
+              "p_condicao": 0.7458,
+              "impacto_pp": -16.65,
+              "odd_minima": 1.34
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 27,
+              "n_usado": 59,
+              "p_condicao": 0.4746,
+              "impacto_pp": -24.47,
+              "odd_minima": 2.11
+            }
+          }
+        },
+        "1": {
+          "n": 109,
+          "n_usado": 109,
+          "p_condicao": 0.5413,
+          "p_base": 0.5327,
+          "impacto_pp": 0.85,
+          "odd_minima": 1.85,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 109,
+              "n_usado": 109,
+              "p_condicao": 0.7523,
+              "impacto_pp": 3.8,
+              "odd_minima": 1.33
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 109,
+              "n_usado": 109,
+              "p_condicao": 0.4128,
+              "impacto_pp": 5.27,
+              "odd_minima": 2.42
+            }
+          }
+        },
+        "0": {
+          "n": 168,
+          "n_usado": 168,
+          "p_condicao": 0.3869,
+          "p_base": 0.3068,
+          "impacto_pp": 8.01,
+          "odd_minima": 2.58,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 168,
+              "n_usado": 168,
+              "p_condicao": 0.5893,
+              "impacto_pp": 12.53,
+              "odd_minima": 1.7
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 168,
+              "n_usado": 168,
+              "p_condicao": 0.2202,
+              "impacto_pp": 2.71,
+              "odd_minima": 4.54
+            }
+          }
+        },
+        "4": {
+          "n": 6,
+          "n_usado": 59,
+          "p_condicao": 0.661,
+          "p_base": 0.807,
+          "impacto_pp": -14.6,
+          "odd_minima": 1.51,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 6,
+              "n_usado": 59,
+              "p_condicao": 0.7458,
+              "impacto_pp": -16.65,
+              "odd_minima": 1.34
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 6,
+              "n_usado": 59,
+              "p_condicao": 0.4746,
+              "impacto_pp": -24.47,
+              "odd_minima": 2.11
+            }
+          }
+        },
+        "7": {
+          "n": 1,
+          "n_usado": 59,
+          "p_condicao": 0.661,
+          "p_base": 0.807,
+          "impacto_pp": -14.6,
+          "odd_minima": 1.51,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 1,
+              "n_usado": 59,
+              "p_condicao": 0.7458,
+              "impacto_pp": -16.65,
+              "odd_minima": 1.34
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 1,
+              "n_usado": 59,
+              "p_condicao": 0.4746,
+              "impacto_pp": -24.47,
+              "odd_minima": 2.11
+            }
+          }
+        },
+        "5": {
+          "n": 2,
+          "n_usado": 59,
+          "p_condicao": 0.661,
+          "p_base": 0.807,
+          "impacto_pp": -14.6,
+          "odd_minima": 1.51,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 2,
+              "n_usado": 59,
+              "p_condicao": 0.7458,
+              "impacto_pp": -16.65,
+              "odd_minima": 1.34
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 2,
+              "n_usado": 59,
+              "p_condicao": 0.4746,
+              "impacto_pp": -24.47,
+              "odd_minima": 2.11
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_018",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": ">=",
+          "limite": 8.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "mais_de",
+        "linha": 4.5
+      },
+      "mercado_curto": "Mais de 4.5 cartões",
+      "amostra_confirmacao": 525,
+      "prob_base_confirmacao": 0.6147,
+      "prob_condicao_confirmacao": 0.6743,
+      "impacto_pp": 5.96,
+      "p_valor_confirmacao": 9.70363878399587e-05,
+      "odd_minima_referencia": 1.48,
+      "rotulo": "Faltas ≥ 8 aos 30' (0 gol(s) no jogo) → Mais de 4.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "2": {
+          "n": 83,
+          "n_usado": 83,
+          "p_condicao": 0.7229,
+          "p_base": 0.7584,
+          "impacto_pp": -3.55,
+          "odd_minima": 1.38,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 83,
+              "n_usado": 83,
+              "p_condicao": 0.8795,
+              "impacto_pp": -0.64,
+              "odd_minima": 1.14
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 83,
+              "n_usado": 83,
+              "p_condicao": 0.6506,
+              "impacto_pp": -0.71,
+              "odd_minima": 1.54
+            }
+          }
+        },
+        "4": {
+          "n": 11,
+          "n_usado": 41,
+          "p_condicao": 0.9268,
+          "p_base": 0.9123,
+          "impacto_pp": 1.45,
+          "odd_minima": 1.08,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 11,
+              "n_usado": 41,
+              "p_condicao": 0.9756,
+              "impacto_pp": -0.68,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 11,
+              "n_usado": 41,
+              "p_condicao": 0.8537,
+              "impacto_pp": 4.66,
+              "odd_minima": 1.17
+            }
+          }
+        },
+        "3": {
+          "n": 41,
+          "n_usado": 41,
+          "p_condicao": 0.9268,
+          "p_base": 0.9123,
+          "impacto_pp": 1.45,
+          "odd_minima": 1.08,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 41,
+              "n_usado": 41,
+              "p_condicao": 0.9756,
+              "impacto_pp": -0.68,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 41,
+              "n_usado": 41,
+              "p_condicao": 0.8537,
+              "impacto_pp": 4.66,
+              "odd_minima": 1.17
+            }
+          }
+        },
+        "1": {
+          "n": 172,
+          "n_usado": 172,
+          "p_condicao": 0.7849,
+          "p_base": 0.7143,
+          "impacto_pp": 7.06,
+          "odd_minima": 1.27,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 172,
+              "n_usado": 172,
+              "p_condicao": 0.8721,
+              "impacto_pp": 1.79,
+              "odd_minima": 1.15
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 172,
+              "n_usado": 172,
+              "p_condicao": 0.6163,
+              "impacto_pp": 8.35,
+              "odd_minima": 1.62
+            }
+          }
+        },
+        "0": {
+          "n": 215,
+          "n_usado": 215,
+          "p_condicao": 0.4977,
+          "p_base": 0.464,
+          "impacto_pp": 3.37,
+          "odd_minima": 2.01,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 215,
+              "n_usado": 215,
+              "p_condicao": 0.6837,
+              "impacto_pp": 4.36,
+              "odd_minima": 1.46
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 215,
+              "n_usado": 215,
+              "p_condicao": 0.3488,
+              "impacto_pp": 4.2,
+              "odd_minima": 2.87
+            }
+          }
+        },
+        "7": {
+          "n": 1,
+          "n_usado": 41,
+          "p_condicao": 0.9268,
+          "p_base": 0.9123,
+          "impacto_pp": 1.45,
+          "odd_minima": 1.08,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 1,
+              "n_usado": 41,
+              "p_condicao": 0.9756,
+              "impacto_pp": -0.68,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 1,
+              "n_usado": 41,
+              "p_condicao": 0.8537,
+              "impacto_pp": 4.66,
+              "odd_minima": 1.17
+            }
+          }
+        },
+        "5": {
+          "n": 2,
+          "n_usado": 41,
+          "p_condicao": 0.9268,
+          "p_base": 0.9123,
+          "impacto_pp": 1.45,
+          "odd_minima": 1.08,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 2,
+              "n_usado": 41,
+              "p_condicao": 0.9756,
+              "impacto_pp": -0.68,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 2,
+              "n_usado": 41,
+              "p_condicao": 0.8537,
+              "impacto_pp": 4.66,
+              "odd_minima": 1.17
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_019",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "dangerous_attacks",
+          "operador": "<=",
+          "limite": 33.0
+        },
+        {
+          "stat": "fouls",
+          "operador": ">=",
+          "limite": 8.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "mais_de",
+        "linha": 4.5
+      },
+      "mercado_curto": "Mais de 4.5 cartões",
+      "amostra_confirmacao": 496,
+      "prob_base_confirmacao": 0.6147,
+      "prob_condicao_confirmacao": 0.6734,
+      "impacto_pp": 5.87,
+      "p_valor_confirmacao": 0.0002733249605284467,
+      "odd_minima_referencia": 1.49,
+      "rotulo": "Ataques perigosos ≤ 33 E Faltas ≥ 8 aos 30' (0 gol(s) no jogo) → Mais de 4.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "2": {
+          "n": 79,
+          "n_usado": 79,
+          "p_condicao": 0.7342,
+          "p_base": 0.7584,
+          "impacto_pp": -2.42,
+          "odd_minima": 1.36,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 79,
+              "n_usado": 79,
+              "p_condicao": 0.8861,
+              "impacto_pp": 0.02,
+              "odd_minima": 1.13
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 79,
+              "n_usado": 79,
+              "p_condicao": 0.6582,
+              "impacto_pp": 0.05,
+              "odd_minima": 1.52
+            }
+          }
+        },
+        "4": {
+          "n": 11,
+          "n_usado": 41,
+          "p_condicao": 0.9268,
+          "p_base": 0.9123,
+          "impacto_pp": 1.45,
+          "odd_minima": 1.08,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 11,
+              "n_usado": 41,
+              "p_condicao": 0.9756,
+              "impacto_pp": -0.68,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 11,
+              "n_usado": 41,
+              "p_condicao": 0.8537,
+              "impacto_pp": 4.66,
+              "odd_minima": 1.17
+            }
+          }
+        },
+        "3": {
+          "n": 41,
+          "n_usado": 41,
+          "p_condicao": 0.9268,
+          "p_base": 0.9123,
+          "impacto_pp": 1.45,
+          "odd_minima": 1.08,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 41,
+              "n_usado": 41,
+              "p_condicao": 0.9756,
+              "impacto_pp": -0.68,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 41,
+              "n_usado": 41,
+              "p_condicao": 0.8537,
+              "impacto_pp": 4.66,
+              "odd_minima": 1.17
+            }
+          }
+        },
+        "1": {
+          "n": 159,
+          "n_usado": 159,
+          "p_condicao": 0.7862,
+          "p_base": 0.7143,
+          "impacto_pp": 7.19,
+          "odd_minima": 1.27,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 159,
+              "n_usado": 159,
+              "p_condicao": 0.8679,
+              "impacto_pp": 1.38,
+              "odd_minima": 1.15
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 159,
+              "n_usado": 159,
+              "p_condicao": 0.6164,
+              "impacto_pp": 8.36,
+              "odd_minima": 1.62
+            }
+          }
+        },
+        "0": {
+          "n": 203,
+          "n_usado": 203,
+          "p_condicao": 0.4877,
+          "p_base": 0.464,
+          "impacto_pp": 2.37,
+          "odd_minima": 2.05,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 203,
+              "n_usado": 203,
+              "p_condicao": 0.67,
+              "impacto_pp": 2.98,
+              "odd_minima": 1.49
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 203,
+              "n_usado": 203,
+              "p_condicao": 0.3448,
+              "impacto_pp": 3.8,
+              "odd_minima": 2.9
+            }
+          }
+        },
+        "7": {
+          "n": 1,
+          "n_usado": 41,
+          "p_condicao": 0.9268,
+          "p_base": 0.9123,
+          "impacto_pp": 1.45,
+          "odd_minima": 1.08,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 1,
+              "n_usado": 41,
+              "p_condicao": 0.9756,
+              "impacto_pp": -0.68,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 1,
+              "n_usado": 41,
+              "p_condicao": 0.8537,
+              "impacto_pp": 4.66,
+              "odd_minima": 1.17
+            }
+          }
+        },
+        "5": {
+          "n": 2,
+          "n_usado": 41,
+          "p_condicao": 0.9268,
+          "p_base": 0.9123,
+          "impacto_pp": 1.45,
+          "odd_minima": 1.08,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 2,
+              "n_usado": 41,
+              "p_condicao": 0.9756,
+              "impacto_pp": -0.68,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 2,
+              "n_usado": 41,
+              "p_condicao": 0.8537,
+              "impacto_pp": 4.66,
+              "odd_minima": 1.17
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_020",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": "<=",
+          "limite": 8.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "menos_de",
+        "linha": 4.5
+      },
+      "mercado_curto": "Menos de 4.5 cartões",
+      "amostra_confirmacao": 712,
+      "prob_base_confirmacao": 0.3853,
+      "prob_condicao_confirmacao": 0.4424,
+      "impacto_pp": 5.71,
+      "p_valor_confirmacao": 1.0620099578419211e-07,
+      "odd_minima_referencia": 2.26,
+      "rotulo": "Faltas ≤ 8 aos 30' (0 gol(s) no jogo) → Menos de 4.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "1": {
+          "n": 214,
+          "n_usado": 214,
+          "p_condicao": 0.3551,
+          "p_base": 0.2857,
+          "impacto_pp": 6.94,
+          "odd_minima": 2.82,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 214,
+              "n_usado": 214,
+              "p_condicao": 0.1729,
+              "impacto_pp": 2.71,
+              "odd_minima": 5.78
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 214,
+              "n_usado": 214,
+              "p_condicao": 0.528,
+              "impacto_pp": 6.08,
+              "odd_minima": 1.89
+            }
+          }
+        },
+        "2": {
+          "n": 82,
+          "n_usado": 82,
+          "p_condicao": 0.2317,
+          "p_base": 0.2416,
+          "impacto_pp": -0.99,
+          "odd_minima": 4.32,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 82,
+              "n_usado": 82,
+              "p_condicao": 0.0976,
+              "impacto_pp": -1.65,
+              "odd_minima": 10.25
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 82,
+              "n_usado": 82,
+              "p_condicao": 0.3537,
+              "impacto_pp": 1.14,
+              "odd_minima": 2.83
+            }
+          }
+        },
+        "3": {
+          "n": 27,
+          "n_usado": 82,
+          "p_condicao": 0.2317,
+          "p_base": 0.0877,
+          "impacto_pp": 14.4,
+          "odd_minima": 4.32,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 27,
+              "n_usado": 82,
+              "p_condicao": 0.0976,
+              "impacto_pp": 8.0,
+              "odd_minima": 10.25
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 27,
+              "n_usado": 82,
+              "p_condicao": 0.3537,
+              "impacto_pp": 16.07,
+              "odd_minima": 2.83
+            }
+          }
+        },
+        "0": {
+          "n": 381,
+          "n_usado": 381,
+          "p_condicao": 0.5722,
+          "p_base": 0.536,
+          "impacto_pp": 3.62,
+          "odd_minima": 1.75,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 381,
+              "n_usado": 381,
+              "p_condicao": 0.4068,
+              "impacto_pp": 4.7,
+              "odd_minima": 2.46
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 381,
+              "n_usado": 381,
+              "p_condicao": 0.7244,
+              "impacto_pp": 3.12,
+              "odd_minima": 1.38
+            }
+          }
+        },
+        "4": {
+          "n": 7,
+          "n_usado": 82,
+          "p_condicao": 0.2317,
+          "p_base": 0.0877,
+          "impacto_pp": 14.4,
+          "odd_minima": 4.32,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 7,
+              "n_usado": 82,
+              "p_condicao": 0.0976,
+              "impacto_pp": 8.0,
+              "odd_minima": 10.25
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 7,
+              "n_usado": 82,
+              "p_condicao": 0.3537,
+              "impacto_pp": 16.07,
+              "odd_minima": 2.83
+            }
+          }
+        },
+        "5": {
+          "n": 1,
+          "n_usado": 82,
+          "p_condicao": 0.2317,
+          "p_base": 0.0877,
+          "impacto_pp": 14.4,
+          "odd_minima": 4.32,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 1,
+              "n_usado": 82,
+              "p_condicao": 0.0976,
+              "impacto_pp": 8.0,
+              "odd_minima": 10.25
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 1,
+              "n_usado": 82,
+              "p_condicao": 0.3537,
+              "impacto_pp": 16.07,
+              "odd_minima": 2.83
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_021",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": "<=",
+          "limite": 7.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "menos_de",
+        "linha": 4.5
+      },
+      "mercado_curto": "Menos de 4.5 cartões",
+      "amostra_confirmacao": 565,
+      "prob_base_confirmacao": 0.3853,
+      "prob_condicao_confirmacao": 0.4407,
+      "impacto_pp": 5.54,
+      "p_valor_confirmacao": 9.703638783995817e-05,
+      "odd_minima_referencia": 2.27,
+      "rotulo": "Faltas ≤ 7 aos 30' (0 gol(s) no jogo) → Menos de 4.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "1": {
+          "n": 164,
+          "n_usado": 164,
+          "p_condicao": 0.3598,
+          "p_base": 0.2857,
+          "impacto_pp": 7.4,
+          "odd_minima": 2.78,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 164,
+              "n_usado": 164,
+              "p_condicao": 0.1646,
+              "impacto_pp": 1.88,
+              "odd_minima": 6.07
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 164,
+              "n_usado": 164,
+              "p_condicao": 0.5549,
+              "impacto_pp": 8.76,
+              "odd_minima": 1.8
+            }
+          }
+        },
+        "2": {
+          "n": 66,
+          "n_usado": 66,
+          "p_condicao": 0.197,
+          "p_base": 0.2416,
+          "impacto_pp": -4.46,
+          "odd_minima": 5.08,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 66,
+              "n_usado": 66,
+              "p_condicao": 0.1061,
+              "impacto_pp": -0.8,
+              "odd_minima": 9.43
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 66,
+              "n_usado": 66,
+              "p_condicao": 0.3333,
+              "impacto_pp": -0.89,
+              "odd_minima": 3.0
+            }
+          }
+        },
+        "3": {
+          "n": 16,
+          "n_usado": 66,
+          "p_condicao": 0.197,
+          "p_base": 0.0877,
+          "impacto_pp": 10.93,
+          "odd_minima": 5.08,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 16,
+              "n_usado": 66,
+              "p_condicao": 0.1061,
+              "impacto_pp": 8.85,
+              "odd_minima": 9.43
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 16,
+              "n_usado": 66,
+              "p_condicao": 0.3333,
+              "impacto_pp": 14.04,
+              "odd_minima": 3.0
+            }
+          }
+        },
+        "0": {
+          "n": 313,
+          "n_usado": 313,
+          "p_condicao": 0.5591,
+          "p_base": 0.536,
+          "impacto_pp": 2.31,
+          "odd_minima": 1.79,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 313,
+              "n_usado": 313,
+              "p_condicao": 0.3898,
+              "impacto_pp": 2.99,
+              "odd_minima": 2.57
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 313,
+              "n_usado": 313,
+              "p_condicao": 0.722,
+              "impacto_pp": 2.89,
+              "odd_minima": 1.38
+            }
+          }
+        },
+        "4": {
+          "n": 5,
+          "n_usado": 66,
+          "p_condicao": 0.197,
+          "p_base": 0.0877,
+          "impacto_pp": 10.93,
+          "odd_minima": 5.08,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 5,
+              "n_usado": 66,
+              "p_condicao": 0.1061,
+              "impacto_pp": 8.85,
+              "odd_minima": 9.43
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 5,
+              "n_usado": 66,
+              "p_condicao": 0.3333,
+              "impacto_pp": 14.04,
+              "odd_minima": 3.0
+            }
+          }
+        },
+        "5": {
+          "n": 1,
+          "n_usado": 66,
+          "p_condicao": 0.197,
+          "p_base": 0.0877,
+          "impacto_pp": 10.93,
+          "odd_minima": 5.08,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 1,
+              "n_usado": 66,
+              "p_condicao": 0.1061,
+              "impacto_pp": 8.85,
+              "odd_minima": 9.43
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 1,
+              "n_usado": 66,
+              "p_condicao": 0.3333,
+              "impacto_pp": 14.04,
+              "odd_minima": 3.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_022",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 45,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": ">=",
+          "limite": 11.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "mais_de",
+        "linha": 4.5
+      },
+      "mercado_curto": "Mais de 4.5 cartões",
+      "amostra_confirmacao": 447,
+      "prob_base_confirmacao": 0.6106,
+      "prob_condicao_confirmacao": 0.6644,
+      "impacto_pp": 5.39,
+      "p_valor_confirmacao": 0.00014660539182973498,
+      "odd_minima_referencia": 1.51,
+      "rotulo": "Faltas ≥ 11 aos 45' (0 gol(s) no jogo) → Mais de 4.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "3": {
+          "n": 55,
+          "n_usado": 55,
+          "p_condicao": 0.9091,
+          "p_base": 0.869,
+          "impacto_pp": 4.0,
+          "odd_minima": 1.1,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 55,
+              "n_usado": 55,
+              "p_condicao": 0.9636,
+              "impacto_pp": 1.13,
+              "odd_minima": 1.04
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 55,
+              "n_usado": 55,
+              "p_condicao": 0.7455,
+              "impacto_pp": 0.74,
+              "odd_minima": 1.34
+            }
+          }
+        },
+        "4": {
+          "n": 38,
+          "n_usado": 38,
+          "p_condicao": 0.9211,
+          "p_base": 0.9231,
+          "impacto_pp": -0.2,
+          "odd_minima": 1.09,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 38,
+              "n_usado": 38,
+              "p_condicao": 0.9737,
+              "impacto_pp": 1.21,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 38,
+              "n_usado": 38,
+              "p_condicao": 0.8158,
+              "impacto_pp": 4.66,
+              "odd_minima": 1.23
+            }
+          }
+        },
+        "5": {
+          "n": 15,
+          "n_usado": 38,
+          "p_condicao": 0.9211,
+          "p_base": 0.9231,
+          "impacto_pp": -0.2,
+          "odd_minima": 1.09,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 15,
+              "n_usado": 38,
+              "p_condicao": 0.9737,
+              "impacto_pp": 1.21,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 15,
+              "n_usado": 38,
+              "p_condicao": 0.8158,
+              "impacto_pp": 4.66,
+              "odd_minima": 1.23
+            }
+          }
+        },
+        "0": {
+          "n": 72,
+          "n_usado": 72,
+          "p_condicao": 0.3472,
+          "p_base": 0.3082,
+          "impacto_pp": 3.9,
+          "odd_minima": 2.88,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 72,
+              "n_usado": 72,
+              "p_condicao": 0.5139,
+              "impacto_pp": 4.13,
+              "odd_minima": 1.95
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 72,
+              "n_usado": 72,
+              "p_condicao": 0.2083,
+              "impacto_pp": 5.08,
+              "odd_minima": 4.8
+            }
+          }
+        },
+        "2": {
+          "n": 130,
+          "n_usado": 130,
+          "p_condicao": 0.7077,
+          "p_base": 0.6825,
+          "impacto_pp": 2.52,
+          "odd_minima": 1.41,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 130,
+              "n_usado": 130,
+              "p_condicao": 0.8615,
+              "impacto_pp": 2.03,
+              "odd_minima": 1.16
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 130,
+              "n_usado": 130,
+              "p_condicao": 0.5769,
+              "impacto_pp": 2.67,
+              "odd_minima": 1.73
+            }
+          }
+        },
+        "1": {
+          "n": 135,
+          "n_usado": 135,
+          "p_condicao": 0.5778,
+          "p_base": 0.5459,
+          "impacto_pp": 3.19,
+          "odd_minima": 1.73,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 135,
+              "n_usado": 135,
+              "p_condicao": 0.763,
+              "impacto_pp": 2.93,
+              "odd_minima": 1.31
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 135,
+              "n_usado": 135,
+              "p_condicao": 0.3926,
+              "impacto_pp": 1.7,
+              "odd_minima": 2.55
+            }
+          }
+        },
+        "7": {
+          "n": 1,
+          "n_usado": 38,
+          "p_condicao": 0.9211,
+          "p_base": 0.9231,
+          "impacto_pp": -0.2,
+          "odd_minima": 1.09,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 1,
+              "n_usado": 38,
+              "p_condicao": 0.9737,
+              "impacto_pp": 1.21,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 1,
+              "n_usado": 38,
+              "p_condicao": 0.8158,
+              "impacto_pp": 4.66,
+              "odd_minima": 1.23
+            }
+          }
+        },
+        "6": {
+          "n": 1,
+          "n_usado": 38,
+          "p_condicao": 0.9211,
+          "p_base": 0.9231,
+          "impacto_pp": -0.2,
+          "odd_minima": 1.09,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 1,
+              "n_usado": 38,
+              "p_condicao": 0.9737,
+              "impacto_pp": 1.21,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 1,
+              "n_usado": 38,
+              "p_condicao": 0.8158,
+              "impacto_pp": 4.66,
+              "odd_minima": 1.23
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_023",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": "<=",
+          "limite": 8.0
+        },
+        {
+          "stat": "successful_dribbles_percentage",
+          "operador": ">=",
+          "limite": 71.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "menos_de",
+        "linha": 4.5
+      },
+      "mercado_curto": "Menos de 4.5 cartões",
+      "amostra_confirmacao": 489,
+      "prob_base_confirmacao": 0.3853,
+      "prob_condicao_confirmacao": 0.4376,
+      "impacto_pp": 5.23,
+      "p_valor_confirmacao": 0.0013706846760837596,
+      "odd_minima_referencia": 2.29,
+      "rotulo": "Faltas ≤ 8 E % dribles certos ≥ 71 aos 30' (0 gol(s) no jogo) → Menos de 4.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "1": {
+          "n": 152,
+          "n_usado": 152,
+          "p_condicao": 0.3158,
+          "p_base": 0.2857,
+          "impacto_pp": 3.01,
+          "odd_minima": 3.17,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 152,
+              "n_usado": 152,
+              "p_condicao": 0.1447,
+              "impacto_pp": -0.11,
+              "odd_minima": 6.91
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 152,
+              "n_usado": 152,
+              "p_condicao": 0.4868,
+              "impacto_pp": 1.96,
+              "odd_minima": 2.05
+            }
+          }
+        },
+        "2": {
+          "n": 47,
+          "n_usado": 47,
+          "p_condicao": 0.2553,
+          "p_base": 0.2416,
+          "impacto_pp": 1.37,
+          "odd_minima": 3.92,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 47,
+              "n_usado": 47,
+              "p_condicao": 0.0851,
+              "impacto_pp": -2.9,
+              "odd_minima": 11.75
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 47,
+              "n_usado": 47,
+              "p_condicao": 0.3404,
+              "impacto_pp": -0.19,
+              "odd_minima": 2.94
+            }
+          }
+        },
+        "3": {
+          "n": 18,
+          "n_usado": 47,
+          "p_condicao": 0.2553,
+          "p_base": 0.0877,
+          "impacto_pp": 16.76,
+          "odd_minima": 3.92,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 18,
+              "n_usado": 47,
+              "p_condicao": 0.0851,
+              "impacto_pp": 6.76,
+              "odd_minima": 11.75
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 18,
+              "n_usado": 47,
+              "p_condicao": 0.3404,
+              "impacto_pp": 14.74,
+              "odd_minima": 2.94
+            }
+          }
+        },
+        "0": {
+          "n": 266,
+          "n_usado": 266,
+          "p_condicao": 0.5714,
+          "p_base": 0.536,
+          "impacto_pp": 3.54,
+          "odd_minima": 1.75,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 266,
+              "n_usado": 266,
+              "p_condicao": 0.4135,
+              "impacto_pp": 5.37,
+              "odd_minima": 2.42
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 266,
+              "n_usado": 266,
+              "p_condicao": 0.7256,
+              "impacto_pp": 3.24,
+              "odd_minima": 1.38
+            }
+          }
+        },
+        "4": {
+          "n": 5,
+          "n_usado": 47,
+          "p_condicao": 0.2553,
+          "p_base": 0.0877,
+          "impacto_pp": 16.76,
+          "odd_minima": 3.92,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 5,
+              "n_usado": 47,
+              "p_condicao": 0.0851,
+              "impacto_pp": 6.76,
+              "odd_minima": 11.75
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 5,
+              "n_usado": 47,
+              "p_condicao": 0.3404,
+              "impacto_pp": 14.74,
+              "odd_minima": 2.94
+            }
+          }
+        },
+        "5": {
+          "n": 1,
+          "n_usado": 47,
+          "p_condicao": 0.2553,
+          "p_base": 0.0877,
+          "impacto_pp": 16.76,
+          "odd_minima": 3.92,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 1,
+              "n_usado": 47,
+              "p_condicao": 0.0851,
+              "impacto_pp": 6.76,
+              "odd_minima": 11.75
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 1,
+              "n_usado": 47,
+              "p_condicao": 0.3404,
+              "impacto_pp": 14.74,
+              "odd_minima": 2.94
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_024",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 15,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": "<=",
+          "limite": 4.0
+        },
+        {
+          "stat": "interceptions",
+          "operador": ">=",
+          "limite": 3.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "menos_de",
+        "linha": 4.5
+      },
+      "mercado_curto": "Menos de 4.5 cartões",
+      "amostra_confirmacao": 511,
+      "prob_base_confirmacao": 0.3961,
+      "prob_condicao_confirmacao": 0.4481,
+      "impacto_pp": 5.2,
+      "p_valor_confirmacao": 0.003086734298002378,
+      "odd_minima_referencia": 2.23,
+      "rotulo": "Faltas ≤ 4 E Interceptações ≥ 3 aos 15' (0 gol(s) no jogo) → Menos de 4.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "0": {
+          "n": 412,
+          "n_usado": 412,
+          "p_condicao": 0.4854,
+          "p_base": 0.4339,
+          "impacto_pp": 5.16,
+          "odd_minima": 2.06,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 412,
+              "n_usado": 412,
+              "p_condicao": 0.3058,
+              "impacto_pp": 2.84,
+              "odd_minima": 3.27
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 412,
+              "n_usado": 412,
+              "p_condicao": 0.6214,
+              "impacto_pp": 3.19,
+              "odd_minima": 1.61
+            }
+          }
+        },
+        "1": {
+          "n": 86,
+          "n_usado": 86,
+          "p_condicao": 0.3256,
+          "p_base": 0.2945,
+          "impacto_pp": 3.1,
+          "odd_minima": 3.07,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 86,
+              "n_usado": 86,
+              "p_condicao": 0.1628,
+              "impacto_pp": 1.01,
+              "odd_minima": 6.14
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 86,
+              "n_usado": 86,
+              "p_condicao": 0.4651,
+              "impacto_pp": 3.24,
+              "odd_minima": 2.15
+            }
+          }
+        },
+        "2": {
+          "n": 13,
+          "n_usado": 86,
+          "p_condicao": 0.3256,
+          "p_base": 0.1667,
+          "impacto_pp": 15.89,
+          "odd_minima": 3.07,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 13,
+              "n_usado": 86,
+              "p_condicao": 0.1628,
+              "impacto_pp": 10.22,
+              "odd_minima": 6.14
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 13,
+              "n_usado": 86,
+              "p_condicao": 0.4651,
+              "impacto_pp": 22.27,
+              "odd_minima": 2.15
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_025",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "dangerous_attacks",
+          "operador": "<=",
+          "limite": 29.0
+        },
+        {
+          "stat": "fouls",
+          "operador": ">=",
+          "limite": 6.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "mais_de",
+        "linha": 5.5
+      },
+      "mercado_curto": "Mais de 5.5 cartões",
+      "amostra_confirmacao": 700,
+      "prob_base_confirmacao": 0.4633,
+      "prob_condicao_confirmacao": 0.5143,
+      "impacto_pp": 5.1,
+      "p_valor_confirmacao": 6.117568518606004e-06,
+      "odd_minima_referencia": 1.94,
+      "rotulo": "Ataques perigosos ≤ 29 E Faltas ≥ 6 aos 30' (0 gol(s) no jogo) → Mais de 5.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "2": {
+          "n": 111,
+          "n_usado": 111,
+          "p_condicao": 0.6577,
+          "p_base": 0.6577,
+          "impacto_pp": -0.01,
+          "odd_minima": 1.52,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 111,
+              "n_usado": 111,
+              "p_condicao": 0.7658,
+              "impacto_pp": 0.74,
+              "odd_minima": 1.31
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 111,
+              "n_usado": 111,
+              "p_condicao": 0.4595,
+              "impacto_pp": 0.31,
+              "odd_minima": 2.18
+            }
+          }
+        },
+        "1": {
+          "n": 222,
+          "n_usado": 222,
+          "p_condicao": 0.5721,
+          "p_base": 0.5327,
+          "impacto_pp": 3.93,
+          "odd_minima": 1.75,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 222,
+              "n_usado": 222,
+              "p_condicao": 0.7477,
+              "impacto_pp": 3.35,
+              "odd_minima": 1.34
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 222,
+              "n_usado": 222,
+              "p_condicao": 0.3874,
+              "impacto_pp": 2.73,
+              "odd_minima": 2.58
+            }
+          }
+        },
+        "3": {
+          "n": 47,
+          "n_usado": 47,
+          "p_condicao": 0.8298,
+          "p_base": 0.807,
+          "impacto_pp": 2.28,
+          "odd_minima": 1.21,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 47,
+              "n_usado": 47,
+              "p_condicao": 0.9149,
+              "impacto_pp": 0.26,
+              "odd_minima": 1.09
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 47,
+              "n_usado": 47,
+              "p_condicao": 0.7447,
+              "impacto_pp": 2.54,
+              "odd_minima": 1.34
+            }
+          }
+        },
+        "4": {
+          "n": 15,
+          "n_usado": 47,
+          "p_condicao": 0.8298,
+          "p_base": 0.807,
+          "impacto_pp": 2.28,
+          "odd_minima": 1.21,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 15,
+              "n_usado": 47,
+              "p_condicao": 0.9149,
+              "impacto_pp": 0.26,
+              "odd_minima": 1.09
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 15,
+              "n_usado": 47,
+              "p_condicao": 0.7447,
+              "impacto_pp": 2.54,
+              "odd_minima": 1.34
+            }
+          }
+        },
+        "0": {
+          "n": 301,
+          "n_usado": 301,
+          "p_condicao": 0.3389,
+          "p_base": 0.3068,
+          "impacto_pp": 3.21,
+          "odd_minima": 2.95,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 301,
+              "n_usado": 301,
+              "p_condicao": 0.485,
+              "impacto_pp": 2.1,
+              "odd_minima": 2.06
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 301,
+              "n_usado": 301,
+              "p_condicao": 0.2226,
+              "impacto_pp": 2.94,
+              "odd_minima": 4.49
+            }
+          }
+        },
+        "7": {
+          "n": 1,
+          "n_usado": 47,
+          "p_condicao": 0.8298,
+          "p_base": 0.807,
+          "impacto_pp": 2.28,
+          "odd_minima": 1.21,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 1,
+              "n_usado": 47,
+              "p_condicao": 0.9149,
+              "impacto_pp": 0.26,
+              "odd_minima": 1.09
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 1,
+              "n_usado": 47,
+              "p_condicao": 0.7447,
+              "impacto_pp": 2.54,
+              "odd_minima": 1.34
+            }
+          }
+        },
+        "5": {
+          "n": 3,
+          "n_usado": 47,
+          "p_condicao": 0.8298,
+          "p_base": 0.807,
+          "impacto_pp": 2.28,
+          "odd_minima": 1.21,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 4.5,
+              "n": 3,
+              "n_usado": 47,
+              "p_condicao": 0.9149,
+              "impacto_pp": 0.26,
+              "odd_minima": 1.09
+            },
+            "1": {
+              "linha": 6.5,
+              "n": 3,
+              "n_usado": 47,
+              "p_condicao": 0.7447,
+              "impacto_pp": 2.54,
+              "odd_minima": 1.34
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "cartoes_026",
+      "alvo": "cartoes",
+      "alvo_nome": "Cartões",
+      "minuto": 30,
+      "gols_momento": 0,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": ">=",
+          "limite": 6.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": "<=",
+          "limite": 7.0
+        }
+      ],
+      "mercado": {
+        "stat": "cards",
+        "direcao": "mais_de",
+        "linha": 4.5
+      },
+      "mercado_curto": "Mais de 4.5 cartões",
+      "amostra_confirmacao": 589,
+      "prob_base_confirmacao": 0.6147,
+      "prob_condicao_confirmacao": 0.6655,
+      "impacto_pp": 5.09,
+      "p_valor_confirmacao": 0.00018347702225818388,
+      "odd_minima_referencia": 1.5,
+      "rotulo": "Faltas ≥ 6 E Chutes totais ≤ 7 aos 30' (0 gol(s) no jogo) → Mais de 4.5 cartões",
+      "regiao": "brasil",
+      "por_valor_atual": {
+        "2": {
+          "n": 98,
+          "n_usado": 98,
+          "p_condicao": 0.7245,
+          "p_base": 0.7584,
+          "impacto_pp": -3.39,
+          "odd_minima": 1.38,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 98,
+              "n_usado": 98,
+              "p_condicao": 0.8673,
+              "impacto_pp": -1.86,
+              "odd_minima": 1.15
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 98,
+              "n_usado": 98,
+              "p_condicao": 0.6224,
+              "impacto_pp": -3.53,
+              "odd_minima": 1.61
+            }
+          }
+        },
+        "3": {
+          "n": 40,
+          "n_usado": 40,
+          "p_condicao": 0.925,
+          "p_base": 0.9123,
+          "impacto_pp": 1.27,
+          "odd_minima": 1.08,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 40,
+              "n_usado": 40,
+              "p_condicao": 0.975,
+              "impacto_pp": -0.75,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 40,
+              "n_usado": 40,
+              "p_condicao": 0.85,
+              "impacto_pp": 4.3,
+              "odd_minima": 1.18
+            }
+          }
+        },
+        "4": {
+          "n": 14,
+          "n_usado": 40,
+          "p_condicao": 0.925,
+          "p_base": 0.9123,
+          "impacto_pp": 1.27,
+          "odd_minima": 1.08,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 14,
+              "n_usado": 40,
+              "p_condicao": 0.975,
+              "impacto_pp": -0.75,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 14,
+              "n_usado": 40,
+              "p_condicao": 0.85,
+              "impacto_pp": 4.3,
+              "odd_minima": 1.18
+            }
+          }
+        },
+        "1": {
+          "n": 179,
+          "n_usado": 179,
+          "p_condicao": 0.743,
+          "p_base": 0.7143,
+          "impacto_pp": 2.87,
+          "odd_minima": 1.35,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 179,
+              "n_usado": 179,
+              "p_condicao": 0.8715,
+              "impacto_pp": 1.73,
+              "odd_minima": 1.15
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 179,
+              "n_usado": 179,
+              "p_condicao": 0.5754,
+              "impacto_pp": 4.27,
+              "odd_minima": 1.74
+            }
+          }
+        },
+        "0": {
+          "n": 254,
+          "n_usado": 254,
+          "p_condicao": 0.5236,
+          "p_base": 0.464,
+          "impacto_pp": 5.96,
+          "odd_minima": 1.91,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 254,
+              "n_usado": 254,
+              "p_condicao": 0.7165,
+              "impacto_pp": 7.64,
+              "odd_minima": 1.4
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 254,
+              "n_usado": 254,
+              "p_condicao": 0.3583,
+              "impacto_pp": 5.14,
+              "odd_minima": 2.79
+            }
+          }
+        },
+        "7": {
+          "n": 1,
+          "n_usado": 40,
+          "p_condicao": 0.925,
+          "p_base": 0.9123,
+          "impacto_pp": 1.27,
+          "odd_minima": 1.08,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 1,
+              "n_usado": 40,
+              "p_condicao": 0.975,
+              "impacto_pp": -0.75,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 1,
+              "n_usado": 40,
+              "p_condicao": 0.85,
+              "impacto_pp": 4.3,
+              "odd_minima": 1.18
+            }
+          }
+        },
+        "5": {
+          "n": 3,
+          "n_usado": 40,
+          "p_condicao": 0.925,
+          "p_base": 0.9123,
+          "impacto_pp": 1.27,
+          "odd_minima": 1.08,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 3.5,
+              "n": 3,
+              "n_usado": 40,
+              "p_condicao": 0.975,
+              "impacto_pp": -0.75,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 5.5,
+              "n": 3,
+              "n_usado": 40,
+              "p_condicao": 0.85,
+              "impacto_pp": 4.3,
+              "odd_minima": 1.18
+            }
+          }
+        }
+      }
+    },
     {
       "id": "chutes_no_alvo_001",
       "alvo": "chutes_no_alvo",
@@ -34,6 +5454,7 @@
       "p_valor_confirmacao": 7.536492657999141e-06,
       "odd_minima_referencia": 1.79,
       "rotulo": "Ataques perigosos ≤ 26 E Passes-chave ≤ 6 aos 30' (0 gol(s) no jogo) → Menos de 8.5 chutes no alvo",
+      "regiao": "universal",
       "por_valor_atual": {
         "0": {
           "n": 265,
@@ -302,6 +5723,7 @@
       "p_valor_confirmacao": 3.0868109821847418e-06,
       "odd_minima_referencia": 1.78,
       "rotulo": "Escanteios ≤ 1 E Ataques perigosos ≤ 16 aos 15' (0 gol(s) no jogo) → Menos de 20.5 chutes totais",
+      "regiao": "universal",
       "por_valor_atual": {
         "2": {
           "n": 413,
@@ -570,6 +5992,7 @@
       "p_valor_confirmacao": 4.983670457048682e-07,
       "odd_minima_referencia": 1.27,
       "rotulo": "Escanteios ≤ 1 E Ataques perigosos ≤ 16 aos 15' (0 gol(s) no jogo) → Menos de 24.5 chutes totais",
+      "regiao": "universal",
       "por_valor_atual": {
         "2": {
           "n": 413,
@@ -838,6 +6261,7 @@
       "p_valor_confirmacao": 8.068814020988468e-06,
       "odd_minima_referencia": 2.09,
       "rotulo": "Ataques perigosos ≤ 26 E Passes-chave ≤ 6 aos 30' (0 gol(s) no jogo) → Menos de 18.5 chutes totais",
+      "regiao": "universal",
       "por_valor_atual": {
         "2": {
           "n": 102,
@@ -1231,6 +6655,7 @@
       "p_valor_confirmacao": 2.224347166794174e-05,
       "odd_minima_referencia": 1.28,
       "rotulo": "Escanteios ≤ 10 aos 90' (2 gol(s) no jogo) → Menos de 24.5 chutes totais",
+      "regiao": "universal",
       "por_valor_atual": {
         "24": {
           "n": 63,
@@ -2248,6 +7673,7 @@
       "p_valor_confirmacao": 0.0012131817365763093,
       "odd_minima_referencia": 1.78,
       "rotulo": "Escanteios ≤ 6 aos 60' (1 gol(s) no jogo) → Menos de 20.5 chutes totais",
+      "regiao": "universal",
       "por_valor_atual": {
         "14": {
           "n": 77,
@@ -3062,6 +8488,7 @@
       "p_valor_confirmacao": 1.5660078624322218e-05,
       "odd_minima_referencia": 1.14,
       "rotulo": "Ataques perigosos ≤ 26 E Passes-chave ≤ 6 aos 30' (0 gol(s) no jogo) → Menos de 26.5 chutes totais",
+      "regiao": "universal",
       "por_valor_atual": {
         "2": {
           "n": 102,
@@ -3460,6 +8887,7 @@
       "p_valor_confirmacao": 9.305975587103268e-06,
       "odd_minima_referencia": 1.85,
       "rotulo": "Escanteios ≤ 2 E Ataques perigosos ≤ 16 aos 15' (0 gol(s) no jogo) → Menos de 20.5 chutes totais",
+      "regiao": "universal",
       "por_valor_atual": {
         "2": {
           "n": 540,
@@ -3754,6 +9182,7 @@
       "p_valor_confirmacao": 9.515036150520573e-05,
       "odd_minima_referencia": 1.56,
       "rotulo": "Ataques perigosos ≥ 43 E Chutes totais ≥ 10 aos 45' (1 gol(s) no jogo) → Mais de 9.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "7": {
           "n": 62,
@@ -4152,6 +9581,7 @@
       "p_valor_confirmacao": 0.00010633012757548404,
       "odd_minima_referencia": 1.92,
       "rotulo": "Ataques perigosos ≥ 43 E Chutes totais ≥ 10 aos 45' (1 gol(s) no jogo) → Mais de 10.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "7": {
           "n": 62,
@@ -4550,6 +9980,7 @@
       "p_valor_confirmacao": 6.887337402249783e-05,
       "odd_minima_referencia": 1.96,
       "rotulo": "Ataques perigosos ≥ 39 E Chutes totais ≥ 10 aos 45' (1 gol(s) no jogo) → Mais de 10.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "7": {
           "n": 78,
@@ -4948,6 +10379,7 @@
       "p_valor_confirmacao": 5.73362199863889e-06,
       "odd_minima_referencia": 1.61,
       "rotulo": "Faltas ≤ 8 E Chutes totais ≥ 7 aos 30' (1 gol(s) no jogo) → Mais de 9.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "3": {
           "n": 195,
@@ -5242,6 +10674,7 @@
       "p_valor_confirmacao": 4.65390610560388e-07,
       "odd_minima_referencia": 1.36,
       "rotulo": "Faltas ≤ 17 E Chutes totais ≥ 13 aos 60' (1 gol(s) no jogo) → Mais de 8.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "6": {
           "n": 110,
@@ -5770,6 +11203,7 @@
       "p_valor_confirmacao": 1.893618692762551e-05,
       "odd_minima_referencia": 1.63,
       "rotulo": "Impedimentos ≤ 1 E Chutes totais ≥ 7 aos 30' (1 gol(s) no jogo) → Mais de 9.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "3": {
           "n": 182,
@@ -6064,6 +11498,7 @@
       "p_valor_confirmacao": 7.848734746365622e-05,
       "odd_minima_referencia": 1.8,
       "rotulo": "Ataques ≥ 34 E Cruzamentos ≤ 4 aos 15' (0 gol(s) no jogo) → Menos de 9.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "1": {
           "n": 304,
@@ -6280,6 +11715,7 @@
       "p_valor_confirmacao": 0.00024119717871536481,
       "odd_minima_referencia": 1.26,
       "rotulo": "Chutes no alvo ≤ 6 E Chutes totais ≤ 22 aos 75' (2 gol(s) no jogo) → Menos de 11.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "7": {
           "n": 71,
@@ -6751,6 +12187,7 @@
       "p_valor_confirmacao": 0.0002739268502650556,
       "odd_minima_referencia": 1.53,
       "rotulo": "Chutes no alvo ≤ 8 aos 90' (2 gol(s) no jogo) → Menos de 10.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "16": {
           "n": 12,
@@ -7279,6 +12716,7 @@
       "p_valor_confirmacao": 0.00016571547430679185,
       "odd_minima_referencia": 1.51,
       "rotulo": "Chutes no alvo ≤ 7 E Chutes totais ≤ 22 aos 75' (2 gol(s) no jogo) → Menos de 10.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "10": {
           "n": 63,
@@ -7750,6 +13188,7 @@
       "p_valor_confirmacao": 0.0001337972562439523,
       "odd_minima_referencia": 1.51,
       "rotulo": "Chutes no alvo ≤ 7 aos 75' (2 gol(s) no jogo) → Menos de 10.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "10": {
           "n": 76,
@@ -8252,6 +13691,7 @@
       "p_valor_confirmacao": 0.0001337972562439523,
       "odd_minima_referencia": 1.51,
       "rotulo": "Chutes de dentro da área ≤ 14 E Chutes no alvo ≤ 7 aos 75' (2 gol(s) no jogo) → Menos de 10.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "10": {
           "n": 64,
@@ -8749,6 +14189,7 @@
       "p_valor_confirmacao": 0.0008229128020707511,
       "odd_minima_referencia": 2.62,
       "rotulo": "Chutes totais ≥ 11 aos 45' (1 gol(s) no jogo) → Mais de 11.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "3": {
           "n": 115,
@@ -9147,6 +14588,7 @@
       "p_valor_confirmacao": 0.0008229128020707511,
       "odd_minima_referencia": 2.62,
       "rotulo": "Chutes totais ≥ 11 E % dribles certos ≤ 133 aos 45' (1 gol(s) no jogo) → Mais de 11.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "3": {
           "n": 103,
@@ -9545,6 +14987,7 @@
       "p_valor_confirmacao": 0.008396688180935806,
       "odd_minima_referencia": 2.92,
       "rotulo": "Ataques ≥ 34 E Chutes totais ≤ 2 aos 15' (0 gol(s) no jogo) → Menos de 7.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "1": {
           "n": 219,
@@ -9761,6 +15204,7 @@
       "p_valor_confirmacao": 8.245725075519108e-06,
       "odd_minima_referencia": 1.22,
       "rotulo": "Duelos vencidos ≤ 61 E Chutes totais ≥ 13 aos 60' (1 gol(s) no jogo) → Mais de 7.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "6": {
           "n": 117,
@@ -10289,6 +15733,7 @@
       "p_valor_confirmacao": 6.096293097556213e-05,
       "odd_minima_referencia": 2.64,
       "rotulo": "Faltas ≤ 12 E Chutes totais ≥ 10 aos 45' (1 gol(s) no jogo) → Mais de 11.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "4": {
           "n": 156,
@@ -10687,6 +16132,7 @@
       "p_valor_confirmacao": 0.013282221850840615,
       "odd_minima_referencia": 2.28,
       "rotulo": "Ataques ≥ 65 E Chutes totais ≤ 9 aos 30' (0 gol(s) no jogo) → Menos de 8.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "2": {
           "n": 144,
@@ -10981,6 +16427,7 @@
       "p_valor_confirmacao": 0.0004314167738240076,
       "odd_minima_referencia": 1.52,
       "rotulo": "Defesas ≤ 5 E Chutes no alvo ≤ 7 aos 75' (2 gol(s) no jogo) → Menos de 10.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "10": {
           "n": 69,
@@ -11483,6 +16930,7 @@
       "p_valor_confirmacao": 0.009487695172572093,
       "odd_minima_referencia": 2.29,
       "rotulo": "Ataques ≥ 65 E Cruzamentos ≤ 15 aos 30' (0 gol(s) no jogo) → Menos de 8.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "2": {
           "n": 157,
@@ -11777,6 +17225,7 @@
       "p_valor_confirmacao": 0.0026937637605429885,
       "odd_minima_referencia": 2.65,
       "rotulo": "Chutes no alvo ≥ 3 E Chutes totais ≥ 11 aos 45' (1 gol(s) no jogo) → Mais de 11.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "3": {
           "n": 101,
@@ -12175,6 +17624,7 @@
       "p_valor_confirmacao": 0.00014846153856547237,
       "odd_minima_referencia": 1.43,
       "rotulo": "Chutes no alvo ≤ 6 E Cruzamentos ≤ 27 aos 60' (2 gol(s) no jogo) → Menos de 10.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "4": {
           "n": 100,
@@ -12573,6 +18023,7 @@
       "p_valor_confirmacao": 0.00135829770307555,
       "odd_minima_referencia": 2.76,
       "rotulo": "Chutes totais ≥ 18 E Desarmes ≤ 30 aos 75' (2 gol(s) no jogo) → Mais de 11.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "7": {
           "n": 82,
@@ -13127,6 +18578,7 @@
       "p_valor_confirmacao": 0.00030269908020028833,
       "odd_minima_referencia": 2.5,
       "rotulo": "Chutes no alvo ≥ 4 E Chutes totais ≥ 13 aos 60' (1 gol(s) no jogo) → Mais de 11.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "6": {
           "n": 119,
@@ -13650,6 +19102,7 @@
       "p_valor_confirmacao": 0.00021669783270229938,
       "odd_minima_referencia": 2.69,
       "rotulo": "Chutes totais ≥ 7 aos 30' (1 gol(s) no jogo) → Mais de 11.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "3": {
           "n": 214,
@@ -13944,6 +19397,7 @@
       "p_valor_confirmacao": 3.630851514003066e-05,
       "odd_minima_referencia": 1.24,
       "rotulo": "Chutes no alvo ≤ 6 E Cruzamentos ≤ 27 aos 60' (2 gol(s) no jogo) → Menos de 11.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "4": {
           "n": 100,
@@ -14342,6 +19796,7 @@
       "p_valor_confirmacao": 0.006288088554515634,
       "odd_minima_referencia": 1.83,
       "rotulo": "Ataques ≥ 56 E Chutes totais ≤ 8 aos 30' (1 gol(s) no jogo) → Menos de 9.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "3": {
           "n": 131,
@@ -14610,6 +20065,7 @@
       "p_valor_confirmacao": 0.00015672192054262427,
       "odd_minima_referencia": 1.28,
       "rotulo": "Chutes no alvo ≤ 7 E Chutes totais ≤ 22 aos 75' (2 gol(s) no jogo) → Menos de 11.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "10": {
           "n": 63,
@@ -15086,6 +20542,7 @@
       "p_valor_confirmacao": 1.3787071130561897e-05,
       "odd_minima_referencia": 1.69,
       "rotulo": "Impedimentos ≤ 1 E Chutes totais ≥ 6 aos 30' (1 gol(s) no jogo) → Mais de 9.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "3": {
           "n": 236,
@@ -15406,6 +20863,7 @@
       "p_valor_confirmacao": 3.325228989152578e-06,
       "odd_minima_referencia": 2.34,
       "rotulo": "Ataques perigosos ≤ 65 E Chutes totais ≤ 18 aos 60' (1 gol(s) no jogo) → Menos de 8.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "6": {
           "n": 144,
@@ -15856,6 +21314,7 @@
       "p_valor_confirmacao": 0.0001652101719855938,
       "odd_minima_referencia": 2.52,
       "rotulo": "Faltas ≤ 17 E Chutes totais ≥ 13 aos 60' (1 gol(s) no jogo) → Mais de 11.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "6": {
           "n": 110,
@@ -16384,6 +21843,7 @@
       "p_valor_confirmacao": 0.000193240593847165,
       "odd_minima_referencia": 2.68,
       "rotulo": "Chutes totais ≥ 10 E % dribles certos ≤ 133 aos 45' (1 gol(s) no jogo) → Mais de 11.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "4": {
           "n": 180,
@@ -16782,6 +22242,7 @@
       "p_valor_confirmacao": 0.005388721544234065,
       "odd_minima_referencia": 1.33,
       "rotulo": "Ataques ≥ 86 E Cruzamentos ≤ 18 aos 45' (0 gol(s) no jogo) → Menos de 11.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "2": {
           "n": 84,
@@ -17154,6 +22615,7 @@
       "p_valor_confirmacao": 4.577964223236724e-05,
       "odd_minima_referencia": 1.86,
       "rotulo": "Ataques ≥ 31 E Cruzamentos ≤ 4 aos 15' (0 gol(s) no jogo) → Menos de 9.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "1": {
           "n": 420,
@@ -17396,6 +22858,7 @@
       "p_valor_confirmacao": 4.577964223236724e-05,
       "odd_minima_referencia": 1.86,
       "rotulo": "Ataques ≥ 31 E Cruzamentos ≤ 5 aos 15' (0 gol(s) no jogo) → Menos de 9.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "1": {
           "n": 491,
@@ -17638,6 +23101,7 @@
       "p_valor_confirmacao": 4.577964223236724e-05,
       "odd_minima_referencia": 1.86,
       "rotulo": "Ataques ≥ 31 E Cruzamentos ≤ 6 aos 15' (0 gol(s) no jogo) → Menos de 9.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "1": {
           "n": 544,
@@ -17880,6 +23344,7 @@
       "p_valor_confirmacao": 0.0017131701146195547,
       "odd_minima_referencia": 1.94,
       "rotulo": "Defesas ≤ 5 E Chutes no alvo ≤ 7 aos 75' (2 gol(s) no jogo) → Menos de 9.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "10": {
           "n": 69,
@@ -18382,6 +23847,7 @@
       "p_valor_confirmacao": 0.0011291384702616233,
       "odd_minima_referencia": 1.91,
       "rotulo": "Ataques ≥ 57 E Passes-chave ≤ 5 aos 30' (0 gol(s) no jogo) → Menos de 9.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "2": {
           "n": 246,
@@ -18702,6 +24168,7 @@
       "p_valor_confirmacao": 0.0019951594209427917,
       "odd_minima_referencia": 1.32,
       "rotulo": "Ataques ≥ 34 E Cruzamentos ≤ 4 aos 15' (0 gol(s) no jogo) → Menos de 11.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "1": {
           "n": 304,
@@ -18918,6 +24385,7 @@
       "p_valor_confirmacao": 0.002023745187435808,
       "odd_minima_referencia": 1.96,
       "rotulo": "Chutes de dentro da área ≤ 14 E Chutes no alvo ≤ 7 aos 75' (2 gol(s) no jogo) → Menos de 9.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "10": {
           "n": 64,
@@ -19420,6 +24888,7 @@
       "p_valor_confirmacao": 0.004265997436553619,
       "odd_minima_referencia": 2.34,
       "rotulo": "Ataques ≥ 34 E Passes-chave ≤ 2 aos 15' (0 gol(s) no jogo) → Menos de 8.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "1": {
           "n": 349,
@@ -19631,6 +25100,7 @@
       "p_valor_confirmacao": 0.00012446139282600762,
       "odd_minima_referencia": 2.15,
       "rotulo": "Chutes totais ≥ 6 aos 30' (1 gol(s) no jogo) → Mais de 10.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "3": {
           "n": 271,
@@ -19946,6 +25416,7 @@
       "p_valor_confirmacao": 0.011993276200419997,
       "odd_minima_referencia": 1.48,
       "rotulo": "Chutes totais ≥ 21 aos 90' (3 gol(s) no jogo) → Mais de 8.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "14": {
           "n": 38,
@@ -20495,6 +25966,7 @@
       "p_valor_confirmacao": 8.011775575599108e-07,
       "odd_minima_referencia": 1.89,
       "rotulo": "Chutes totais ≤ 7 aos 30' (1 gol(s) no jogo) → Menos de 9.5 escanteios",
+      "regiao": "universal",
       "por_valor_atual": {
         "2": {
           "n": 289,
