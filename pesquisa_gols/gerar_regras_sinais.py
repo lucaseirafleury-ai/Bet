@@ -307,18 +307,51 @@ def _colapsar(brutas):
     return [max(itens, key=lambda x: x["impacto"]) for itens in grupos.values()]
 
 
-def _chave_familia(item):
+def _ancoras_1stat(itens):
+    """(alvo, minuto, gols_momento, stat, operador) de toda condição de 1 SÓ
+    estatística que, sozinha, já passou no filtro de amostra/impacto — usado
+    por _chave_familia pra achatar combinações de 2 estatísticas que usam uma
+    dessas âncoras.
+
+    Achado real (ver conversa): em escanteios-Brasil, "Cruzamentos >= N" sozinho
+    já confirma em 192/246 das condições de 1 stat — e aparece em 680/1100 das
+    condições de 2 stats, combinado com DEZENAS de parceiros diferentes
+    (Ataques, Passes-chave, Duelos vencidos, Chutes, Defesas, Impedimentos...)
+    que são todos, eles mesmos, correlacionados com o mesmo fenômeno de fundo
+    (intensidade ofensiva) — não são 80 histórias novas, é 1 história (cruzamento
+    prevê escanteio no Brasil) redescoberta 80 vezes com ruído de parceiro.
+    Mesmo padrão em cartões: "Faltas >= N" sozinho é 100% das condições de 1
+    stat e aparece em 70/72 das de 2 stats.
+    """
+    return {
+        (it["alvo_id"], it["minuto"], it["gols_momento"], it["condicoes"][0]["stat"], it["condicoes"][0]["operador"])
+        for it in itens if len(it["condicoes"]) == 1
+    }
+
+
+def _chave_familia(item, ancoras):
     """
     Agrupa por (alvo, minuto, gols_momento, conjunto de stat+direção usados) —
     ignora o limite exato de cada condição e a linha de mercado, que são
     exatamente o que mais explode em variações quase-idênticas da MESMA
     história (achado real, ver conversa: gerar 511 regras de escanteios pro
-    Brasil, 167 só num checkpoint — quase todas eram "Cruzamentos >=6" ou
-    "Ataques >=31 E Cruzamentos <=N" fatiado em 4-5 linhas de mercado x vários
+    Brasil, 167 só num checkpoint — quase todas eram "Cruzamentos>=6" ou
+    "Ataques>=31 E Cruzamentos<=N" fatiado em 4-5 linhas de mercado x vários
     limites vizinhos de N, não histórias diferentes). _colapsar já junta o par
     mais/menos NA MESMA linha; isso aqui vai além, juntando linhas e limites
     diferentes da mesma combinação de estatísticas+direção.
+
+    Além disso (ver _ancoras_1stat): se a condição é de 2 estatísticas e UMA
+    delas já vale sozinha (é uma âncora) pro mesmo alvo/minuto/placar, a família
+    é a da âncora sozinha, não a do par — assim "Cruzamentos>=6 E X" pra
+    qualquer X cai na MESMA família que "Cruzamentos>=6" sozinho, em vez de
+    cada parceiro X virar uma "descoberta" própria.
     """
+    if len(item["condicoes"]) == 2:
+        base = (item["alvo_id"], item["minuto"], item["gols_momento"])
+        for c in item["condicoes"]:
+            if (*base, c["stat"], c["operador"]) in ancoras:
+                return (*base, frozenset({(c["stat"], c["operador"])}))
     condset = frozenset((c["stat"], c["operador"]) for c in item["condicoes"])
     return (item["alvo_id"], item["minuto"], item["gols_momento"], condset)
 
@@ -330,9 +363,10 @@ def _deduplicar_familia(itens):
     suficiente mas uma vizinha tivesse, a família inteira já teria sido
     descartada de qualquer forma (o candidato a "melhor" já é sempre um que
     passou no filtro)."""
+    ancoras = _ancoras_1stat(itens)
     grupos = {}
     for item in itens:
-        grupos.setdefault(_chave_familia(item), []).append(item)
+        grupos.setdefault(_chave_familia(item, ancoras), []).append(item)
     return [max(grupo, key=lambda x: x["impacto"]) for grupo in grupos.values()]
 
 
