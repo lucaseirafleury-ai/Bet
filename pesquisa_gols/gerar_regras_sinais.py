@@ -27,11 +27,23 @@ IMPACTO_MINIMO_PP = 5.0
 
 ALVOS = ["escanteios", "chutes_totais", "chutes_no_alvo", "gols", "cartoes"]
 # Alvos com regras "regiao=brasil" — confirmam contra Série A/B mas NÃO
-# confirmaram nas ligas nórdicas, então só entram no painel restritas a jogos
-# do Brasil (ver live_monitor.py::_regra_vale_para_liga). Ver histórico da
-# decisão na conversa: cartões confirma forte no Brasil (28/32 + 72/128,
-# vários p<0.0001) mas 0/14 + 0/46 nas nórdicas.
-ALVOS_REGIAO_BRASIL = ["cartoes"]
+# confirmaram nas ligas nórdicas (ou nem chegaram a amostra_confirmacao>=200
+# lá), então só entram no painel restritas a jogos do Brasil (ver
+# live_monitor.py::_regra_vale_para_liga). Ver histórico da decisão na
+# conversa: cartões confirma forte no Brasil (28/32 + 72/128, vários
+# p<0.0001) mas 0/14 + 0/46 nas nórdicas.
+#
+# Estendido pra escanteios/chutes_totais/chutes_no_alvo (ver conversa,
+# "estratégias pra mais sinais"): depois de corrigir LIGAS_MONITORADAS
+# (A Lyga/1.Lyga saíram do pool nórdico), a amostra nas nórdicas ficou menor
+# (só Superettan+1.Division) e várias condições que antes confirmavam
+# universalmente passaram a faltar amostra lá — mas continuam com amostra de
+# sobra no Brasil (Série A+B, ~2200 jogos). Em vez de juntar as regiões num
+# teste só (risco real de paradoxo de Simpson — um efeito forte só no Brasil
+# pode "carregar" um teste combinado mesmo sem existir nas nórdicas, ou
+# mascarar o inverso), cada condição prova o que prova na sua própria
+# região, exatamente como cartões já fazia.
+ALVOS_REGIAO_BRASIL = ["escanteios", "chutes_totais", "chutes_no_alvo", "cartoes"]
 ALVO_TITULO = {
     "escanteios": "Escanteios", "chutes_totais": "Chutes totais",
     "chutes_no_alvo": "Chutes no alvo", "gols": "Gols", "cartoes": "Cartões",
