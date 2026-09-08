@@ -547,10 +547,19 @@ def _regra_bate(regra, valores):
 # deve avaliar como válida fora dessas duas ligas.
 LIGAS_REGIAO_BRASIL = {"Série A", "Série B"}
 
+# Espelho de LIGAS_REGIAO_BRASIL pra "regiao": "nordicas" — condições que
+# confirmaram nas ligas nórdicas mas não (ou ainda não com amostra
+# suficiente) no Brasil; ver gerar_regras_sinais.py. Nomes batem com os
+# valores de config.LIGAS_MONITORADAS.
+LIGAS_REGIAO_NORDICAS = {"Allsvenskan", "Superettan", "1. Division"}
+
 
 def _regra_vale_para_liga(regra, liga):
-    if regra.get("regiao") == "brasil":
+    regiao = regra.get("regiao")
+    if regiao == "brasil":
         return liga in LIGAS_REGIAO_BRASIL
+    if regiao == "nordicas":
+        return liga in LIGAS_REGIAO_NORDICAS
     return True  # "universal" (ou regra antiga sem o campo) vale em qualquer liga monitorada
 
 
