@@ -307,6 +307,35 @@ def _colapsar(brutas):
     return [max(itens, key=lambda x: x["impacto"]) for itens in grupos.values()]
 
 
+def _chave_familia(item):
+    """
+    Agrupa por (alvo, minuto, gols_momento, conjunto de stat+direção usados) —
+    ignora o limite exato de cada condição e a linha de mercado, que são
+    exatamente o que mais explode em variações quase-idênticas da MESMA
+    história (achado real, ver conversa: gerar 511 regras de escanteios pro
+    Brasil, 167 só num checkpoint — quase todas eram "Cruzamentos >=6" ou
+    "Ataques >=31 E Cruzamentos <=N" fatiado em 4-5 linhas de mercado x vários
+    limites vizinhos de N, não histórias diferentes). _colapsar já junta o par
+    mais/menos NA MESMA linha; isso aqui vai além, juntando linhas e limites
+    diferentes da mesma combinação de estatísticas+direção.
+    """
+    condset = frozenset((c["stat"], c["operador"]) for c in item["condicoes"])
+    return (item["alvo_id"], item["minuto"], item["gols_momento"], condset)
+
+
+def _deduplicar_familia(itens):
+    """Mantém só a variação de MAIOR impacto de cada família (ver _chave_familia) —
+    aplicado DEPOIS do filtro de amostra/impacto mínimos (fortes/fortes_brasil),
+    não antes: assim, se a variação de maior impacto não tivesse amostra
+    suficiente mas uma vizinha tivesse, a família inteira já teria sido
+    descartada de qualquer forma (o candidato a "melhor" já é sempre um que
+    passou no filtro)."""
+    grupos = {}
+    for item in itens:
+        grupos.setdefault(_chave_familia(item), []).append(item)
+    return [max(grupo, key=lambda x: x["impacto"]) for grupo in grupos.values()]
+
+
 sinais = _colapsar(_carregar_brutas(ALVOS))
 
 
@@ -349,6 +378,7 @@ fortes = [
 ]
 for s in fortes:
     s["regiao"] = "universal"
+fortes = _deduplicar_familia(fortes)
 
 # Regras que confirmam SÓ no Brasil (não nas nórdicas) — achado real: cartões
 # (faltas -> cartões) confirma forte em Série A/B (28/32 + 72/128, várias com
@@ -366,6 +396,7 @@ fortes_brasil = [
 ]
 for s in fortes_brasil:
     s["regiao"] = "brasil"
+fortes_brasil = _deduplicar_familia(fortes_brasil)
 
 fortes = fortes + fortes_brasil
 fortes.sort(key=lambda x: (x["alvo_id"], -x["impacto"]))
