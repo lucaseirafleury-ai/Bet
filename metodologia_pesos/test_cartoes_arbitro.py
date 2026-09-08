@@ -1,6 +1,9 @@
+import json
+
 import pytest
 
 from cartoes_arbitro import (
+    carregar_referees_cartoes,
     decidir_lado_linha,
     linha_mais_liquida,
     media_arbitro_atual,
@@ -9,6 +12,48 @@ from cartoes_arbitro import (
     prever_cartoes_combinado,
     simular_aposta_linha,
 )
+
+
+def _fixture_bruto(**overrides):
+    base = dict(
+        fixture_id=1, date="2026-08-20 21:30:00", home_team="Time A", away_team="Time B",
+        home_goals=1, away_goals=0, home_goals_ht=0, away_goals_ht=0,
+        corners_home=5, corners_away=4, shots_home=10, shots_away=8,
+        shots_on_target_home=4, shots_on_target_away=3,
+        possession_home=50, possession_away=50, fouls_home=10, fouls_away=10,
+        yellowcards_home=2, yellowcards_away=1, redcards_home=0, redcards_away=0,
+        referee_id=42, odds={},
+    )
+    base.update(overrides)
+    return base
+
+
+def test_carregar_referees_cartoes_soma_cartoes_e_ordena_por_data(tmp_path):
+    caminho = tmp_path / "fixtures.jsonl"
+    linhas = [
+        _fixture_bruto(fixture_id=2, date="2026-08-25 21:30:00", referee_id=42,
+                        yellowcards_home=3, yellowcards_away=2, redcards_home=1, redcards_away=0),
+        _fixture_bruto(fixture_id=1, date="2026-08-20 21:30:00", referee_id=42,
+                        yellowcards_home=2, yellowcards_away=1, redcards_home=0, redcards_away=0),
+    ]
+    caminho.write_text("\n".join(json.dumps(l) for l in linhas))
+    jogos = carregar_referees_cartoes(str(caminho))
+    assert [j["fixture_id"] for j in jogos] == [1, 2]  # ordenado por data, não por ordem no arquivo
+    assert jogos[0]["total_cartoes"] == 3  # 2+1+0+0
+    assert jogos[1]["total_cartoes"] == 6  # 3+2+1+0
+
+
+def test_carregar_referees_cartoes_dado_ausente_vira_none_nao_zero(tmp_path):
+    # mesmo sentinela -1 de flat_para_linha (jogo com estatística de
+    # detalhe faltando) -- tinha que virar None, não "0 cartões" reais
+    # (bug achado ao investigar o bug de escanteios: as duas versões
+    # antigas dessa leitura, em previsao_dia.py e checar_decaimento.py,
+    # liam o JSON bruto direto com `or 0`, sem passar pelo sentinela).
+    caminho = tmp_path / "fixtures.jsonl"
+    linha = _fixture_bruto(shots_home=None)  # aciona stats_ausentes
+    caminho.write_text(json.dumps(linha))
+    jogos = carregar_referees_cartoes(str(caminho))
+    assert jogos[0]["total_cartoes"] is None
 
 
 def test_media_arbitro_walk_forward_exige_minimo_de_jogos_antes_de_prever():

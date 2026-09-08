@@ -36,7 +36,7 @@ def test_atualizar_fixtures_finalizados_sem_arquivo_faz_pull_completo(tmp_path):
     assert total == 42
 
 
-def test_atualizar_fixtures_finalizados_incremental_pula_existente_e_adiciona_novo(tmp_path):
+def test_atualizar_fixtures_finalizados_incremental_adiciona_novo_e_conta_certo(tmp_path):
     out_path = tmp_path / "fixtures.jsonl"
     existente = dict(fixture_id=1, date="2026-08-20 20:00:00", home_team="Time A", away_team="Time B",
                       home_goals=1, away_goals=1, home_goals_ht=0, away_goals_ht=0,
@@ -47,17 +47,44 @@ def test_atualizar_fixtures_finalizados_incremental_pula_existente_e_adiciona_no
     with patch.object(sm.requests, "get", return_value=resposta) as mock_get:
         novos = sm.atualizar_fixtures_finalizados("tok", 648, str(out_path), margem_dias=3)
 
-    assert novos == 1
+    assert novos == 1  # só a fixture 2 é genuinamente nova, mesmo a 1 sendo reescrita
     linhas = [json.loads(l) for l in out_path.read_text().splitlines()]
     assert {l["fixture_id"] for l in linhas} == {1, 2}
     novo = next(l for l in linhas if l["fixture_id"] == 2)
     assert novo["season"] == ""
-    # não duplicou nem alterou a fixture já existente
     velho = next(l for l in linhas if l["fixture_id"] == 1)
-    assert velho["season"] == "2026"
+    assert velho["season"] == "2026"  # rótulo de temporada preservado no refresh
 
     url_chamada = mock_get.call_args[0][0]
     assert url_chamada.startswith(f"{sm.BASE}/fixtures/between/2026-08-17/")  # 2026-08-20 - 3 dias
+
+
+def test_atualizar_fixtures_finalizados_reconsulta_sobrescreve_fixture_ja_existente(tmp_path):
+    # o proposito de `margem_dias` (docstring: "folga de seguranca pra
+    # recapturar jogos cuja odd/estatistica ainda nao estava completa")
+    # so funciona se um fixture_id ja conhecido, mas devolvido de novo
+    # dentro da janela reconsultada, for REESCRITO com o dado mais fresco
+    # -- nao ignorado. Bug real: a versao antiga so adicionava fixture_id
+    # novo, nunca atualizava um ja existente, entao um jogo capturado com
+    # estatistica incompleta ficava incompleto pra sempre no cache local.
+    out_path = tmp_path / "fixtures.jsonl"
+    existente = dict(fixture_id=1, date="2026-08-20 20:00:00", home_team="Time A", away_team="Time B",
+                      home_goals=1, away_goals=1, home_goals_ht=0, away_goals_ht=0,
+                      referee_id=None, odds={}, season="2026")
+    out_path.write_text(json.dumps(existente) + "\n")
+
+    # reconsulta traz o MESMO fixture_id 1, mas agora com placar diferente
+    # (representa dado que ficou mais completo/correto desde a 1a captura)
+    resposta = _resposta([_fixture_bruto(1, 3, 2)])
+    with patch.object(sm.requests, "get", return_value=resposta):
+        novos = sm.atualizar_fixtures_finalizados("tok", 648, str(out_path), margem_dias=3)
+
+    assert novos == 0  # fixture_id 1 ja era conhecido -- nao conta como novo
+    linhas = [json.loads(l) for l in out_path.read_text().splitlines()]
+    assert len(linhas) == 1  # sem duplicar
+    atualizado = linhas[0]
+    assert atualizado["home_goals"] == 3 and atualizado["away_goals"] == 2  # sobrescrito com o dado fresco
+    assert atualizado["season"] == "2026"  # rotulo antigo preservado
 
 
 def test_atualizar_fixtures_finalizados_ignora_fixture_ainda_nao_jogado(tmp_path):

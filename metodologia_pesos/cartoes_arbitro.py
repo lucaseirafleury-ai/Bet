@@ -12,9 +12,46 @@ pra isso).
 """
 from __future__ import annotations
 
+import json
 from collections import defaultdict
+from datetime import datetime
 
 from pesos import probabilidade_implicita_2vias, probabilidade_over
+from sportmonks_adapter import BOOKMAKER_BET365, flat_para_linha
+
+
+def carregar_referees_cartoes(caminho, bookmaker_id=BOOKMAKER_BET365):
+    """Lê o JSONL bruto de fixtures (Série B) e devolve, ordenada
+    cronologicamente, uma lista de dicts com `fixture_id`, `referee_id`,
+    `total_cartoes` e `data` — insumo de `media_arbitro_walk_forward`
+    (backtest) e `media_arbitro_atual` (previsão ao vivo). ÚNICO lugar
+    que lê esse dado bruto — antes `previsao_dia.py` e
+    `checar_decaimento.py` duplicavam essa leitura cada um com
+    `d.get("yellowcards_home") or 0`, direto do JSON, sem passar pelo
+    sentinela `-1` de dado ausente que `flat_para_linha` já aplica pra
+    cartões — um jogo com estatística de cartões faltando entrava no
+    histórico do árbitro como "0 cartões" reais, puxando a média dele
+    pra baixo silenciosamente. Reaproveita `flat_para_linha` (que já
+    filtra isso) em vez de duplicar a leitura — mesma disciplina já
+    usada em `previsao_dia.passa_filtros_gols` ("nunca duplicar essa
+    lógica em dois lugares, senão os dois processos podem divergir").
+    `total_cartoes` vem `None` quando qualquer um dos 4 campos (cartões
+    amarelos/vermelhos dos dois times) está com o sentinela."""
+    jogos = []
+    with open(caminho) as f:
+        for l in f:
+            d = json.loads(l)
+            linha = flat_para_linha(d, bookmaker_id=bookmaker_id)
+            campos_cartoes = (
+                linha["home_team_yellow_cards"], linha["home_team_red_cards"],
+                linha["away_team_yellow_cards"], linha["away_team_red_cards"],
+            )
+            total_cartoes = None if any(c == -1 for c in campos_cartoes) else sum(campos_cartoes)
+            jogos.append(dict(
+                fixture_id=d.get("fixture_id"), referee_id=d.get("referee_id"),
+                total_cartoes=total_cartoes, data=datetime.strptime(d["date"][:10], "%Y-%m-%d").date(),
+            ))
+    return sorted(jogos, key=lambda j: j["data"])
 
 
 def media_arbitro_walk_forward(jogos_ordenados, min_jogos_arbitro=10):

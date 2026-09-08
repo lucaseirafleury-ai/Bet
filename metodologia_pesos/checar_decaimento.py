@@ -24,12 +24,12 @@ Uso: `python3 checar_decaimento.py`.
 """
 from __future__ import annotations
 
-import json
 import math
 from collections import defaultdict
 from datetime import date, datetime, timedelta
 
 from cartoes_arbitro import (
+    carregar_referees_cartoes,
     linha_mais_liquida,
     media_arbitro_walk_forward,
     odd_media_na_linha,
@@ -106,31 +106,13 @@ def _checagem_criterio_gols(criterio, corte_recente):
     return dict(nome=criterio["nome"], total=s_total, recente=s_recente)
 
 
-def _carregar_referees_serieb_ordenado(caminho):
-    """Lê o JSONL principal da Série B (não mais um pull separado) e
-    devolve os jogos ordenados cronologicamente com `referee_id`/
-    `total_cartoes`/`fixture_id` — insumo do walk-forward de árbitro."""
-    jogos = []
-    with open(caminho) as f:
-        for l in f:
-            d = json.loads(l)
-            cf, ca = d.get("yellowcards_home") or 0, d.get("yellowcards_away") or 0
-            rf, ra = d.get("redcards_home") or 0, d.get("redcards_away") or 0
-            data = datetime.strptime(d["date"][:10], "%Y-%m-%d").date()
-            jogos.append(dict(
-                fixture_id=d["fixture_id"], referee_id=d.get("referee_id"),
-                total_cartoes=cf + ca + rf + ra, data=data,
-            ))
-    return sorted(jogos, key=lambda j: j["data"])
-
-
 def _checagem_cartoes_arbitro(corte_recente):
     """3º critério (stake reduzido) — Cartões + Árbitro, Série B. Odds
     e estatísticas vêm de `data/sportmonks_serieb/fixtures.jsonl` (o
     mesmo arquivo que o painel usa, bookmaker bet365) — não depende
     mais de nenhum pull separado."""
     caminho = CAMINHO_HIST["serieb"]
-    jogos_ref = _carregar_referees_serieb_ordenado(caminho)
+    jogos_ref = carregar_referees_cartoes(caminho)
     medias_wf = media_arbitro_walk_forward(jogos_ref, min_jogos_arbitro=MIN_JOGOS_ARBITRO)
     media_arbitro_por_fixture = {j["fixture_id"]: m for j, m in zip(jogos_ref, medias_wf)}
 

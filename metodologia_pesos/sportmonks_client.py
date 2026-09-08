@@ -162,15 +162,13 @@ def atualizar_fixtures_finalizados(tok, league_id, out_path, margem_dias=3):
     if not os.path.exists(out_path) or os.path.getsize(out_path) == 0:
         return puxar_fixtures_finalizados(tok, league_id, out_path)
 
-    existentes = []
-    ids_existentes = set()
+    existentes_por_id = {}
     with open(out_path) as fh:
         for l in fh:
             d = json.loads(l)
-            existentes.append(d)
-            ids_existentes.add(d["fixture_id"])
+            existentes_por_id[d["fixture_id"]] = d
 
-    data_mais_recente = max(d["date"] for d in existentes)[:10]
+    data_mais_recente = max(d["date"] for d in existentes_por_id.values())[:10]
     inicio = datetime.date.fromisoformat(data_mais_recente) - datetime.timedelta(days=margem_dias)
     hoje = datetime.date.today()
 
@@ -188,14 +186,22 @@ def atualizar_fixtures_finalizados(tok, league_id, out_path, margem_dias=3):
         d = r.json()
         for f in d.get("data", []):
             flat = flatten_fixture(f)
-            if (
-                flat and flat.get("state_id") in ESTADOS_FINALIZADOS
-                and flat["fixture_id"] not in ids_existentes
-            ):
-                flat["season"] = ""  # desconhecida pro pull incremental — só usada pra rótulo cosmético (__src)
-                existentes.append(flat)
-                ids_existentes.add(flat["fixture_id"])
-                novos += 1
+            if flat and flat.get("state_id") in ESTADOS_FINALIZADOS:
+                # SOBRESCREVE mesmo se o fixture_id já existir — é isso que
+                # torna `margem_dias` útil de verdade: um jogo capturado
+                # pouco depois de terminar pode ter odd/estatística ainda
+                # incompleta no Sportmonks (ver docs/retrospectiva_ligas_nordicas_2026-09-02.md
+                # e docs/retrospectiva_contra_ataque_bloco_baixo_2026-09-02.md
+                # pro tipo de contaminação que dado incompleto pode causar
+                # rio abaixo) — sem sobrescrever, a rotina reconsultava a
+                # janela mas nunca aproveitava dado mais completo que
+                # eventualmente aparecesse, o fixture ficava incompleto pra
+                # sempre no cache local. Preserva o rótulo de temporada já
+                # conhecido (só cosmético, `__src`) quando existir.
+                if flat["fixture_id"] not in existentes_por_id:
+                    novos += 1
+                flat["season"] = existentes_por_id.get(flat["fixture_id"], {}).get("season", "")
+                existentes_por_id[flat["fixture_id"]] = flat
         pag = d.get("pagination", {})
         if not pag.get("has_more"):
             break
@@ -203,7 +209,7 @@ def atualizar_fixtures_finalizados(tok, league_id, out_path, margem_dias=3):
         time.sleep(0.2)
 
     with open(out_path, "w") as fh:
-        for d in existentes:
+        for d in existentes_por_id.values():
             fh.write(json.dumps(d) + "\n")
     return novos
 

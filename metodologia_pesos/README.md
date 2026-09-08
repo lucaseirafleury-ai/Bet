@@ -938,6 +938,28 @@ atualizada, esta lista aqui não é mantida em detalhe:
    folgadamente acima do limiar z≈2**. BTTS/Over 2.5 reexecutados
    também, número idêntico ao já documentado (confirma que não tinham
    exposição). Ver `docs/decaimento_mensal.md` (linha 02/09/2026).
+59. **Conferência geral pedida pelo Lucas — achei mais 2 bugs reais,
+   os dois corrigidos.** (a) `previsao_dia.py`/`checar_decaimento.py`
+   tinham cada um sua própria função de ler a média histórica do
+   árbitro direto do JSONL bruto (`d.get("yellowcards_home") or 0`),
+   contornando o fix do sentinela `-1` (item 58) — a MÉDIA DO ÁRBITRO
+   em si (não só a resolução da aposta) vinha contaminada por jogos com
+   cartões ausentes. Unificado numa função só
+   (`cartoes_arbitro.carregar_referees_cartoes`, reaproveita
+   `flat_para_linha`) usada pelos dois lugares — nunca mais duplicar
+   essa leitura. (b) `sportmonks_client.atualizar_fixtures_finalizados`
+   tinha `margem_dias` documentado pra "recapturar jogos cuja
+   odd/estatística ainda não estava completa", mas o código só
+   adicionava `fixture_id` novo, nunca sobrescrevia um já existente —
+   um jogo capturado com dado incompleto ficava incompleto pra sempre
+   no cache local, mesmo que a reconsulta trouxesse dado mais completo
+   depois. Um teste existente até validava esse comportamento errado
+   como esperado — reescrito, mais 1 teste novo confirmando a
+   sobrescrita correta. Rechecagem de Cartões+Árbitro com os dois fixes
+   de hoje: n=212→206, ROI+16,4%→+17,1%, z=+2,66→+2,74 — segue
+   folgadamente acima do limiar z≈2. `gerar_painel_dia.CRITERIOS_INFO`
+   atualizado com o z mais recente. Ver
+   `docs/retrospectiva_conferencia_geral_2026-09-08.md`.
 
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem

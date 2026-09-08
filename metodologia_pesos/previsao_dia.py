@@ -32,6 +32,7 @@ import os
 import pandas as pd
 
 from cartoes_arbitro import (
+    carregar_referees_cartoes,
     decidir_lado_linha,
     linha_mais_liquida,
     media_arbitro_atual,
@@ -111,20 +112,6 @@ PESO_ARBITRO = 0.3
 # agregado, só não é tão forte. Ver
 # docs/retrospectiva_edge_minimo_cartoes_2026-08-28.md.
 LIMIAR_EDGE_CARTOES = 0.10
-
-
-def _carregar_referees_cartoes(path):
-    """Lê o JSONL bruto (não o DataFrame adaptado) só pra reconstruir a
-    média histórica de cartões por árbitro — precisa do `total_cartoes`
-    por jogo, que o adaptador não expõe num campo único."""
-    jogos = []
-    with open(path) as f:
-        for l in f:
-            d = json.loads(l)
-            cf, ca = d.get("yellowcards_home") or 0, d.get("yellowcards_away") or 0
-            rf, ra = d.get("redcards_home") or 0, d.get("redcards_away") or 0
-            jogos.append(dict(referee_id=d.get("referee_id"), total_cartoes=cf + ca + rf + ra))
-    return jogos
 
 
 def passa_filtros_gols(criterio, odd, favoritismo):
@@ -229,7 +216,7 @@ def gerar_sugestoes_do_dia(dias_a_frente=DIAS_A_FRENTE_PADRAO):
             if r:
                 sugestoes.append({**r, "liga": "Série A", "liga_chave": "seriea", "jogo": f"{f['home_team']} x {f['away_team']}", "data": f["date"]})
 
-    medias_arbitro = media_arbitro_atual(_carregar_referees_cartoes(CAMINHO_HIST["serieb"]), min_jogos_arbitro=MIN_JOGOS_ARBITRO)
+    medias_arbitro = media_arbitro_atual(carregar_referees_cartoes(CAMINHO_HIST["serieb"]), min_jogos_arbitro=MIN_JOGOS_ARBITRO)
     for f in puxar_fixtures_futuros(tok, LEAGUE_IDS["serieb"], dias_a_frente):
         linha = flat_para_linha(f)
         r = avaliar_cartoes_arbitro(linha, df_serieb, medias_arbitro)
