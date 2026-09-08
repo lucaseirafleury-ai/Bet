@@ -42,6 +42,32 @@ def extrair_stat(lista_stats, nome_campo):
     return 0.0
 
 
+def extrair_stat_ou_none(lista_stats, nome_campo):
+    """
+    Mesma busca de extrair_stat, mas devolve None (não 0.0) quando a
+    estatística não aparece na lista dessa partida — usado só pelas regras de
+    sinais (extrair_stats_para_regras/live_monitor._regra_bate), pra tratar
+    dado ausente como "condição não confirmada", igual a como a calibração
+    offline já trata (pesquisa_gols/gerar_regras_sinais.py::_condicao_bate).
+    Bug real corrigido aqui (ver conversa): extrair_stat's default 0.0 fazia
+    uma condição "<= limite" com dado ausente virar sempre verdadeira, mesmo
+    em jogos/ligas sem cobertura pra aquela estatística — a calibração nunca
+    validou esses casos como "condição bateu", então o app ao vivo não devia
+    tratar assim. extrair_stat continua com default 0.0 pros outros cálculos
+    (xG_proxy, pressão etc.), que já têm proteção própria pra jogo sem essa
+    cobertura (ver dados_ofensivos_disponiveis em live_monitor.py).
+    """
+    for s in lista_stats:
+        tipo = s.get("type", {}).get("name")
+        if tipo == nome_campo:
+            v = s.get("data", {}).get("value")
+            try:
+                return float(v)
+            except (TypeError, ValueError):
+                return None
+    return None
+
+
 # Nome da API (statistics[].type.name) por stat_base — mesma convenção usada em
 # pesquisa_gols/buscar_sportmonks.py (NOMES_CONFIRMADOS + fallback Title Case),
 # já verificada contra a API real em ~3.000 jogos de 5 ligas sem nenhum aviso
@@ -74,24 +100,29 @@ CAMPO_API_REGRAS = {
 def extrair_stats_para_regras(lista_stats, campos):
     """
     Extrai só os campos pedidos (stat_base -> valor), pelo nome de API mapeado
-    em CAMPO_API_REGRAS. Campo sem mapeamento conhecido retorna 0.0 (mesmo
-    comportamento silencioso de extrair_stat quando o tipo não aparece na
-    lista — evitar quebrar o painel por uma estatística ainda não coberta,
-    mas value 0.0 nunca deveria bater um limiar >=1, então o pior caso é a
-    regra simplesmente não disparar, não disparar errado).
+    em CAMPO_API_REGRAS. Usa extrair_stat_ou_none (não extrair_stat): um campo
+    sem mapeamento conhecido (fica de fora do dict, "campo not in
+    CAMPO_API_REGRAS") ou mapeado mas ausente na cobertura de estatística
+    dessa partida/liga acaba tratado do mesmo jeito por quem consome este
+    dict (live_monitor._regra_bate/_stats_para_valor_atual): dado ausente ->
+    condição não confirmada, nunca "sempre bate" (bug real corrigido, ver
+    extrair_stat_ou_none e conversa).
 
     "cards" (stat_base do alvo "cartões" — ver pesquisa_gols/gerar_regras_
     sinais.py) é caso especial: não é 1 campo só da API, é amarelos+vermelhos
     somados (mesma soma de calcular_cartoes) — por isso fica fora de
-    CAMPO_API_REGRAS (que é sempre 1 nome de API por stat_base).
+    CAMPO_API_REGRAS (que é sempre 1 nome de API por stat_base). Se qualquer
+    um dos dois vier ausente, "cards" também fica None (não dá pra somar).
     """
     valores = {
-        campo: extrair_stat(lista_stats, CAMPO_API_REGRAS[campo])
+        campo: extrair_stat_ou_none(lista_stats, CAMPO_API_REGRAS[campo])
         for campo in campos
         if campo in CAMPO_API_REGRAS
     }
     if "cards" in campos:
-        valores["cards"] = calcular_cartoes(lista_stats)
+        amarelos = extrair_stat_ou_none(lista_stats, CAMPO_YELLOW)
+        vermelhos = extrair_stat_ou_none(lista_stats, CAMPO_RED)
+        valores["cards"] = (amarelos + vermelhos) if amarelos is not None and vermelhos is not None else None
     return valores
 
 
