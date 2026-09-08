@@ -46,6 +46,11 @@ ALVOS = {
         "campos_base": ["yellowcards", "redcards"],
         "linhas": [1.5, 2.5, 3.5, 4.5, 5.5],
     },
+    "impedimentos": {
+        "nome": "Impedimentos",
+        "campos_base": ["offsides"],
+        "linhas": [1.5, 2.5, 3.5, 4.5, 5.5],
+    },
     "chutes_totais": {
         "nome": "Chutes totais",
         "campos_base": ["shots_total"],
