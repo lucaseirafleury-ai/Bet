@@ -121,6 +121,7 @@ def api_historico_sinais():
     return jsonify({
         "atualizado_em": datetime.now(timezone.utc).isoformat(),
         "resumo": historico_analytics.resumo_geral(linhas),
+        "resumo_por_fonte": historico_analytics.resumo_por_fonte(linhas),
         "curva_roi": historico_analytics.curva_roi_acumulado(linhas),
         "por_tipo": historico_analytics.agrupar_por_tipo(linhas),
         "historico": list(reversed(linhas)),
