@@ -114,22 +114,36 @@ def live_fixtures(include="statistics.type;participants;league;scores;periods"):
 
 def odds_inplay_fixture(fixture_id):
     """
-    Linhas de odds (mercado x casa x label) de uma fixture, via a relação
-    "odds" do endpoint principal de fixtures.
+    Linhas de odds AO VIVO (mercado x casa x label) de uma fixture, via o
+    endpoint dedicado /odds/inplay/fixtures/{id}.
 
-    O endpoint dedicado /odds/inplay/fixtures/{id} (ODDS_BASE_URL) foi usado
-    aqui antes, mas SEMPRE devolve "no access" nesta assinatura — inclusive
-    testado contra um jogo ao vivo agora mesmo, em 4 ligas diferentes.
-    /fixtures/{id}?include=odds funciona e devolve a MESMA coleção completa
-    (as mesmas chaves market_id/label/total/value/bookmaker_id), continuamente
-    atualizada do pré-jogo até o fim da partida — não existe uma coleção
-    separada só de odds "ao vivo"; o campo "stopped" de cada linha (filtrado
-    em odds_ao_vivo._candidatas_no_mercado) é o que diz se ela ainda está
-    aberta pra aposta.
+    BUG REAL corrigido aqui (ver conversa, investigação sobre "conseguir mais
+    odds reais"): a versão anterior deste método concluiu que esse endpoint
+    "sempre devolve no access" e caiu para /fixtures/{id}?include=odds como
+    workaround — mas o teste original chamava ESSE MESMO path relativo
+    ("/odds/inplay/fixtures/{id}") com base_url=ODDS_BASE_URL
+    ("https://api.sportmonks.com/v3/odds"), montando
+    ".../v3/odds/odds/inplay/fixtures/{id}" — "odds" duplicado na URL, por
+    isso o erro. O caminho certo é sob a base normal de football (BASE_URL,
+    o padrão desta função): "https://api.sportmonks.com/v3/football/odds/inplay/fixtures/{id}".
+
+    A diferença não é cosmética: /fixtures/{id}?include=odds devolve uma
+    mistura de odds pré-jogo e ao vivo com timestamps confusos (na prática,
+    quase sempre a última atualização parece travada perto do apito, dando a
+    falsa impressão de que a odd "não muda ao vivo"). Este endpoint dedicado
+    devolve SÓ as linhas realmente negociadas ao vivo, com "created_at" e
+    "latest_bookmaker_update" refletindo o jogo de verdade — testado contra
+    jogos reais e confirmado: linha de escanteios (bet365) se movendo de 10
+    para 7 ao longo da partida, linha de cartões abrindo/fechando várias
+    vezes (3.5→4.5→5.5→6.5→7.5→8.5) conforme o jogo ficou mais truncado.
+
+    NOTA: para escanteios, o mercado ao vivo real do bet365 aparece aqui só
+    sob market_id 68 (linha inteira, Over/Exactly/Under) — nunca 67 (que na
+    prática só tem dado pré-jogo) — o que já é coberto pelo fallback
+    MARKET_ID_FALLBACK_ESCANTEIOS existente em odds_ao_vivo.py.
     """
-    data = _get(f"/fixtures/{fixture_id}", {"include": "odds"})
-    fixture = data.get("data") or {}
-    return fixture.get("odds") or []
+    data = _get(f"/odds/inplay/fixtures/{fixture_id}")
+    return data.get("data") or []
 
 
 _cache_bookmakers = {}
