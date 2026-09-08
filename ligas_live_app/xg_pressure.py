@@ -220,31 +220,60 @@ def calcular_momentum(stats_home, stats_away):
     return momentum_home, momentum_away
 
 
+# Usado só como alarme de discrepância grande em extrair_minuto — ver docstring.
+# Nenhum dos 60 jogos reais testados (ver conversa) chegou nem perto disso em
+# condições normais (atraso de apito real, o caso comum): maior diferença
+# observada entre `started` e o horário agendado foi ~7.9min. Só um valor bem
+# acima disso é evidência de que o PRÓPRIO `started` foi mal registrado, não
+# de atraso de apito de verdade.
+LIMIAR_DISCREPANCIA_MINUTO_AGENDADO = 10
+
+
 def extrair_minuto(fixture):
     """
     Pega o minuto do período que estiver 'ticking' (rolando) agora.
 
-    O campo `minutes` da Sportmonks às vezes atrasa em relação ao relógio de
-    parede (visto num jogo real onde o placar já contava um gol que só
-    aconteceu 2 minutos depois do `minutes` informado — o placar e o relógio
-    vêm de partes diferentes do pipeline deles e nem sempre chegam no mesmo
-    instante). Por isso usamos o maior valor entre o que a Sportmonks informa
-    e uma estimativa pelo tempo real decorrido desde o início do período
-    (`started`), como piso de segurança — nunca deixa o minuto exibido ficar
+    A Sportmonks não tem cronômetro confiável pra nenhuma das 5 ligas
+    monitoradas (`has_timer` sempre False, testado em 60 jogos reais — ver
+    conversa) — nem `minutes` nem `started` são um relógio oficial, então
+    combinamos duas fontes:
+
+    1. `minutes` informado pela própria Sportmonks — às vezes atrasa em
+       relação ao relógio de parede (visto num jogo real onde o placar já
+       contava um gol que só aconteceu 2 minutos depois do `minutes`
+       informado — o placar e o relógio vêm de partes diferentes do
+       pipeline deles e nem sempre chegam no mesmo instante).
+    2. Uma estimativa pelo tempo real decorrido desde o início do período
+       (`started`) — testado em 60 jogos reais e confirmado confiável: a
+       diferença entre `started` e o horário AGENDADO (`starting_at`) segue
+       uma distribuição bem comportada (mediana ~1.15min, só atraso real de
+       apito, nunca zero cravado — não é uma cópia do agendado).
+
+    Usamos o MAIOR entre os dois — nunca deixa o minuto exibido ficar
     "atrás" de um placar que já mudou.
 
-    Achado depois (caso real, Superettan): o PRÓPRIO `started` do período às
-    vezes só é registrado pela Sportmonks bem depois do apito de verdade —
-    visto 12-14min de atraso em 2 jogos simultâneos (kickoff agendado
-    `starting_at_timestamp` batendo com o horário real do apito — confirmado
-    contra o relógio do app da bet365 — mas `started`/`minutes` do período só
-    apareceram bem depois). Como esse piso usa o `started` como origem, ele
-    herdava o mesmo atraso e não corrigia nada. Por isso soma-se mais um piso
-    baseado no `starting_at_timestamp` (só no 1º tempo — no 2º incluiria o
-    intervalo e superestimaria). Só chega até aqui se o jogo já está
-    confirmado "ao vivo" pela Sportmonks, então o apito real já rolou; o
-    risco de superestimar num jogo com apito genuinamente atrasado existe,
-    mas é bem menor que o atraso sistemático que isso corrige.
+    CUIDADO com o horário agendado (`starting_at_timestamp`) como piso:
+    versão anterior deste código usava ele incondicionalmente como 3º
+    candidato (só no 1º tempo), pego pelo mesmo `max()` — bug real corrigido
+    aqui (ver conversa): como o apito raramente sai ANTES do horário previsto,
+    esse candidato fica MAIOR que o baseado em `started` sempre que há
+    qualquer atraso — ou seja, na maioria dos jogos, não só em casos raros —
+    e o `max()` inflava o minuto exibido sistematicamente pelo tamanho do
+    atraso (mediana ~1min, até ~8min na cauda). Isso importa de verdade: é
+    o minuto usado pra bater com os checkpoints das regras de sinais
+    (15/30/45/60/75/90), então superestimar sistematicamente significa
+    avaliar regras cedo/fora da janela certa.
+
+    Ainda existe um caso real (Superettan) onde o PRÓPRIO `started` foi
+    registrado pela Sportmonks 12-14min depois do apito de verdade — nesse
+    caso o candidato via `started` também atrasa, e só o horário agendado
+    (independente do pipeline da Sportmonks) pegaria o erro. Por isso o
+    horário agendado não foi removido, só deixou de ser incondicional: só
+    entra na conta quando destoa MUITO (LIMIAR_DISCREPANCIA_MINUTO_AGENDADO)
+    do candidato via `started` — o suficiente pra distinguir "started
+    registrado tarde" de "apito atrasou de verdade" (que já é bem menor que
+    o limiar, confirmado empiricamente). Só no 1º tempo — no 2º incluiria o
+    intervalo e superestimaria.
     """
     periods = fixture.get("periods", [])
     periodo_ativo = next((p for p in periods if p.get("ticking") is True), None)
@@ -258,11 +287,16 @@ def extrair_minuto(fixture):
 
     started = periodo_ativo.get("started")
     counts_from = periodo_ativo.get("counts_from", 0) or 0
+    minuto_via_started = None
     if started:
-        candidatos.append(counts_from + int((time.time() - started) / 60) + 1)
+        minuto_via_started = counts_from + int((time.time() - started) / 60) + 1
+        candidatos.append(minuto_via_started)
 
     inicio_agendado = fixture.get("starting_at_timestamp")
     if inicio_agendado and (periodo_ativo.get("description") or "").lower() == "1st-half":
-        candidatos.append(int((time.time() - inicio_agendado) / 60) + 1)
+        minuto_via_agendado = int((time.time() - inicio_agendado) / 60) + 1
+        referencia = minuto_via_started if minuto_via_started is not None else minuto_informado
+        if minuto_via_agendado - referencia > LIMIAR_DISCREPANCIA_MINUTO_AGENDADO:
+            candidatos.append(minuto_via_agendado)
 
     return max(candidatos)
