@@ -522,7 +522,17 @@ for _r in REGRAS_SINAIS:
 
 def _regra_bate(regra, valores):
     for c in regra["condicoes"]:
-        valor = valores.get(c["stat"], 0.0)
+        valor = valores.get(c["stat"])
+        if valor is None:
+            # Dado ausente pra essa partida (estatística sem cobertura na
+            # liga/jogo, ou campo ainda sem mapeamento) — trata como condição
+            # NÃO confirmada, nunca como "sempre bate". Bug real corrigido
+            # aqui (ver conversa, caso hit_woodwork): o default antigo (0.0)
+            # fazia uma condição "<= limite" ser sempre satisfeita quando o
+            # dado faltava, diferente de como a calibração offline
+            # (pesquisa_gols/gerar_regras_sinais.py::_condicao_bate) sempre
+            # tratou o mesmo caso.
+            return False
         if c["operador"] == ">=" and valor < c["limite"]:
             return False
         if c["operador"] == "<=" and valor > c["limite"]:
@@ -555,12 +565,17 @@ def _stats_para_valor_atual(regra, valores_combinados):
     tabela pré-computada sobre as 5 ligas (~3.000 jogos).
 
     Retorna None se não houver tabela pra essa regra (nunca deveria
-    acontecer nas regras atuais, mas não impede o painel se faltar).
+    acontecer nas regras atuais, mas não impede o painel se faltar), ou se o
+    valor atual do próprio alvo não está disponível pra essa partida (dado
+    ausente — sem isso, int(round(None)) quebraria; ver extrair_stat_ou_none).
     """
     tabela = regra.get("por_valor_atual")
     if not tabela:
         return None
-    valor_atual = int(round(valores_combinados.get(regra["mercado"]["stat"], 0.0)))
+    valor_stat_alvo = valores_combinados.get(regra["mercado"]["stat"])
+    if valor_stat_alvo is None:
+        return None
+    valor_atual = int(round(valor_stat_alvo))
     entrada = tabela.get(str(valor_atual))
     if entrada is None:
         # valor nunca visto nos ~3.000 jogos de referência — usa o mais próximo disponível
@@ -885,8 +900,17 @@ def ciclo():
         stats_completas_away = extrair_stats_completas(stats_away)
         valores_regras_home = extrair_stats_para_regras(stats_home, CAMPOS_REGRAS_SINAIS)
         valores_regras_away = extrair_stats_para_regras(stats_away, CAMPOS_REGRAS_SINAIS)
+        # None (não 0.0) quando qualquer um dos dois lados não tem o dado —
+        # propaga "ausente" em vez de mascarar com zero (ver extrair_stat_ou_none
+        # e _regra_bate: dado ausente vira condição não confirmada, não "bate
+        # com valor zero").
         valores_regras_combinados = {
-            campo: valores_regras_home.get(campo, 0.0) + valores_regras_away.get(campo, 0.0)
+            campo: (
+                valores_regras_home[campo] + valores_regras_away[campo]
+                if campo in valores_regras_home and campo in valores_regras_away
+                and valores_regras_home[campo] is not None and valores_regras_away[campo] is not None
+                else None
+            )
             for campo in CAMPOS_REGRAS_SINAIS
         }
 
