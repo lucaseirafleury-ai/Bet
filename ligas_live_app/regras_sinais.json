@@ -1,7 +1,7 @@
 {
   "criterio": "amostra_confirmacao >= 200 e impacto_pp >= 5.0; regiao=universal confirmado nas nórdicas E no Brasil; regiao=nordicas confirmado só nas ligas nórdicas (aplicadas só a Allsvenskan/Superettan/1.Division); regiao=brasil confirmado no Brasil por descoberta herdada (Allsvenskan) OU nativa (Série A), exigindo impacto_pp >= 10.0 quando confirmado por só um dos dois processos (alvos ['escanteios', 'chutes_totais', 'chutes_no_alvo', 'cartoes'], aplicadas só a jogos de Série A/B)",
   "fonte": "pesquisa_gols/resultados/*_confirmacao_*.csv (nórdicas) + *_confirmacao_brasil_*.csv (herdado) + *_confirmacao_serieB_*.csv (nativo, descobrir_nativo_brasil.py) — todos confirmado_bh=True — + recalibração por valor atual do alvo (universal: pool de todas as ligas; nordicas: só as 3 ligas nórdicas; brasil: só Série A/B — ver recalibrar_por_valor_atual em gerar_regras_sinais.py)",
-  "total_regras": 150,
+  "total_regras": 161,
   "regras": [
     {
       "id": "cartoes_001",
@@ -33220,6 +33220,1025 @@
       "id": "chutes_totais_055",
       "alvo": "chutes_totais",
       "alvo_nome": "Chutes totais",
+      "minuto": 90,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "corners",
+          "operador": "<=",
+          "limite": 10.0
+        }
+      ],
+      "mercado": {
+        "stat": "shots_total",
+        "direcao": "menos_de",
+        "linha": 24.5
+      },
+      "mercado_curto": "Menos de 24.5 chutes totais",
+      "amostra_confirmacao": 188,
+      "prob_base_confirmacao": 0.7492,
+      "prob_condicao_confirmacao": 0.8085,
+      "impacto_pp": 5.94,
+      "p_valor_confirmacao": 0.0018247385728210278,
+      "odd_minima_referencia": 1.24,
+      "rotulo": "Escanteios ≤ 10 aos 90' (2 gol(s) no jogo) → Menos de 24.5 chutes totais",
+      "regiao": "universal",
+      "confirmacoes": 1,
+      "por_valor_atual": {
+        "24": {
+          "n": 63,
+          "n_usado": 63,
+          "p_condicao": 0.2857,
+          "p_base": 0.2609,
+          "impacto_pp": 2.48,
+          "odd_minima": 3.5,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 63,
+              "n_usado": 63,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 63,
+              "n_usado": 63,
+              "p_condicao": 0.5397,
+              "impacto_pp": -0.38,
+              "odd_minima": 1.85
+            }
+          }
+        },
+        "23": {
+          "n": 57,
+          "n_usado": 57,
+          "p_condicao": 0.5263,
+          "p_base": 0.5125,
+          "impacto_pp": 1.38,
+          "odd_minima": 1.9,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 57,
+              "n_usado": 57,
+              "p_condicao": 0.2456,
+              "impacto_pp": 0.81,
+              "odd_minima": 4.07
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 57,
+              "n_usado": 57,
+              "p_condicao": 0.5965,
+              "impacto_pp": -4.1,
+              "odd_minima": 1.68
+            }
+          }
+        },
+        "0": {
+          "n": 5,
+          "n_usado": 31,
+          "p_condicao": 1.0,
+          "p_base": 0.9667,
+          "impacto_pp": 3.33,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 5,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 5,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "25": {
+          "n": 30,
+          "n_usado": 30,
+          "p_condicao": 0.0,
+          "p_base": 0.0,
+          "impacto_pp": 0.0,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 30,
+              "n_usado": 30,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 30,
+              "n_usado": 30,
+              "p_condicao": 0.2333,
+              "impacto_pp": -9.48,
+              "odd_minima": 4.29
+            }
+          }
+        },
+        "20": {
+          "n": 63,
+          "n_usado": 63,
+          "p_condicao": 0.9841,
+          "p_base": 0.9753,
+          "impacto_pp": 0.88,
+          "odd_minima": 1.02,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 63,
+              "n_usado": 63,
+              "p_condicao": 0.9524,
+              "impacto_pp": 0.18,
+              "odd_minima": 1.05
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 63,
+              "n_usado": 63,
+              "p_condicao": 0.9841,
+              "impacto_pp": -0.35,
+              "odd_minima": 1.02
+            }
+          }
+        },
+        "17": {
+          "n": 33,
+          "n_usado": 33,
+          "p_condicao": 0.9697,
+          "p_base": 0.9792,
+          "impacto_pp": -0.95,
+          "odd_minima": 1.03,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 33,
+              "n_usado": 33,
+              "p_condicao": 0.9697,
+              "impacto_pp": -0.95,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 33,
+              "n_usado": 33,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "16": {
+          "n": 34,
+          "n_usado": 34,
+          "p_condicao": 0.9706,
+          "p_base": 0.9796,
+          "impacto_pp": -0.9,
+          "odd_minima": 1.03,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 34,
+              "n_usado": 34,
+              "p_condicao": 0.9706,
+              "impacto_pp": -0.9,
+              "odd_minima": 1.03
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 34,
+              "n_usado": 34,
+              "p_condicao": 0.9706,
+              "impacto_pp": -0.9,
+              "odd_minima": 1.03
+            }
+          }
+        },
+        "26": {
+          "n": 50,
+          "n_usado": 50,
+          "p_condicao": 0.02,
+          "p_base": 0.0247,
+          "impacto_pp": -0.47,
+          "odd_minima": 50.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 50,
+              "n_usado": 50,
+              "p_condicao": 0.02,
+              "impacto_pp": -0.47,
+              "odd_minima": 50.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 50,
+              "n_usado": 50,
+              "p_condicao": 0.02,
+              "impacto_pp": -0.47,
+              "odd_minima": 50.0
+            }
+          }
+        },
+        "15": {
+          "n": 31,
+          "n_usado": 31,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 31,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 31,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "28": {
+          "n": 25,
+          "n_usado": 50,
+          "p_condicao": 0.02,
+          "p_base": 0.0,
+          "impacto_pp": 2.0,
+          "odd_minima": 50.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 25,
+              "n_usado": 50,
+              "p_condicao": 0.02,
+              "impacto_pp": 2.0,
+              "odd_minima": 50.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 25,
+              "n_usado": 50,
+              "p_condicao": 0.02,
+              "impacto_pp": 2.0,
+              "odd_minima": 50.0
+            }
+          }
+        },
+        "19": {
+          "n": 61,
+          "n_usado": 61,
+          "p_condicao": 0.9672,
+          "p_base": 0.9753,
+          "impacto_pp": -0.81,
+          "odd_minima": 1.03,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 61,
+              "n_usado": 61,
+              "p_condicao": 0.9508,
+              "impacto_pp": -1.21,
+              "odd_minima": 1.05
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 61,
+              "n_usado": 61,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "9": {
+          "n": 11,
+          "n_usado": 31,
+          "p_condicao": 1.0,
+          "p_base": 0.9667,
+          "impacto_pp": 3.33,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 11,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 11,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "22": {
+          "n": 55,
+          "n_usado": 55,
+          "p_condicao": 0.8,
+          "p_base": 0.8052,
+          "impacto_pp": -0.52,
+          "odd_minima": 1.25,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 55,
+              "n_usado": 55,
+              "p_condicao": 0.5636,
+              "impacto_pp": 3.12,
+              "odd_minima": 1.77
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 55,
+              "n_usado": 55,
+              "p_condicao": 0.9091,
+              "impacto_pp": 1.3,
+              "odd_minima": 1.1
+            }
+          }
+        },
+        "13": {
+          "n": 20,
+          "n_usado": 31,
+          "p_condicao": 1.0,
+          "p_base": 0.9667,
+          "impacto_pp": 3.33,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 20,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 20,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "12": {
+          "n": 15,
+          "n_usado": 31,
+          "p_condicao": 1.0,
+          "p_base": 0.9667,
+          "impacto_pp": 3.33,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 15,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 15,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "21": {
+          "n": 58,
+          "n_usado": 58,
+          "p_condicao": 0.931,
+          "p_base": 0.925,
+          "impacto_pp": 0.6,
+          "odd_minima": 1.07,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 58,
+              "n_usado": 58,
+              "p_condicao": 0.8621,
+              "impacto_pp": 2.46,
+              "odd_minima": 1.16
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 58,
+              "n_usado": 58,
+              "p_condicao": 0.9483,
+              "impacto_pp": -1.42,
+              "odd_minima": 1.05
+            }
+          }
+        },
+        "10": {
+          "n": 10,
+          "n_usado": 31,
+          "p_condicao": 1.0,
+          "p_base": 0.9667,
+          "impacto_pp": 3.33,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 10,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 10,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "4": {
+          "n": 2,
+          "n_usado": 31,
+          "p_condicao": 1.0,
+          "p_base": 0.9667,
+          "impacto_pp": 3.33,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 2,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 2,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "33": {
+          "n": 8,
+          "n_usado": 50,
+          "p_condicao": 0.02,
+          "p_base": 0.0,
+          "impacto_pp": 2.0,
+          "odd_minima": 50.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 8,
+              "n_usado": 50,
+              "p_condicao": 0.02,
+              "impacto_pp": 2.0,
+              "odd_minima": 50.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 8,
+              "n_usado": 50,
+              "p_condicao": 0.02,
+              "impacto_pp": 2.0,
+              "odd_minima": 50.0
+            }
+          }
+        },
+        "14": {
+          "n": 26,
+          "n_usado": 31,
+          "p_condicao": 1.0,
+          "p_base": 0.9667,
+          "impacto_pp": 3.33,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 26,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 26,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "18": {
+          "n": 47,
+          "n_usado": 47,
+          "p_condicao": 0.9574,
+          "p_base": 0.971,
+          "impacto_pp": -1.36,
+          "odd_minima": 1.04,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 47,
+              "n_usado": 47,
+              "p_condicao": 0.9574,
+              "impacto_pp": -1.36,
+              "odd_minima": 1.04
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 47,
+              "n_usado": 47,
+              "p_condicao": 0.9574,
+              "impacto_pp": -1.36,
+              "odd_minima": 1.04
+            }
+          }
+        },
+        "8": {
+          "n": 7,
+          "n_usado": 31,
+          "p_condicao": 1.0,
+          "p_base": 0.9667,
+          "impacto_pp": 3.33,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 7,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 7,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "27": {
+          "n": 26,
+          "n_usado": 50,
+          "p_condicao": 0.02,
+          "p_base": 0.0,
+          "impacto_pp": 2.0,
+          "odd_minima": 50.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 26,
+              "n_usado": 50,
+              "p_condicao": 0.02,
+              "impacto_pp": 2.0,
+              "odd_minima": 50.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 26,
+              "n_usado": 50,
+              "p_condicao": 0.02,
+              "impacto_pp": 2.0,
+              "odd_minima": 50.0
+            }
+          }
+        },
+        "31": {
+          "n": 16,
+          "n_usado": 50,
+          "p_condicao": 0.02,
+          "p_base": 0.0,
+          "impacto_pp": 2.0,
+          "odd_minima": 50.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 16,
+              "n_usado": 50,
+              "p_condicao": 0.02,
+              "impacto_pp": 2.0,
+              "odd_minima": 50.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 16,
+              "n_usado": 50,
+              "p_condicao": 0.02,
+              "impacto_pp": 2.0,
+              "odd_minima": 50.0
+            }
+          }
+        },
+        "32": {
+          "n": 10,
+          "n_usado": 50,
+          "p_condicao": 0.02,
+          "p_base": 0.0,
+          "impacto_pp": 2.0,
+          "odd_minima": 50.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 10,
+              "n_usado": 50,
+              "p_condicao": 0.02,
+              "impacto_pp": 2.0,
+              "odd_minima": 50.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 10,
+              "n_usado": 50,
+              "p_condicao": 0.02,
+              "impacto_pp": 2.0,
+              "odd_minima": 50.0
+            }
+          }
+        },
+        "35": {
+          "n": 4,
+          "n_usado": 50,
+          "p_condicao": 0.02,
+          "p_base": 0.0,
+          "impacto_pp": 2.0,
+          "odd_minima": 50.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 4,
+              "n_usado": 50,
+              "p_condicao": 0.02,
+              "impacto_pp": 2.0,
+              "odd_minima": 50.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 4,
+              "n_usado": 50,
+              "p_condicao": 0.02,
+              "impacto_pp": 2.0,
+              "odd_minima": 50.0
+            }
+          }
+        },
+        "3": {
+          "n": 1,
+          "n_usado": 31,
+          "p_condicao": 1.0,
+          "p_base": 0.9667,
+          "impacto_pp": 3.33,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 1,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 1,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "29": {
+          "n": 18,
+          "n_usado": 50,
+          "p_condicao": 0.02,
+          "p_base": 0.0,
+          "impacto_pp": 2.0,
+          "odd_minima": 50.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 18,
+              "n_usado": 50,
+              "p_condicao": 0.02,
+              "impacto_pp": 2.0,
+              "odd_minima": 50.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 18,
+              "n_usado": 50,
+              "p_condicao": 0.02,
+              "impacto_pp": 2.0,
+              "odd_minima": 50.0
+            }
+          }
+        },
+        "2": {
+          "n": 2,
+          "n_usado": 31,
+          "p_condicao": 1.0,
+          "p_base": 0.9667,
+          "impacto_pp": 3.33,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 2,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 2,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "7": {
+          "n": 2,
+          "n_usado": 31,
+          "p_condicao": 1.0,
+          "p_base": 0.9667,
+          "impacto_pp": 3.33,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 2,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 2,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "30": {
+          "n": 10,
+          "n_usado": 50,
+          "p_condicao": 0.02,
+          "p_base": 0.0,
+          "impacto_pp": 2.0,
+          "odd_minima": 50.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 10,
+              "n_usado": 50,
+              "p_condicao": 0.02,
+              "impacto_pp": 2.0,
+              "odd_minima": 50.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 10,
+              "n_usado": 50,
+              "p_condicao": 0.02,
+              "impacto_pp": 2.0,
+              "odd_minima": 50.0
+            }
+          }
+        },
+        "5": {
+          "n": 2,
+          "n_usado": 31,
+          "p_condicao": 1.0,
+          "p_base": 0.9667,
+          "impacto_pp": 3.33,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 2,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 2,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "1": {
+          "n": 1,
+          "n_usado": 31,
+          "p_condicao": 1.0,
+          "p_base": 0.9667,
+          "impacto_pp": 3.33,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 1,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 1,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "34": {
+          "n": 6,
+          "n_usado": 50,
+          "p_condicao": 0.02,
+          "p_base": 0.0,
+          "impacto_pp": 2.0,
+          "odd_minima": 50.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 6,
+              "n_usado": 50,
+              "p_condicao": 0.02,
+              "impacto_pp": 2.0,
+              "odd_minima": 50.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 6,
+              "n_usado": 50,
+              "p_condicao": 0.02,
+              "impacto_pp": 2.0,
+              "odd_minima": 50.0
+            }
+          }
+        },
+        "11": {
+          "n": 5,
+          "n_usado": 31,
+          "p_condicao": 1.0,
+          "p_base": 0.9667,
+          "impacto_pp": 3.33,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 5,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 5,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "6": {
+          "n": 1,
+          "n_usado": 31,
+          "p_condicao": 1.0,
+          "p_base": 0.9667,
+          "impacto_pp": 3.33,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 1,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 1,
+              "n_usado": 31,
+              "p_condicao": 1.0,
+              "impacto_pp": 3.33,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "49": {
+          "n": 1,
+          "n_usado": 50,
+          "p_condicao": 0.02,
+          "p_base": 0.0,
+          "impacto_pp": 2.0,
+          "odd_minima": 50.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 1,
+              "n_usado": 50,
+              "p_condicao": 0.02,
+              "impacto_pp": 2.0,
+              "odd_minima": 50.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 1,
+              "n_usado": 50,
+              "p_condicao": 0.02,
+              "impacto_pp": 2.0,
+              "odd_minima": 50.0
+            }
+          }
+        },
+        "36": {
+          "n": 1,
+          "n_usado": 50,
+          "p_condicao": 0.02,
+          "p_base": 0.0,
+          "impacto_pp": 2.0,
+          "odd_minima": 50.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 23.5,
+              "n": 1,
+              "n_usado": 50,
+              "p_condicao": 0.02,
+              "impacto_pp": 2.0,
+              "odd_minima": 50.0
+            },
+            "1": {
+              "linha": 25.5,
+              "n": 1,
+              "n_usado": 50,
+              "p_condicao": 0.02,
+              "impacto_pp": 2.0,
+              "odd_minima": 50.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "chutes_totais_056",
+      "alvo": "chutes_totais",
+      "alvo_nome": "Chutes totais",
       "minuto": 15,
       "gols_momento": 0,
       "condicoes": [
@@ -53241,6 +54260,505 @@
       "id": "escanteios_055",
       "alvo": "escanteios",
       "alvo_nome": "Escanteios",
+      "minuto": 75,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "shots_on_target",
+          "operador": "<=",
+          "limite": 7.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 10.5
+      },
+      "mercado_curto": "Menos de 10.5 escanteios",
+      "amostra_confirmacao": 182,
+      "prob_base_confirmacao": 0.5976,
+      "prob_condicao_confirmacao": 0.7033,
+      "impacto_pp": 10.57,
+      "p_valor_confirmacao": 1.8784882995187264e-05,
+      "odd_minima_referencia": 1.42,
+      "rotulo": "Chutes no alvo ≤ 7 aos 75' (2 gol(s) no jogo) → Menos de 10.5 escanteios",
+      "regiao": "universal",
+      "confirmacoes": 1,
+      "por_valor_atual": {
+        "10": {
+          "n": 76,
+          "n_usado": 76,
+          "p_condicao": 0.1711,
+          "p_base": 0.1418,
+          "impacto_pp": 2.93,
+          "odd_minima": 5.85,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 76,
+              "n_usado": 76,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 76,
+              "n_usado": 76,
+              "p_condicao": 0.4211,
+              "impacto_pp": 2.55,
+              "odd_minima": 2.38
+            }
+          }
+        },
+        "7": {
+          "n": 115,
+          "n_usado": 115,
+          "p_condicao": 0.8348,
+          "p_base": 0.8286,
+          "impacto_pp": 0.62,
+          "odd_minima": 1.2,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 115,
+              "n_usado": 115,
+              "p_condicao": 0.5652,
+              "impacto_pp": -4.05,
+              "odd_minima": 1.77
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 115,
+              "n_usado": 115,
+              "p_condicao": 0.9304,
+              "impacto_pp": -0.67,
+              "odd_minima": 1.07
+            }
+          }
+        },
+        "11": {
+          "n": 43,
+          "n_usado": 43,
+          "p_condicao": 0.0,
+          "p_base": 0.0,
+          "impacto_pp": 0.0,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 43,
+              "n_usado": 43,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 43,
+              "n_usado": 43,
+              "p_condicao": 0.1628,
+              "impacto_pp": 1.99,
+              "odd_minima": 6.14
+            }
+          }
+        },
+        "6": {
+          "n": 98,
+          "n_usado": 98,
+          "p_condicao": 0.9082,
+          "p_base": 0.9042,
+          "impacto_pp": 0.4,
+          "odd_minima": 1.1,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 98,
+              "n_usado": 98,
+              "p_condicao": 0.8265,
+              "impacto_pp": 3.01,
+              "odd_minima": 1.21
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 98,
+              "n_usado": 98,
+              "p_condicao": 0.9694,
+              "impacto_pp": -0.07,
+              "odd_minima": 1.03
+            }
+          }
+        },
+        "3": {
+          "n": 38,
+          "n_usado": 38,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 38,
+              "n_usado": 38,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 38,
+              "n_usado": 38,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "15": {
+          "n": 4,
+          "n_usado": 43,
+          "p_condicao": 0.0,
+          "p_base": 0.0,
+          "impacto_pp": 0.0,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 4,
+              "n_usado": 43,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 4,
+              "n_usado": 43,
+              "p_condicao": 0.1628,
+              "impacto_pp": 16.28,
+              "odd_minima": 6.14
+            }
+          }
+        },
+        "9": {
+          "n": 77,
+          "n_usado": 77,
+          "p_condicao": 0.4935,
+          "p_base": 0.4552,
+          "impacto_pp": 3.83,
+          "odd_minima": 2.03,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 77,
+              "n_usado": 77,
+              "p_condicao": 0.1429,
+              "impacto_pp": -0.2,
+              "odd_minima": 7.0
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 77,
+              "n_usado": 77,
+              "p_condicao": 0.6753,
+              "impacto_pp": 2.7,
+              "odd_minima": 1.48
+            }
+          }
+        },
+        "12": {
+          "n": 27,
+          "n_usado": 43,
+          "p_condicao": 0.0,
+          "p_base": 0.0,
+          "impacto_pp": 0.0,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 27,
+              "n_usado": 43,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 27,
+              "n_usado": 43,
+              "p_condicao": 0.1628,
+              "impacto_pp": 16.28,
+              "odd_minima": 6.14
+            }
+          }
+        },
+        "8": {
+          "n": 97,
+          "n_usado": 97,
+          "p_condicao": 0.6289,
+          "p_base": 0.6211,
+          "impacto_pp": 0.77,
+          "odd_minima": 1.59,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 97,
+              "n_usado": 97,
+              "p_condicao": 0.4433,
+              "impacto_pp": 2.71,
+              "odd_minima": 2.26
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 97,
+              "n_usado": 97,
+              "p_condicao": 0.8247,
+              "impacto_pp": -0.13,
+              "odd_minima": 1.21
+            }
+          }
+        },
+        "4": {
+          "n": 54,
+          "n_usado": 54,
+          "p_condicao": 0.9815,
+          "p_base": 0.975,
+          "impacto_pp": 0.65,
+          "odd_minima": 1.02,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 54,
+              "n_usado": 54,
+              "p_condicao": 0.9444,
+              "impacto_pp": -0.56,
+              "odd_minima": 1.06
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 54,
+              "n_usado": 54,
+              "p_condicao": 0.9815,
+              "impacto_pp": 0.65,
+              "odd_minima": 1.02
+            }
+          }
+        },
+        "14": {
+          "n": 6,
+          "n_usado": 43,
+          "p_condicao": 0.0,
+          "p_base": 0.0,
+          "impacto_pp": 0.0,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 6,
+              "n_usado": 43,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 6,
+              "n_usado": 43,
+              "p_condicao": 0.1628,
+              "impacto_pp": 16.28,
+              "odd_minima": 6.14
+            }
+          }
+        },
+        "5": {
+          "n": 87,
+          "n_usado": 87,
+          "p_condicao": 0.977,
+          "p_base": 0.9685,
+          "impacto_pp": 0.85,
+          "odd_minima": 1.02,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 87,
+              "n_usado": 87,
+              "p_condicao": 0.9425,
+              "impacto_pp": 2.13,
+              "odd_minima": 1.06
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 87,
+              "n_usado": 87,
+              "p_condicao": 0.977,
+              "impacto_pp": -0.72,
+              "odd_minima": 1.02
+            }
+          }
+        },
+        "13": {
+          "n": 15,
+          "n_usado": 43,
+          "p_condicao": 0.0,
+          "p_base": 0.0,
+          "impacto_pp": 0.0,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 15,
+              "n_usado": 43,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 15,
+              "n_usado": 43,
+              "p_condicao": 0.1628,
+              "impacto_pp": 16.28,
+              "odd_minima": 6.14
+            }
+          }
+        },
+        "2": {
+          "n": 13,
+          "n_usado": 38,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 13,
+              "n_usado": 38,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 13,
+              "n_usado": 38,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "16": {
+          "n": 1,
+          "n_usado": 43,
+          "p_condicao": 0.0,
+          "p_base": 0.0,
+          "impacto_pp": 0.0,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 1,
+              "n_usado": 43,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 1,
+              "n_usado": 43,
+              "p_condicao": 0.1628,
+              "impacto_pp": 16.28,
+              "odd_minima": 6.14
+            }
+          }
+        },
+        "1": {
+          "n": 5,
+          "n_usado": 38,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 5,
+              "n_usado": 38,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 5,
+              "n_usado": 38,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "0": {
+          "n": 6,
+          "n_usado": 38,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 6,
+              "n_usado": 38,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 6,
+              "n_usado": 38,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "18": {
+          "n": 2,
+          "n_usado": 43,
+          "p_condicao": 0.0,
+          "p_base": 0.0,
+          "impacto_pp": 0.0,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 2,
+              "n_usado": 43,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 2,
+              "n_usado": 43,
+              "p_condicao": 0.1628,
+              "impacto_pp": 16.28,
+              "odd_minima": 6.14
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "escanteios_056",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
       "minuto": 30,
       "gols_momento": 0,
       "condicoes": [
@@ -53534,7 +55052,7 @@
       }
     },
     {
-      "id": "escanteios_056",
+      "id": "escanteios_057",
       "alvo": "escanteios",
       "alvo_nome": "Escanteios",
       "minuto": 45,
@@ -53856,7 +55374,7 @@
       }
     },
     {
-      "id": "escanteios_057",
+      "id": "escanteios_058",
       "alvo": "escanteios",
       "alvo_nome": "Escanteios",
       "minuto": 75,
@@ -54360,7 +55878,537 @@
       }
     },
     {
-      "id": "escanteios_058",
+      "id": "escanteios_059",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 60,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": "<=",
+          "limite": 17.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 13.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 8.5
+      },
+      "mercado_curto": "Mais de 8.5 escanteios",
+      "amostra_confirmacao": 171,
+      "prob_base_confirmacao": 0.6658,
+      "prob_condicao_confirmacao": 0.7661,
+      "impacto_pp": 10.03,
+      "p_valor_confirmacao": 0.00017759755572513888,
+      "odd_minima_referencia": 1.31,
+      "rotulo": "Faltas ≤ 17 E Chutes totais ≥ 13 aos 60' (1 gol(s) no jogo) → Mais de 8.5 escanteios",
+      "regiao": "universal",
+      "confirmacoes": 1,
+      "por_valor_atual": {
+        "6": {
+          "n": 111,
+          "n_usado": 111,
+          "p_condicao": 0.7117,
+          "p_base": 0.6261,
+          "impacto_pp": 8.56,
+          "odd_minima": 1.41,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 111,
+              "n_usado": 111,
+              "p_condicao": 0.8018,
+              "impacto_pp": -2.43,
+              "odd_minima": 1.25
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 111,
+              "n_usado": 111,
+              "p_condicao": 0.4955,
+              "impacto_pp": 4.77,
+              "odd_minima": 2.02
+            }
+          }
+        },
+        "11": {
+          "n": 47,
+          "n_usado": 47,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 47,
+              "n_usado": 47,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 47,
+              "n_usado": 47,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "10": {
+          "n": 46,
+          "n_usado": 46,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 46,
+              "n_usado": 46,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 46,
+              "n_usado": 46,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "8": {
+          "n": 98,
+          "n_usado": 98,
+          "p_condicao": 0.9286,
+          "p_base": 0.9394,
+          "impacto_pp": -1.08,
+          "odd_minima": 1.08,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 98,
+              "n_usado": 98,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.51,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 98,
+              "n_usado": 98,
+              "p_condicao": 0.8469,
+              "impacto_pp": -0.66,
+              "odd_minima": 1.18
+            }
+          }
+        },
+        "12": {
+          "n": 25,
+          "n_usado": 47,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 25,
+              "n_usado": 47,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 25,
+              "n_usado": 47,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "13": {
+          "n": 10,
+          "n_usado": 47,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 10,
+              "n_usado": 47,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 10,
+              "n_usado": 47,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "7": {
+          "n": 121,
+          "n_usado": 121,
+          "p_condicao": 0.8843,
+          "p_base": 0.8618,
+          "impacto_pp": 2.25,
+          "odd_minima": 1.13,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 121,
+              "n_usado": 121,
+              "p_condicao": 0.9504,
+              "impacto_pp": 0.11,
+              "odd_minima": 1.05
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 121,
+              "n_usado": 121,
+              "p_condicao": 0.7686,
+              "impacto_pp": 5.89,
+              "odd_minima": 1.3
+            }
+          }
+        },
+        "9": {
+          "n": 94,
+          "n_usado": 94,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 94,
+              "n_usado": 94,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 94,
+              "n_usado": 94,
+              "p_condicao": 0.9574,
+              "impacto_pp": 0.09,
+              "odd_minima": 1.04
+            }
+          }
+        },
+        "3": {
+          "n": 40,
+          "n_usado": 40,
+          "p_condicao": 0.125,
+          "p_base": 0.1311,
+          "impacto_pp": -0.61,
+          "odd_minima": 8.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 40,
+              "n_usado": 40,
+              "p_condicao": 0.3,
+              "impacto_pp": 2.13,
+              "odd_minima": 3.33
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 40,
+              "n_usado": 40,
+              "p_condicao": 0.1,
+              "impacto_pp": 0.98,
+              "odd_minima": 10.0
+            }
+          }
+        },
+        "5": {
+          "n": 86,
+          "n_usado": 86,
+          "p_condicao": 0.5465,
+          "p_base": 0.4935,
+          "impacto_pp": 5.3,
+          "odd_minima": 1.83,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 86,
+              "n_usado": 86,
+              "p_condicao": 0.686,
+              "impacto_pp": 3.67,
+              "odd_minima": 1.46
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 86,
+              "n_usado": 86,
+              "p_condicao": 0.3837,
+              "impacto_pp": 6.34,
+              "odd_minima": 2.61
+            }
+          }
+        },
+        "4": {
+          "n": 100,
+          "n_usado": 100,
+          "p_condicao": 0.3,
+          "p_base": 0.3028,
+          "impacto_pp": -0.28,
+          "odd_minima": 3.33,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 100,
+              "n_usado": 100,
+              "p_condicao": 0.49,
+              "impacto_pp": 2.67,
+              "odd_minima": 2.04
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 100,
+              "n_usado": 100,
+              "p_condicao": 0.16,
+              "impacto_pp": -2.81,
+              "odd_minima": 6.25
+            }
+          }
+        },
+        "1": {
+          "n": 12,
+          "n_usado": 40,
+          "p_condicao": 0.125,
+          "p_base": 0.0938,
+          "impacto_pp": 3.12,
+          "odd_minima": 8.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 12,
+              "n_usado": 40,
+              "p_condicao": 0.3,
+              "impacto_pp": 20.62,
+              "odd_minima": 3.33
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 12,
+              "n_usado": 40,
+              "p_condicao": 0.1,
+              "impacto_pp": 3.75,
+              "odd_minima": 10.0
+            }
+          }
+        },
+        "15": {
+          "n": 4,
+          "n_usado": 47,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 4,
+              "n_usado": 47,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 4,
+              "n_usado": 47,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "2": {
+          "n": 17,
+          "n_usado": 40,
+          "p_condicao": 0.125,
+          "p_base": 0.0909,
+          "impacto_pp": 3.41,
+          "odd_minima": 8.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 17,
+              "n_usado": 40,
+              "p_condicao": 0.3,
+              "impacto_pp": 11.82,
+              "odd_minima": 3.33
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 17,
+              "n_usado": 40,
+              "p_condicao": 0.1,
+              "impacto_pp": 3.94,
+              "odd_minima": 10.0
+            }
+          }
+        },
+        "14": {
+          "n": 5,
+          "n_usado": 47,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 5,
+              "n_usado": 47,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 5,
+              "n_usado": 47,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "16": {
+          "n": 1,
+          "n_usado": 47,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 1,
+              "n_usado": 47,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 1,
+              "n_usado": 47,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "17": {
+          "n": 1,
+          "n_usado": 47,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 1,
+              "n_usado": 47,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 1,
+              "n_usado": 47,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "0": {
+          "n": 3,
+          "n_usado": 40,
+          "p_condicao": 0.125,
+          "p_base": 0.0938,
+          "impacto_pp": 3.12,
+          "odd_minima": 8.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 3,
+              "n_usado": 40,
+              "p_condicao": 0.3,
+              "impacto_pp": 20.62,
+              "odd_minima": 3.33
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 3,
+              "n_usado": 40,
+              "p_condicao": 0.1,
+              "impacto_pp": 3.75,
+              "odd_minima": 10.0
+            }
+          }
+        },
+        "18": {
+          "n": 1,
+          "n_usado": 47,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 1,
+              "n_usado": 47,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 1,
+              "n_usado": 47,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "escanteios_060",
       "alvo": "escanteios",
       "alvo_nome": "Escanteios",
       "minuto": 45,
@@ -54708,7 +56756,7 @@
       }
     },
     {
-      "id": "escanteios_059",
+      "id": "escanteios_061",
       "alvo": "escanteios",
       "alvo_nome": "Escanteios",
       "minuto": 45,
@@ -55108,7 +57156,7 @@
       }
     },
     {
-      "id": "escanteios_060",
+      "id": "escanteios_062",
       "alvo": "escanteios",
       "alvo_nome": "Escanteios",
       "minuto": 30,
@@ -55378,7 +57426,303 @@
       }
     },
     {
-      "id": "escanteios_061",
+      "id": "escanteios_063",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 30,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": "<=",
+          "limite": 8.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 7.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 9.5
+      },
+      "mercado_curto": "Mais de 9.5 escanteios",
+      "amostra_confirmacao": 182,
+      "prob_base_confirmacao": 0.5317,
+      "prob_condicao_confirmacao": 0.6264,
+      "impacto_pp": 9.46,
+      "p_valor_confirmacao": 0.0009716440858976496,
+      "odd_minima_referencia": 1.6,
+      "rotulo": "Faltas ≤ 8 E Chutes totais ≥ 7 aos 30' (1 gol(s) no jogo) → Mais de 9.5 escanteios",
+      "regiao": "universal",
+      "confirmacoes": 1,
+      "por_valor_atual": {
+        "3": {
+          "n": 195,
+          "n_usado": 195,
+          "p_condicao": 0.6308,
+          "p_base": 0.6076,
+          "impacto_pp": 2.32,
+          "odd_minima": 1.59,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 8.5,
+              "n": 195,
+              "n_usado": 195,
+              "p_condicao": 0.7487,
+              "impacto_pp": 1.96,
+              "odd_minima": 1.34
+            },
+            "1": {
+              "linha": 10.5,
+              "n": 195,
+              "n_usado": 195,
+              "p_condicao": 0.4615,
+              "impacto_pp": 1.85,
+              "odd_minima": 2.17
+            }
+          }
+        },
+        "1": {
+          "n": 87,
+          "n_usado": 87,
+          "p_condicao": 0.3333,
+          "p_base": 0.2635,
+          "impacto_pp": 6.98,
+          "odd_minima": 3.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 8.5,
+              "n": 87,
+              "n_usado": 87,
+              "p_condicao": 0.5172,
+              "impacto_pp": 12.2,
+              "odd_minima": 1.93
+            },
+            "1": {
+              "linha": 10.5,
+              "n": 87,
+              "n_usado": 87,
+              "p_condicao": 0.1839,
+              "impacto_pp": 2.51,
+              "odd_minima": 5.44
+            }
+          }
+        },
+        "2": {
+          "n": 139,
+          "n_usado": 139,
+          "p_condicao": 0.4317,
+          "p_base": 0.3924,
+          "impacto_pp": 3.92,
+          "odd_minima": 2.32,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 8.5,
+              "n": 139,
+              "n_usado": 139,
+              "p_condicao": 0.554,
+              "impacto_pp": 4.0,
+              "odd_minima": 1.81
+            },
+            "1": {
+              "linha": 10.5,
+              "n": 139,
+              "n_usado": 139,
+              "p_condicao": 0.3094,
+              "impacto_pp": 1.82,
+              "odd_minima": 3.23
+            }
+          }
+        },
+        "5": {
+          "n": 97,
+          "n_usado": 97,
+          "p_condicao": 0.8969,
+          "p_base": 0.8024,
+          "impacto_pp": 9.45,
+          "odd_minima": 1.11,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 8.5,
+              "n": 97,
+              "n_usado": 97,
+              "p_condicao": 0.9278,
+              "impacto_pp": 4.16,
+              "odd_minima": 1.08
+            },
+            "1": {
+              "linha": 10.5,
+              "n": 97,
+              "n_usado": 97,
+              "p_condicao": 0.7835,
+              "impacto_pp": 11.28,
+              "odd_minima": 1.28
+            }
+          }
+        },
+        "7": {
+          "n": 18,
+          "n_usado": 52,
+          "p_condicao": 0.8654,
+          "p_base": 0.8537,
+          "impacto_pp": 1.17,
+          "odd_minima": 1.16,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 8.5,
+              "n": 18,
+              "n_usado": 52,
+              "p_condicao": 0.9231,
+              "impacto_pp": 0.84,
+              "odd_minima": 1.08
+            },
+            "1": {
+              "linha": 10.5,
+              "n": 18,
+              "n_usado": 52,
+              "p_condicao": 0.8077,
+              "impacto_pp": 1.5,
+              "odd_minima": 1.24
+            }
+          }
+        },
+        "4": {
+          "n": 141,
+          "n_usado": 141,
+          "p_condicao": 0.6809,
+          "p_base": 0.6838,
+          "impacto_pp": -0.3,
+          "odd_minima": 1.47,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 8.5,
+              "n": 141,
+              "n_usado": 141,
+              "p_condicao": 0.773,
+              "impacto_pp": -3.21,
+              "odd_minima": 1.29
+            },
+            "1": {
+              "linha": 10.5,
+              "n": 141,
+              "n_usado": 141,
+              "p_condicao": 0.5603,
+              "impacto_pp": 0.15,
+              "odd_minima": 1.78
+            }
+          }
+        },
+        "6": {
+          "n": 52,
+          "n_usado": 52,
+          "p_condicao": 0.8654,
+          "p_base": 0.8537,
+          "impacto_pp": 1.17,
+          "odd_minima": 1.16,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 8.5,
+              "n": 52,
+              "n_usado": 52,
+              "p_condicao": 0.9231,
+              "impacto_pp": 0.84,
+              "odd_minima": 1.08
+            },
+            "1": {
+              "linha": 10.5,
+              "n": 52,
+              "n_usado": 52,
+              "p_condicao": 0.8077,
+              "impacto_pp": 1.5,
+              "odd_minima": 1.24
+            }
+          }
+        },
+        "8": {
+          "n": 9,
+          "n_usado": 52,
+          "p_condicao": 0.8654,
+          "p_base": 0.8537,
+          "impacto_pp": 1.17,
+          "odd_minima": 1.16,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 8.5,
+              "n": 9,
+              "n_usado": 52,
+              "p_condicao": 0.9231,
+              "impacto_pp": 0.84,
+              "odd_minima": 1.08
+            },
+            "1": {
+              "linha": 10.5,
+              "n": 9,
+              "n_usado": 52,
+              "p_condicao": 0.8077,
+              "impacto_pp": 1.5,
+              "odd_minima": 1.24
+            }
+          }
+        },
+        "0": {
+          "n": 12,
+          "n_usado": 87,
+          "p_condicao": 0.3333,
+          "p_base": 0.1635,
+          "impacto_pp": 16.99,
+          "odd_minima": 3.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 8.5,
+              "n": 12,
+              "n_usado": 87,
+              "p_condicao": 0.5172,
+              "impacto_pp": 30.57,
+              "odd_minima": 1.93
+            },
+            "1": {
+              "linha": 10.5,
+              "n": 12,
+              "n_usado": 87,
+              "p_condicao": 0.1839,
+              "impacto_pp": 8.78,
+              "odd_minima": 5.44
+            }
+          }
+        },
+        "9": {
+          "n": 4,
+          "n_usado": 52,
+          "p_condicao": 0.8654,
+          "p_base": 0.8537,
+          "impacto_pp": 1.17,
+          "odd_minima": 1.16,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 8.5,
+              "n": 4,
+              "n_usado": 52,
+              "p_condicao": 0.9231,
+              "impacto_pp": 0.84,
+              "odd_minima": 1.08
+            },
+            "1": {
+              "linha": 10.5,
+              "n": 4,
+              "n_usado": 52,
+              "p_condicao": 0.8077,
+              "impacto_pp": 1.5,
+              "odd_minima": 1.24
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "escanteios_064",
       "alvo": "escanteios",
       "alvo_nome": "Escanteios",
       "minuto": 60,
@@ -55830,277 +58174,537 @@
       }
     },
     {
-      "id": "escanteios_062",
+      "id": "escanteios_065",
       "alvo": "escanteios",
       "alvo_nome": "Escanteios",
-      "minuto": 30,
+      "minuto": 60,
       "gols_momento": 1,
       "condicoes": [
         {
-          "stat": "fouls",
+          "stat": "duels_won",
           "operador": "<=",
-          "limite": 8.0
+          "limite": 61.0
         },
         {
           "stat": "shots_total",
           "operador": ">=",
-          "limite": 7.0
+          "limite": 13.0
         }
       ],
       "mercado": {
         "stat": "corners",
         "direcao": "mais_de",
-        "linha": 9.5
+        "linha": 7.5
       },
-      "mercado_curto": "Mais de 9.5 escanteios",
-      "amostra_confirmacao": 314,
-      "prob_base_confirmacao": 0.5187,
-      "prob_condicao_confirmacao": 0.6083,
-      "impacto_pp": 8.96,
-      "p_valor_confirmacao": 1.7921534863403483e-05,
-      "odd_minima_referencia": 1.64,
-      "rotulo": "Faltas ≤ 8 E Chutes totais ≥ 7 aos 30' (1 gol(s) no jogo) → Mais de 9.5 escanteios",
-      "regiao": "brasil",
-      "confirmacoes": 2,
+      "mercado_curto": "Mais de 7.5 escanteios",
+      "amostra_confirmacao": 172,
+      "prob_base_confirmacao": 0.7868,
+      "prob_condicao_confirmacao": 0.8721,
+      "impacto_pp": 8.53,
+      "p_valor_confirmacao": 0.0002242349878117832,
+      "odd_minima_referencia": 1.15,
+      "rotulo": "Duelos vencidos ≤ 61 E Chutes totais ≥ 13 aos 60' (1 gol(s) no jogo) → Mais de 7.5 escanteios",
+      "regiao": "universal",
+      "confirmacoes": 1,
       "por_valor_atual": {
-        "2": {
-          "n": 58,
-          "n_usado": 58,
-          "p_condicao": 0.3966,
-          "p_base": 0.3567,
-          "impacto_pp": 3.99,
-          "odd_minima": 2.52,
+        "6": {
+          "n": 118,
+          "n_usado": 118,
+          "p_condicao": 0.8051,
+          "p_base": 0.8261,
+          "impacto_pp": -2.1,
+          "odd_minima": 1.24,
           "linhas_vizinhas": {
             "-1": {
-              "linha": 8.5,
-              "n": 58,
-              "n_usado": 58,
-              "p_condicao": 0.5172,
-              "impacto_pp": 2.68,
-              "odd_minima": 1.93
+              "linha": 6.5,
+              "n": 118,
+              "n_usado": 118,
+              "p_condicao": 0.9322,
+              "impacto_pp": -2.43,
+              "odd_minima": 1.07
             },
             "1": {
-              "linha": 10.5,
-              "n": 58,
-              "n_usado": 58,
-              "p_condicao": 0.2931,
-              "impacto_pp": 3.2,
-              "odd_minima": 3.41
+              "linha": 8.5,
+              "n": 118,
+              "n_usado": 118,
+              "p_condicao": 0.678,
+              "impacto_pp": 5.19,
+              "odd_minima": 1.48
             }
           }
         },
-        "4": {
-          "n": 69,
-          "n_usado": 69,
-          "p_condicao": 0.6812,
-          "p_base": 0.6864,
-          "impacto_pp": -0.53,
-          "odd_minima": 1.47,
+        "11": {
+          "n": 45,
+          "n_usado": 45,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
           "linhas_vizinhas": {
             "-1": {
-              "linha": 8.5,
-              "n": 69,
-              "n_usado": 69,
-              "p_condicao": 0.7536,
-              "impacto_pp": -2.6,
-              "odd_minima": 1.33
+              "linha": 6.5,
+              "n": 45,
+              "n_usado": 45,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
             },
             "1": {
-              "linha": 10.5,
-              "n": 69,
-              "n_usado": 69,
-              "p_condicao": 0.5507,
-              "impacto_pp": -0.01,
-              "odd_minima": 1.82
+              "linha": 8.5,
+              "n": 45,
+              "n_usado": 45,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
             }
           }
         },
-        "3": {
-          "n": 80,
-          "n_usado": 80,
-          "p_condicao": 0.6,
-          "p_base": 0.5563,
-          "impacto_pp": 4.37,
-          "odd_minima": 1.67,
+        "10": {
+          "n": 51,
+          "n_usado": 51,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
           "linhas_vizinhas": {
             "-1": {
-              "linha": 8.5,
-              "n": 80,
-              "n_usado": 80,
-              "p_condicao": 0.75,
-              "impacto_pp": 3.12,
-              "odd_minima": 1.33
+              "linha": 6.5,
+              "n": 51,
+              "n_usado": 51,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
             },
             "1": {
-              "linha": 10.5,
-              "n": 80,
-              "n_usado": 80,
-              "p_condicao": 0.3875,
-              "impacto_pp": 1.87,
-              "odd_minima": 2.58
-            }
-          }
-        },
-        "1": {
-          "n": 41,
-          "n_usado": 41,
-          "p_condicao": 0.3659,
-          "p_base": 0.3103,
-          "impacto_pp": 5.55,
-          "odd_minima": 2.73,
-          "linhas_vizinhas": {
-            "-1": {
               "linha": 8.5,
-              "n": 41,
-              "n_usado": 41,
-              "p_condicao": 0.5366,
-              "impacto_pp": 7.97,
-              "odd_minima": 1.86
-            },
-            "1": {
-              "linha": 10.5,
-              "n": 41,
-              "n_usado": 41,
-              "p_condicao": 0.1951,
-              "impacto_pp": 2.27,
-              "odd_minima": 5.12
-            }
-          }
-        },
-        "5": {
-          "n": 35,
-          "n_usado": 35,
-          "p_condicao": 0.8857,
-          "p_base": 0.8167,
-          "impacto_pp": 6.9,
-          "odd_minima": 1.13,
-          "linhas_vizinhas": {
-            "-1": {
-              "linha": 8.5,
-              "n": 35,
-              "n_usado": 35,
-              "p_condicao": 0.9429,
-              "impacto_pp": 4.29,
-              "odd_minima": 1.06
-            },
-            "1": {
-              "linha": 10.5,
-              "n": 35,
-              "n_usado": 35,
-              "p_condicao": 0.8286,
-              "impacto_pp": 14.52,
-              "odd_minima": 1.21
+              "n": 51,
+              "n_usado": 51,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
             }
           }
         },
         "8": {
-          "n": 6,
-          "n_usado": 35,
-          "p_condicao": 0.8857,
-          "p_base": 0.8167,
-          "impacto_pp": 6.9,
-          "odd_minima": 1.13,
+          "n": 118,
+          "n_usado": 118,
+          "p_condicao": 1.0,
+          "p_base": 0.9949,
+          "impacto_pp": 0.51,
+          "odd_minima": 1.0,
           "linhas_vizinhas": {
             "-1": {
-              "linha": 8.5,
-              "n": 6,
-              "n_usado": 35,
-              "p_condicao": 0.9429,
-              "impacto_pp": 4.29,
-              "odd_minima": 1.06
+              "linha": 6.5,
+              "n": 118,
+              "n_usado": 118,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.51,
+              "odd_minima": 1.0
             },
             "1": {
-              "linha": 10.5,
-              "n": 6,
-              "n_usado": 35,
-              "p_condicao": 0.8286,
-              "impacto_pp": 14.52,
-              "odd_minima": 1.21
+              "linha": 8.5,
+              "n": 118,
+              "n_usado": 118,
+              "p_condicao": 0.9237,
+              "impacto_pp": -1.57,
+              "odd_minima": 1.08
+            }
+          }
+        },
+        "12": {
+          "n": 26,
+          "n_usado": 45,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 6.5,
+              "n": 26,
+              "n_usado": 45,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 8.5,
+              "n": 26,
+              "n_usado": 45,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "13": {
+          "n": 9,
+          "n_usado": 45,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 6.5,
+              "n": 9,
+              "n_usado": 45,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 8.5,
+              "n": 9,
+              "n_usado": 45,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
             }
           }
         },
         "7": {
-          "n": 7,
-          "n_usado": 35,
-          "p_condicao": 0.8857,
-          "p_base": 0.8167,
-          "impacto_pp": 6.9,
-          "odd_minima": 1.13,
+          "n": 132,
+          "n_usado": 132,
+          "p_condicao": 0.9545,
+          "p_base": 0.9493,
+          "impacto_pp": 0.52,
+          "odd_minima": 1.05,
           "linhas_vizinhas": {
             "-1": {
-              "linha": 8.5,
-              "n": 7,
-              "n_usado": 35,
-              "p_condicao": 0.9429,
-              "impacto_pp": 4.29,
-              "odd_minima": 1.06
+              "linha": 6.5,
+              "n": 132,
+              "n_usado": 132,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
             },
             "1": {
-              "linha": 10.5,
-              "n": 7,
-              "n_usado": 35,
-              "p_condicao": 0.8286,
-              "impacto_pp": 14.52,
-              "odd_minima": 1.21
+              "linha": 8.5,
+              "n": 132,
+              "n_usado": 132,
+              "p_condicao": 0.8939,
+              "impacto_pp": 3.22,
+              "odd_minima": 1.12
             }
           }
         },
-        "6": {
-          "n": 15,
-          "n_usado": 35,
-          "p_condicao": 0.8857,
-          "p_base": 0.8167,
-          "impacto_pp": 6.9,
-          "odd_minima": 1.13,
+        "9": {
+          "n": 88,
+          "n_usado": 88,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
           "linhas_vizinhas": {
             "-1": {
-              "linha": 8.5,
-              "n": 15,
-              "n_usado": 35,
-              "p_condicao": 0.9429,
-              "impacto_pp": 4.29,
-              "odd_minima": 1.06
+              "linha": 6.5,
+              "n": 88,
+              "n_usado": 88,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
             },
             "1": {
-              "linha": 10.5,
-              "n": 15,
-              "n_usado": 35,
-              "p_condicao": 0.8286,
-              "impacto_pp": 14.52,
-              "odd_minima": 1.21
+              "linha": 8.5,
+              "n": 88,
+              "n_usado": 88,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "3": {
+          "n": 52,
+          "n_usado": 52,
+          "p_condicao": 0.3654,
+          "p_base": 0.2787,
+          "impacto_pp": 8.67,
+          "odd_minima": 2.74,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 6.5,
+              "n": 52,
+              "n_usado": 52,
+              "p_condicao": 0.5385,
+              "impacto_pp": -0.25,
+              "odd_minima": 1.86
+            },
+            "1": {
+              "linha": 8.5,
+              "n": 52,
+              "n_usado": 52,
+              "p_condicao": 0.1346,
+              "impacto_pp": 0.35,
+              "odd_minima": 7.43
+            }
+          }
+        },
+        "5": {
+          "n": 94,
+          "n_usado": 94,
+          "p_condicao": 0.6596,
+          "p_base": 0.6494,
+          "impacto_pp": 1.02,
+          "odd_minima": 1.52,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 6.5,
+              "n": 94,
+              "n_usado": 94,
+              "p_condicao": 0.7766,
+              "impacto_pp": -4.16,
+              "odd_minima": 1.29
+            },
+            "1": {
+              "linha": 8.5,
+              "n": 94,
+              "n_usado": 94,
+              "p_condicao": 0.4787,
+              "impacto_pp": -1.48,
+              "odd_minima": 2.09
+            }
+          }
+        },
+        "4": {
+          "n": 116,
+          "n_usado": 116,
+          "p_condicao": 0.5086,
+          "p_base": 0.4633,
+          "impacto_pp": 4.53,
+          "odd_minima": 1.97,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 6.5,
+              "n": 116,
+              "n_usado": 116,
+              "p_condicao": 0.681,
+              "impacto_pp": 2.97,
+              "odd_minima": 1.47
+            },
+            "1": {
+              "linha": 8.5,
+              "n": 116,
+              "n_usado": 116,
+              "p_condicao": 0.3103,
+              "impacto_pp": 0.76,
+              "odd_minima": 3.22
+            }
+          }
+        },
+        "1": {
+          "n": 10,
+          "n_usado": 52,
+          "p_condicao": 0.3654,
+          "p_base": 0.0938,
+          "impacto_pp": 27.16,
+          "odd_minima": 2.74,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 6.5,
+              "n": 10,
+              "n_usado": 52,
+              "p_condicao": 0.5385,
+              "impacto_pp": 38.22,
+              "odd_minima": 1.86
+            },
+            "1": {
+              "linha": 8.5,
+              "n": 10,
+              "n_usado": 52,
+              "p_condicao": 0.1346,
+              "impacto_pp": 4.09,
+              "odd_minima": 7.43
+            }
+          }
+        },
+        "2": {
+          "n": 20,
+          "n_usado": 52,
+          "p_condicao": 0.3654,
+          "p_base": 0.1818,
+          "impacto_pp": 18.36,
+          "odd_minima": 2.74,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 6.5,
+              "n": 20,
+              "n_usado": 52,
+              "p_condicao": 0.5385,
+              "impacto_pp": 28.09,
+              "odd_minima": 1.86
+            },
+            "1": {
+              "linha": 8.5,
+              "n": 20,
+              "n_usado": 52,
+              "p_condicao": 0.1346,
+              "impacto_pp": 4.37,
+              "odd_minima": 7.43
+            }
+          }
+        },
+        "15": {
+          "n": 4,
+          "n_usado": 45,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 6.5,
+              "n": 4,
+              "n_usado": 45,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 8.5,
+              "n": 4,
+              "n_usado": 45,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "14": {
+          "n": 3,
+          "n_usado": 45,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 6.5,
+              "n": 3,
+              "n_usado": 45,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 8.5,
+              "n": 3,
+              "n_usado": 45,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "16": {
+          "n": 1,
+          "n_usado": 45,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 6.5,
+              "n": 1,
+              "n_usado": 45,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 8.5,
+              "n": 1,
+              "n_usado": 45,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "17": {
+          "n": 1,
+          "n_usado": 45,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 6.5,
+              "n": 1,
+              "n_usado": 45,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 8.5,
+              "n": 1,
+              "n_usado": 45,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
             }
           }
         },
         "0": {
           "n": 3,
-          "n_usado": 41,
-          "p_condicao": 0.3659,
-          "p_base": 0.2195,
-          "impacto_pp": 14.63,
-          "odd_minima": 2.73,
+          "n_usado": 52,
+          "p_condicao": 0.3654,
+          "p_base": 0.0938,
+          "impacto_pp": 27.16,
+          "odd_minima": 2.74,
           "linhas_vizinhas": {
             "-1": {
-              "linha": 8.5,
+              "linha": 6.5,
               "n": 3,
-              "n_usado": 41,
-              "p_condicao": 0.5366,
-              "impacto_pp": 29.27,
+              "n_usado": 52,
+              "p_condicao": 0.5385,
+              "impacto_pp": 38.22,
               "odd_minima": 1.86
             },
             "1": {
-              "linha": 10.5,
+              "linha": 8.5,
               "n": 3,
-              "n_usado": 41,
-              "p_condicao": 0.1951,
-              "impacto_pp": 2.44,
-              "odd_minima": 5.12
+              "n_usado": 52,
+              "p_condicao": 0.1346,
+              "impacto_pp": 4.09,
+              "odd_minima": 7.43
+            }
+          }
+        },
+        "18": {
+          "n": 1,
+          "n_usado": 45,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 6.5,
+              "n": 1,
+              "n_usado": 45,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 8.5,
+              "n": 1,
+              "n_usado": 45,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
             }
           }
         }
       }
     },
     {
-      "id": "escanteios_063",
+      "id": "escanteios_066",
       "alvo": "escanteios",
       "alvo_nome": "Escanteios",
       "minuto": 15,
@@ -56318,7 +58922,7 @@
       }
     },
     {
-      "id": "escanteios_064",
+      "id": "escanteios_067",
       "alvo": "escanteios",
       "alvo_nome": "Escanteios",
       "minuto": 15,
@@ -56536,7 +59140,7 @@
       }
     },
     {
-      "id": "escanteios_065",
+      "id": "escanteios_068",
       "alvo": "escanteios",
       "alvo_nome": "Escanteios",
       "minuto": 15,
@@ -56754,7 +59358,7 @@
       }
     },
     {
-      "id": "escanteios_066",
+      "id": "escanteios_069",
       "alvo": "escanteios",
       "alvo_nome": "Escanteios",
       "minuto": 15,
@@ -56972,7 +59576,1815 @@
       }
     },
     {
-      "id": "escanteios_067",
+      "id": "escanteios_070",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 75,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "saves",
+          "operador": "<=",
+          "limite": 5.0
+        },
+        {
+          "stat": "shots_on_target",
+          "operador": "<=",
+          "limite": 7.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 8.5
+      },
+      "mercado_curto": "Menos de 8.5 escanteios",
+      "amostra_confirmacao": 168,
+      "prob_base_confirmacao": 0.3462,
+      "prob_condicao_confirmacao": 0.4286,
+      "impacto_pp": 8.24,
+      "p_valor_confirmacao": 0.0015445350899687175,
+      "odd_minima_referencia": 2.33,
+      "rotulo": "Defesas ≤ 5 E Chutes no alvo ≤ 7 aos 75' (2 gol(s) no jogo) → Menos de 8.5 escanteios",
+      "regiao": "nordicas",
+      "confirmacoes": 1,
+      "por_valor_atual": {
+        "10": {
+          "n": 28,
+          "n_usado": 33,
+          "p_condicao": 0.0,
+          "p_base": 0.0,
+          "impacto_pp": 0.0,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 28,
+              "n_usado": 33,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 28,
+              "n_usado": 33,
+              "p_condicao": 0.0909,
+              "impacto_pp": 9.09,
+              "odd_minima": 11.0
+            }
+          }
+        },
+        "7": {
+          "n": 42,
+          "n_usado": 42,
+          "p_condicao": 0.5,
+          "p_base": 0.4118,
+          "impacto_pp": 8.82,
+          "odd_minima": 2.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 42,
+              "n_usado": 42,
+              "p_condicao": 0.2381,
+              "impacto_pp": 6.16,
+              "odd_minima": 4.2
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 42,
+              "n_usado": 42,
+              "p_condicao": 0.6905,
+              "impacto_pp": 5.81,
+              "odd_minima": 1.45
+            }
+          }
+        },
+        "6": {
+          "n": 36,
+          "n_usado": 36,
+          "p_condicao": 0.5,
+          "p_base": 0.5,
+          "impacto_pp": 0.0,
+          "odd_minima": 2.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 36,
+              "n_usado": 36,
+              "p_condicao": 0.3333,
+              "impacto_pp": 0.98,
+              "odd_minima": 3.0
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 36,
+              "n_usado": 36,
+              "p_condicao": 0.7222,
+              "impacto_pp": -1.31,
+              "odd_minima": 1.38
+            }
+          }
+        },
+        "3": {
+          "n": 12,
+          "n_usado": 37,
+          "p_condicao": 0.9189,
+          "p_base": 0.8919,
+          "impacto_pp": 2.7,
+          "odd_minima": 1.09,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 12,
+              "n_usado": 37,
+              "p_condicao": 0.7838,
+              "impacto_pp": 5.41,
+              "odd_minima": 1.28
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 12,
+              "n_usado": 37,
+              "p_condicao": 0.973,
+              "impacto_pp": 2.7,
+              "odd_minima": 1.03
+            }
+          }
+        },
+        "15": {
+          "n": 2,
+          "n_usado": 33,
+          "p_condicao": 0.0,
+          "p_base": 0.0,
+          "impacto_pp": 0.0,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 2,
+              "n_usado": 33,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 2,
+              "n_usado": 33,
+              "p_condicao": 0.0909,
+              "impacto_pp": 9.09,
+              "odd_minima": 11.0
+            }
+          }
+        },
+        "9": {
+          "n": 33,
+          "n_usado": 33,
+          "p_condicao": 0.0,
+          "p_base": 0.0,
+          "impacto_pp": 0.0,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 33,
+              "n_usado": 33,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 33,
+              "n_usado": 33,
+              "p_condicao": 0.0909,
+              "impacto_pp": -3.41,
+              "odd_minima": 11.0
+            }
+          }
+        },
+        "12": {
+          "n": 12,
+          "n_usado": 33,
+          "p_condicao": 0.0,
+          "p_base": 0.0,
+          "impacto_pp": 0.0,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 12,
+              "n_usado": 33,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 12,
+              "n_usado": 33,
+              "p_condicao": 0.0909,
+              "impacto_pp": 9.09,
+              "odd_minima": 11.0
+            }
+          }
+        },
+        "8": {
+          "n": 29,
+          "n_usado": 42,
+          "p_condicao": 0.5,
+          "p_base": 0.25,
+          "impacto_pp": 25.0,
+          "odd_minima": 2.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 29,
+              "n_usado": 42,
+              "p_condicao": 0.2381,
+              "impacto_pp": 23.81,
+              "odd_minima": 4.2
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 29,
+              "n_usado": 42,
+              "p_condicao": 0.6905,
+              "impacto_pp": 26.74,
+              "odd_minima": 1.45
+            }
+          }
+        },
+        "4": {
+          "n": 23,
+          "n_usado": 37,
+          "p_condicao": 0.9189,
+          "p_base": 0.8919,
+          "impacto_pp": 2.7,
+          "odd_minima": 1.09,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 23,
+              "n_usado": 37,
+              "p_condicao": 0.7838,
+              "impacto_pp": 5.41,
+              "odd_minima": 1.28
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 23,
+              "n_usado": 37,
+              "p_condicao": 0.973,
+              "impacto_pp": 2.7,
+              "odd_minima": 1.03
+            }
+          }
+        },
+        "14": {
+          "n": 2,
+          "n_usado": 33,
+          "p_condicao": 0.0,
+          "p_base": 0.0,
+          "impacto_pp": 0.0,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 2,
+              "n_usado": 33,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 2,
+              "n_usado": 33,
+              "p_condicao": 0.0909,
+              "impacto_pp": 9.09,
+              "odd_minima": 11.0
+            }
+          }
+        },
+        "5": {
+          "n": 37,
+          "n_usado": 37,
+          "p_condicao": 0.9189,
+          "p_base": 0.8462,
+          "impacto_pp": 7.28,
+          "odd_minima": 1.09,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 37,
+              "n_usado": 37,
+              "p_condicao": 0.7838,
+              "impacto_pp": 3.38,
+              "odd_minima": 1.28
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 37,
+              "n_usado": 37,
+              "p_condicao": 0.973,
+              "impacto_pp": 4.99,
+              "odd_minima": 1.03
+            }
+          }
+        },
+        "11": {
+          "n": 11,
+          "n_usado": 33,
+          "p_condicao": 0.0,
+          "p_base": 0.0,
+          "impacto_pp": 0.0,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 11,
+              "n_usado": 33,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 11,
+              "n_usado": 33,
+              "p_condicao": 0.0909,
+              "impacto_pp": 9.09,
+              "odd_minima": 11.0
+            }
+          }
+        },
+        "13": {
+          "n": 4,
+          "n_usado": 33,
+          "p_condicao": 0.0,
+          "p_base": 0.0,
+          "impacto_pp": 0.0,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 4,
+              "n_usado": 33,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 4,
+              "n_usado": 33,
+              "p_condicao": 0.0909,
+              "impacto_pp": 9.09,
+              "odd_minima": 11.0
+            }
+          }
+        },
+        "2": {
+          "n": 4,
+          "n_usado": 37,
+          "p_condicao": 0.9189,
+          "p_base": 0.8919,
+          "impacto_pp": 2.7,
+          "odd_minima": 1.09,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 4,
+              "n_usado": 37,
+              "p_condicao": 0.7838,
+              "impacto_pp": 5.41,
+              "odd_minima": 1.28
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 4,
+              "n_usado": 37,
+              "p_condicao": 0.973,
+              "impacto_pp": 2.7,
+              "odd_minima": 1.03
+            }
+          }
+        },
+        "16": {
+          "n": 1,
+          "n_usado": 33,
+          "p_condicao": 0.0,
+          "p_base": 0.0,
+          "impacto_pp": 0.0,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 1,
+              "n_usado": 33,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 1,
+              "n_usado": 33,
+              "p_condicao": 0.0909,
+              "impacto_pp": 9.09,
+              "odd_minima": 11.0
+            }
+          }
+        },
+        "1": {
+          "n": 3,
+          "n_usado": 37,
+          "p_condicao": 0.9189,
+          "p_base": 0.8919,
+          "impacto_pp": 2.7,
+          "odd_minima": 1.09,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 3,
+              "n_usado": 37,
+              "p_condicao": 0.7838,
+              "impacto_pp": 5.41,
+              "odd_minima": 1.28
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 3,
+              "n_usado": 37,
+              "p_condicao": 0.973,
+              "impacto_pp": 2.7,
+              "odd_minima": 1.03
+            }
+          }
+        },
+        "0": {
+          "n": 1,
+          "n_usado": 37,
+          "p_condicao": 0.9189,
+          "p_base": 0.8919,
+          "impacto_pp": 2.7,
+          "odd_minima": 1.09,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 7.5,
+              "n": 1,
+              "n_usado": 37,
+              "p_condicao": 0.7838,
+              "impacto_pp": 5.41,
+              "odd_minima": 1.28
+            },
+            "1": {
+              "linha": 9.5,
+              "n": 1,
+              "n_usado": 37,
+              "p_condicao": 0.973,
+              "impacto_pp": 2.7,
+              "odd_minima": 1.03
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "escanteios_071",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 45,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "fouls",
+          "operador": "<=",
+          "limite": 12.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 10.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 11.5
+      },
+      "mercado_curto": "Mais de 11.5 escanteios",
+      "amostra_confirmacao": 181,
+      "prob_base_confirmacao": 0.3,
+      "prob_condicao_confirmacao": 0.3812,
+      "impacto_pp": 8.12,
+      "p_valor_confirmacao": 0.0022017421144981696,
+      "odd_minima_referencia": 2.62,
+      "rotulo": "Faltas ≤ 12 E Chutes totais ≥ 10 aos 45' (1 gol(s) no jogo) → Mais de 11.5 escanteios",
+      "regiao": "universal",
+      "confirmacoes": 1,
+      "por_valor_atual": {
+        "4": {
+          "n": 156,
+          "n_usado": 156,
+          "p_condicao": 0.2692,
+          "p_base": 0.2225,
+          "impacto_pp": 4.67,
+          "odd_minima": 3.71,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 156,
+              "n_usado": 156,
+              "p_condicao": 0.3846,
+              "impacto_pp": 6.29,
+              "odd_minima": 2.6
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 156,
+              "n_usado": 156,
+              "p_condicao": 0.141,
+              "impacto_pp": 0.97,
+              "odd_minima": 7.09
+            }
+          }
+        },
+        "7": {
+          "n": 97,
+          "n_usado": 97,
+          "p_condicao": 0.6907,
+          "p_base": 0.6258,
+          "impacto_pp": 6.49,
+          "odd_minima": 1.45,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 97,
+              "n_usado": 97,
+              "p_condicao": 0.8247,
+              "impacto_pp": 3.12,
+              "odd_minima": 1.21
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 97,
+              "n_usado": 97,
+              "p_condicao": 0.4948,
+              "impacto_pp": 3.03,
+              "odd_minima": 2.02
+            }
+          }
+        },
+        "3": {
+          "n": 120,
+          "n_usado": 120,
+          "p_condicao": 0.125,
+          "p_base": 0.0921,
+          "impacto_pp": 3.29,
+          "odd_minima": 8.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 120,
+              "n_usado": 120,
+              "p_condicao": 0.1833,
+              "impacto_pp": 1.83,
+              "odd_minima": 5.45
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 120,
+              "n_usado": 120,
+              "p_condicao": 0.0583,
+              "impacto_pp": 0.44,
+              "odd_minima": 17.14
+            }
+          }
+        },
+        "2": {
+          "n": 61,
+          "n_usado": 61,
+          "p_condicao": 0.0492,
+          "p_base": 0.0465,
+          "impacto_pp": 0.27,
+          "odd_minima": 20.33,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 61,
+              "n_usado": 61,
+              "p_condicao": 0.082,
+              "impacto_pp": -3.43,
+              "odd_minima": 12.2
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 61,
+              "n_usado": 61,
+              "p_condicao": 0.0164,
+              "impacto_pp": 0.24,
+              "odd_minima": 61.0
+            }
+          }
+        },
+        "8": {
+          "n": 53,
+          "n_usado": 53,
+          "p_condicao": 0.7925,
+          "p_base": 0.7816,
+          "impacto_pp": 1.08,
+          "odd_minima": 1.26,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 53,
+              "n_usado": 53,
+              "p_condicao": 0.8679,
+              "impacto_pp": -0.56,
+              "odd_minima": 1.15
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 53,
+              "n_usado": 53,
+              "p_condicao": 0.6038,
+              "impacto_pp": 0.61,
+              "odd_minima": 1.66
+            }
+          }
+        },
+        "9": {
+          "n": 22,
+          "n_usado": 53,
+          "p_condicao": 0.7925,
+          "p_base": 0.9512,
+          "impacto_pp": -15.88,
+          "odd_minima": 1.26,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 22,
+              "n_usado": 53,
+              "p_condicao": 0.8679,
+              "impacto_pp": -8.33,
+              "odd_minima": 1.15
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 22,
+              "n_usado": 53,
+              "p_condicao": 0.6038,
+              "impacto_pp": -24.99,
+              "odd_minima": 1.66
+            }
+          }
+        },
+        "5": {
+          "n": 116,
+          "n_usado": 116,
+          "p_condicao": 0.3276,
+          "p_base": 0.3419,
+          "impacto_pp": -1.43,
+          "odd_minima": 3.05,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 116,
+              "n_usado": 116,
+              "p_condicao": 0.4224,
+              "impacto_pp": -5.92,
+              "odd_minima": 2.37
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 116,
+              "n_usado": 116,
+              "p_condicao": 0.1983,
+              "impacto_pp": -0.76,
+              "odd_minima": 5.04
+            }
+          }
+        },
+        "10": {
+          "n": 13,
+          "n_usado": 53,
+          "p_condicao": 0.7925,
+          "p_base": 0.9512,
+          "impacto_pp": -15.88,
+          "odd_minima": 1.26,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 13,
+              "n_usado": 53,
+              "p_condicao": 0.8679,
+              "impacto_pp": -8.33,
+              "odd_minima": 1.15
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 13,
+              "n_usado": 53,
+              "p_condicao": 0.6038,
+              "impacto_pp": -24.99,
+              "odd_minima": 1.66
+            }
+          }
+        },
+        "6": {
+          "n": 117,
+          "n_usado": 117,
+          "p_condicao": 0.4615,
+          "p_base": 0.481,
+          "impacto_pp": -1.95,
+          "odd_minima": 2.17,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 117,
+              "n_usado": 117,
+              "p_condicao": 0.6068,
+              "impacto_pp": -3.45,
+              "odd_minima": 1.65
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 117,
+              "n_usado": 117,
+              "p_condicao": 0.3675,
+              "impacto_pp": 0.47,
+              "odd_minima": 2.72
+            }
+          }
+        },
+        "1": {
+          "n": 32,
+          "n_usado": 32,
+          "p_condicao": 0.0,
+          "p_base": 0.0278,
+          "impacto_pp": -2.78,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 32,
+              "n_usado": 32,
+              "p_condicao": 0.0,
+              "impacto_pp": -4.63,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 32,
+              "n_usado": 32,
+              "p_condicao": 0.0,
+              "impacto_pp": -0.93,
+              "odd_minima": null
+            }
+          }
+        },
+        "11": {
+          "n": 7,
+          "n_usado": 53,
+          "p_condicao": 0.7925,
+          "p_base": 0.9512,
+          "impacto_pp": -15.88,
+          "odd_minima": 1.26,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 7,
+              "n_usado": 53,
+              "p_condicao": 0.8679,
+              "impacto_pp": -8.33,
+              "odd_minima": 1.15
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 7,
+              "n_usado": 53,
+              "p_condicao": 0.6038,
+              "impacto_pp": -24.99,
+              "odd_minima": 1.66
+            }
+          }
+        },
+        "12": {
+          "n": 2,
+          "n_usado": 53,
+          "p_condicao": 0.7925,
+          "p_base": 0.9512,
+          "impacto_pp": -15.88,
+          "odd_minima": 1.26,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 2,
+              "n_usado": 53,
+              "p_condicao": 0.8679,
+              "impacto_pp": -8.33,
+              "odd_minima": 1.15
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 2,
+              "n_usado": 53,
+              "p_condicao": 0.6038,
+              "impacto_pp": -24.99,
+              "odd_minima": 1.66
+            }
+          }
+        },
+        "0": {
+          "n": 6,
+          "n_usado": 32,
+          "p_condicao": 0.0,
+          "p_base": 0.0278,
+          "impacto_pp": -2.78,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 6,
+              "n_usado": 32,
+              "p_condicao": 0.0,
+              "impacto_pp": -5.56,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 6,
+              "n_usado": 32,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            }
+          }
+        },
+        "13": {
+          "n": 2,
+          "n_usado": 53,
+          "p_condicao": 0.7925,
+          "p_base": 0.9512,
+          "impacto_pp": -15.88,
+          "odd_minima": 1.26,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 2,
+              "n_usado": 53,
+              "p_condicao": 0.8679,
+              "impacto_pp": -8.33,
+              "odd_minima": 1.15
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 2,
+              "n_usado": 53,
+              "p_condicao": 0.6038,
+              "impacto_pp": -24.99,
+              "odd_minima": 1.66
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "escanteios_072",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 60,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "shots_on_target",
+          "operador": ">=",
+          "limite": 4.0
+        },
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 13.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 11.5
+      },
+      "mercado_curto": "Mais de 11.5 escanteios",
+      "amostra_confirmacao": 153,
+      "prob_base_confirmacao": 0.3447,
+      "prob_condicao_confirmacao": 0.4248,
+      "impacto_pp": 8.01,
+      "p_valor_confirmacao": 0.006993710229644066,
+      "odd_minima_referencia": 2.35,
+      "rotulo": "Chutes no alvo ≥ 4 E Chutes totais ≥ 13 aos 60' (1 gol(s) no jogo) → Mais de 11.5 escanteios",
+      "regiao": "universal",
+      "confirmacoes": 1,
+      "por_valor_atual": {
+        "6": {
+          "n": 120,
+          "n_usado": 120,
+          "p_condicao": 0.1833,
+          "p_base": 0.1609,
+          "impacto_pp": 2.25,
+          "odd_minima": 5.45,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 120,
+              "n_usado": 120,
+              "p_condicao": 0.3333,
+              "impacto_pp": 5.07,
+              "odd_minima": 3.0
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 120,
+              "n_usado": 120,
+              "p_condicao": 0.1,
+              "impacto_pp": 1.3,
+              "odd_minima": 10.0
+            }
+          }
+        },
+        "11": {
+          "n": 46,
+          "n_usado": 46,
+          "p_condicao": 0.9565,
+          "p_base": 0.9706,
+          "impacto_pp": -1.41,
+          "odd_minima": 1.05,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 46,
+              "n_usado": 46,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 46,
+              "n_usado": 46,
+              "p_condicao": 0.8261,
+              "impacto_pp": -2.69,
+              "odd_minima": 1.21
+            }
+          }
+        },
+        "10": {
+          "n": 52,
+          "n_usado": 52,
+          "p_condicao": 0.9615,
+          "p_base": 0.9383,
+          "impacto_pp": 2.33,
+          "odd_minima": 1.04,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 52,
+              "n_usado": 52,
+              "p_condicao": 0.9808,
+              "impacto_pp": 0.55,
+              "odd_minima": 1.02
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 52,
+              "n_usado": 52,
+              "p_condicao": 0.7692,
+              "impacto_pp": 2.85,
+              "odd_minima": 1.3
+            }
+          }
+        },
+        "8": {
+          "n": 116,
+          "n_usado": 116,
+          "p_condicao": 0.4569,
+          "p_base": 0.4899,
+          "impacto_pp": -3.3,
+          "odd_minima": 2.19,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 116,
+              "n_usado": 116,
+              "p_condicao": 0.6293,
+              "impacto_pp": -6.77,
+              "odd_minima": 1.59
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 116,
+              "n_usado": 116,
+              "p_condicao": 0.2672,
+              "impacto_pp": -3.58,
+              "odd_minima": 3.74
+            }
+          }
+        },
+        "12": {
+          "n": 27,
+          "n_usado": 46,
+          "p_condicao": 0.9565,
+          "p_base": 1.0,
+          "impacto_pp": -4.35,
+          "odd_minima": 1.05,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 27,
+              "n_usado": 46,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 27,
+              "n_usado": 46,
+              "p_condicao": 0.8261,
+              "impacto_pp": -9.7,
+              "odd_minima": 1.21
+            }
+          }
+        },
+        "13": {
+          "n": 9,
+          "n_usado": 46,
+          "p_condicao": 0.9565,
+          "p_base": 1.0,
+          "impacto_pp": -4.35,
+          "odd_minima": 1.05,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 9,
+              "n_usado": 46,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 9,
+              "n_usado": 46,
+              "p_condicao": 0.8261,
+              "impacto_pp": -9.7,
+              "odd_minima": 1.21
+            }
+          }
+        },
+        "7": {
+          "n": 142,
+          "n_usado": 142,
+          "p_condicao": 0.338,
+          "p_base": 0.3088,
+          "impacto_pp": 2.93,
+          "odd_minima": 2.96,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 142,
+              "n_usado": 142,
+              "p_condicao": 0.5352,
+              "impacto_pp": 2.83,
+              "odd_minima": 1.87
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 142,
+              "n_usado": 142,
+              "p_condicao": 0.1901,
+              "impacto_pp": 2.89,
+              "odd_minima": 5.26
+            }
+          }
+        },
+        "3": {
+          "n": 48,
+          "n_usado": 48,
+          "p_condicao": 0.0417,
+          "p_base": 0.0246,
+          "impacto_pp": 1.71,
+          "odd_minima": 24.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 48,
+              "n_usado": 48,
+              "p_condicao": 0.0833,
+              "impacto_pp": 2.6,
+              "odd_minima": 12.0
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 48,
+              "n_usado": 48,
+              "p_condicao": 0.0208,
+              "impacto_pp": 1.26,
+              "odd_minima": 48.0
+            }
+          }
+        },
+        "5": {
+          "n": 102,
+          "n_usado": 102,
+          "p_condicao": 0.0686,
+          "p_base": 0.0823,
+          "impacto_pp": -1.36,
+          "odd_minima": 14.57,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 102,
+              "n_usado": 102,
+              "p_condicao": 0.1471,
+              "impacto_pp": -4.34,
+              "odd_minima": 6.8
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 102,
+              "n_usado": 102,
+              "p_condicao": 0.0294,
+              "impacto_pp": -1.82,
+              "odd_minima": 34.0
+            }
+          }
+        },
+        "9": {
+          "n": 95,
+          "n_usado": 95,
+          "p_condicao": 0.7579,
+          "p_base": 0.7319,
+          "impacto_pp": 2.6,
+          "odd_minima": 1.32,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 95,
+              "n_usado": 95,
+              "p_condicao": 0.8526,
+              "impacto_pp": -0.97,
+              "odd_minima": 1.17
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 95,
+              "n_usado": 95,
+              "p_condicao": 0.5789,
+              "impacto_pp": 5.0,
+              "odd_minima": 1.73
+            }
+          }
+        },
+        "4": {
+          "n": 107,
+          "n_usado": 107,
+          "p_condicao": 0.028,
+          "p_base": 0.0367,
+          "impacto_pp": -0.87,
+          "odd_minima": 35.67,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 107,
+              "n_usado": 107,
+              "p_condicao": 0.0748,
+              "impacto_pp": -1.24,
+              "odd_minima": 13.38
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 107,
+              "n_usado": 107,
+              "p_condicao": 0.0187,
+              "impacto_pp": 0.95,
+              "odd_minima": 53.5
+            }
+          }
+        },
+        "1": {
+          "n": 14,
+          "n_usado": 48,
+          "p_condicao": 0.0417,
+          "p_base": 0.0,
+          "impacto_pp": 4.17,
+          "odd_minima": 24.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 14,
+              "n_usado": 48,
+              "p_condicao": 0.0833,
+              "impacto_pp": 8.33,
+              "odd_minima": 12.0
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 14,
+              "n_usado": 48,
+              "p_condicao": 0.0208,
+              "impacto_pp": 2.08,
+              "odd_minima": 48.0
+            }
+          }
+        },
+        "2": {
+          "n": 18,
+          "n_usado": 48,
+          "p_condicao": 0.0417,
+          "p_base": 0.0,
+          "impacto_pp": 4.17,
+          "odd_minima": 24.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 18,
+              "n_usado": 48,
+              "p_condicao": 0.0833,
+              "impacto_pp": 5.3,
+              "odd_minima": 12.0
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 18,
+              "n_usado": 48,
+              "p_condicao": 0.0208,
+              "impacto_pp": 2.08,
+              "odd_minima": 48.0
+            }
+          }
+        },
+        "15": {
+          "n": 5,
+          "n_usado": 46,
+          "p_condicao": 0.9565,
+          "p_base": 1.0,
+          "impacto_pp": -4.35,
+          "odd_minima": 1.05,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 5,
+              "n_usado": 46,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 5,
+              "n_usado": 46,
+              "p_condicao": 0.8261,
+              "impacto_pp": -9.7,
+              "odd_minima": 1.21
+            }
+          }
+        },
+        "14": {
+          "n": 4,
+          "n_usado": 46,
+          "p_condicao": 0.9565,
+          "p_base": 1.0,
+          "impacto_pp": -4.35,
+          "odd_minima": 1.05,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 4,
+              "n_usado": 46,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 4,
+              "n_usado": 46,
+              "p_condicao": 0.8261,
+              "impacto_pp": -9.7,
+              "odd_minima": 1.21
+            }
+          }
+        },
+        "16": {
+          "n": 1,
+          "n_usado": 46,
+          "p_condicao": 0.9565,
+          "p_base": 1.0,
+          "impacto_pp": -4.35,
+          "odd_minima": 1.05,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 1,
+              "n_usado": 46,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 1,
+              "n_usado": 46,
+              "p_condicao": 0.8261,
+              "impacto_pp": -9.7,
+              "odd_minima": 1.21
+            }
+          }
+        },
+        "17": {
+          "n": 1,
+          "n_usado": 46,
+          "p_condicao": 0.9565,
+          "p_base": 1.0,
+          "impacto_pp": -4.35,
+          "odd_minima": 1.05,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 1,
+              "n_usado": 46,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 1,
+              "n_usado": 46,
+              "p_condicao": 0.8261,
+              "impacto_pp": -9.7,
+              "odd_minima": 1.21
+            }
+          }
+        },
+        "0": {
+          "n": 3,
+          "n_usado": 48,
+          "p_condicao": 0.0417,
+          "p_base": 0.0,
+          "impacto_pp": 4.17,
+          "odd_minima": 24.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 3,
+              "n_usado": 48,
+              "p_condicao": 0.0833,
+              "impacto_pp": 8.33,
+              "odd_minima": 12.0
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 3,
+              "n_usado": 48,
+              "p_condicao": 0.0208,
+              "impacto_pp": 2.08,
+              "odd_minima": 48.0
+            }
+          }
+        },
+        "18": {
+          "n": 1,
+          "n_usado": 46,
+          "p_condicao": 0.9565,
+          "p_base": 1.0,
+          "impacto_pp": -4.35,
+          "odd_minima": 1.05,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 1,
+              "n_usado": 46,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 1,
+              "n_usado": 46,
+              "p_condicao": 0.8261,
+              "impacto_pp": -9.7,
+              "odd_minima": 1.21
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "escanteios_073",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 60,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 13.0
+        },
+        {
+          "stat": "tackles",
+          "operador": "<=",
+          "limite": 24.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 11.5
+      },
+      "mercado_curto": "Mais de 11.5 escanteios",
+      "amostra_confirmacao": 172,
+      "prob_base_confirmacao": 0.3447,
+      "prob_condicao_confirmacao": 0.4244,
+      "impacto_pp": 7.97,
+      "p_valor_confirmacao": 0.0029598041630743335,
+      "odd_minima_referencia": 2.36,
+      "rotulo": "Chutes totais ≥ 13 E Desarmes ≤ 24 aos 60' (1 gol(s) no jogo) → Mais de 11.5 escanteios",
+      "regiao": "nordicas",
+      "confirmacoes": 1,
+      "por_valor_atual": {
+        "6": {
+          "n": 42,
+          "n_usado": 42,
+          "p_condicao": 0.2143,
+          "p_base": 0.1667,
+          "impacto_pp": 4.76,
+          "odd_minima": 4.67,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 42,
+              "n_usado": 42,
+              "p_condicao": 0.3095,
+              "impacto_pp": 3.17,
+              "odd_minima": 3.23
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 42,
+              "n_usado": 42,
+              "p_condicao": 0.1429,
+              "impacto_pp": 3.17,
+              "odd_minima": 7.0
+            }
+          }
+        },
+        "11": {
+          "n": 18,
+          "n_usado": 36,
+          "p_condicao": 0.4444,
+          "p_base": 0.9333,
+          "impacto_pp": -48.89,
+          "odd_minima": 2.25,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 18,
+              "n_usado": 36,
+              "p_condicao": 0.6667,
+              "impacto_pp": -33.33,
+              "odd_minima": 1.5
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 18,
+              "n_usado": 36,
+              "p_condicao": 0.2222,
+              "impacto_pp": -51.11,
+              "odd_minima": 4.5
+            }
+          }
+        },
+        "10": {
+          "n": 17,
+          "n_usado": 36,
+          "p_condicao": 0.4444,
+          "p_base": 0.9429,
+          "impacto_pp": -49.84,
+          "odd_minima": 2.25,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 17,
+              "n_usado": 36,
+              "p_condicao": 0.6667,
+              "impacto_pp": -30.48,
+              "odd_minima": 1.5
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 17,
+              "n_usado": 36,
+              "p_condicao": 0.2222,
+              "impacto_pp": -49.21,
+              "odd_minima": 4.5
+            }
+          }
+        },
+        "8": {
+          "n": 36,
+          "n_usado": 36,
+          "p_condicao": 0.4444,
+          "p_base": 0.4923,
+          "impacto_pp": -4.79,
+          "odd_minima": 2.25,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 36,
+              "n_usado": 36,
+              "p_condicao": 0.6667,
+              "impacto_pp": -7.18,
+              "odd_minima": 1.5
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 36,
+              "n_usado": 36,
+              "p_condicao": 0.2222,
+              "impacto_pp": -8.55,
+              "odd_minima": 4.5
+            }
+          }
+        },
+        "12": {
+          "n": 15,
+          "n_usado": 36,
+          "p_condicao": 0.4444,
+          "p_base": 0.9333,
+          "impacto_pp": -48.89,
+          "odd_minima": 2.25,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 15,
+              "n_usado": 36,
+              "p_condicao": 0.6667,
+              "impacto_pp": -33.33,
+              "odd_minima": 1.5
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 15,
+              "n_usado": 36,
+              "p_condicao": 0.2222,
+              "impacto_pp": -51.11,
+              "odd_minima": 4.5
+            }
+          }
+        },
+        "13": {
+          "n": 4,
+          "n_usado": 36,
+          "p_condicao": 0.4444,
+          "p_base": 0.9333,
+          "impacto_pp": -48.89,
+          "odd_minima": 2.25,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 4,
+              "n_usado": 36,
+              "p_condicao": 0.6667,
+              "impacto_pp": -33.33,
+              "odd_minima": 1.5
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 4,
+              "n_usado": 36,
+              "p_condicao": 0.2222,
+              "impacto_pp": -51.11,
+              "odd_minima": 4.5
+            }
+          }
+        },
+        "7": {
+          "n": 35,
+          "n_usado": 35,
+          "p_condicao": 0.3143,
+          "p_base": 0.2714,
+          "impacto_pp": 4.29,
+          "odd_minima": 3.18,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 35,
+              "n_usado": 35,
+              "p_condicao": 0.4571,
+              "impacto_pp": 4.29,
+              "odd_minima": 2.19
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 35,
+              "n_usado": 35,
+              "p_condicao": 0.1429,
+              "impacto_pp": 1.43,
+              "odd_minima": 7.0
+            }
+          }
+        },
+        "9": {
+          "n": 29,
+          "n_usado": 36,
+          "p_condicao": 0.4444,
+          "p_base": 0.7391,
+          "impacto_pp": -29.47,
+          "odd_minima": 2.25,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 29,
+              "n_usado": 36,
+              "p_condicao": 0.6667,
+              "impacto_pp": -22.46,
+              "odd_minima": 1.5
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 29,
+              "n_usado": 36,
+              "p_condicao": 0.2222,
+              "impacto_pp": -25.6,
+              "odd_minima": 4.5
+            }
+          }
+        },
+        "3": {
+          "n": 18,
+          "n_usado": 42,
+          "p_condicao": 0.2143,
+          "p_base": 0.0,
+          "impacto_pp": 21.43,
+          "odd_minima": 4.67,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 18,
+              "n_usado": 42,
+              "p_condicao": 0.3095,
+              "impacto_pp": 26.3,
+              "odd_minima": 3.23
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 18,
+              "n_usado": 42,
+              "p_condicao": 0.1429,
+              "impacto_pp": 14.29,
+              "odd_minima": 7.0
+            }
+          }
+        },
+        "5": {
+          "n": 26,
+          "n_usado": 42,
+          "p_condicao": 0.2143,
+          "p_base": 0.1299,
+          "impacto_pp": 8.44,
+          "odd_minima": 4.67,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 26,
+              "n_usado": 42,
+              "p_condicao": 0.3095,
+              "impacto_pp": 7.58,
+              "odd_minima": 3.23
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 26,
+              "n_usado": 42,
+              "p_condicao": 0.1429,
+              "impacto_pp": 6.49,
+              "odd_minima": 7.0
+            }
+          }
+        },
+        "4": {
+          "n": 29,
+          "n_usado": 42,
+          "p_condicao": 0.2143,
+          "p_base": 0.0541,
+          "impacto_pp": 16.02,
+          "odd_minima": 4.67,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 29,
+              "n_usado": 42,
+              "p_condicao": 0.3095,
+              "impacto_pp": 21.49,
+              "odd_minima": 3.23
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 29,
+              "n_usado": 42,
+              "p_condicao": 0.1429,
+              "impacto_pp": 14.29,
+              "odd_minima": 7.0
+            }
+          }
+        },
+        "1": {
+          "n": 3,
+          "n_usado": 42,
+          "p_condicao": 0.2143,
+          "p_base": 0.0,
+          "impacto_pp": 21.43,
+          "odd_minima": 4.67,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 3,
+              "n_usado": 42,
+              "p_condicao": 0.3095,
+              "impacto_pp": 26.3,
+              "odd_minima": 3.23
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 3,
+              "n_usado": 42,
+              "p_condicao": 0.1429,
+              "impacto_pp": 14.29,
+              "odd_minima": 7.0
+            }
+          }
+        },
+        "2": {
+          "n": 5,
+          "n_usado": 42,
+          "p_condicao": 0.2143,
+          "p_base": 0.0,
+          "impacto_pp": 21.43,
+          "odd_minima": 4.67,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 5,
+              "n_usado": 42,
+              "p_condicao": 0.3095,
+              "impacto_pp": 26.3,
+              "odd_minima": 3.23
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 5,
+              "n_usado": 42,
+              "p_condicao": 0.1429,
+              "impacto_pp": 14.29,
+              "odd_minima": 7.0
+            }
+          }
+        },
+        "15": {
+          "n": 2,
+          "n_usado": 36,
+          "p_condicao": 0.4444,
+          "p_base": 0.9333,
+          "impacto_pp": -48.89,
+          "odd_minima": 2.25,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 2,
+              "n_usado": 36,
+              "p_condicao": 0.6667,
+              "impacto_pp": -33.33,
+              "odd_minima": 1.5
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 2,
+              "n_usado": 36,
+              "p_condicao": 0.2222,
+              "impacto_pp": -51.11,
+              "odd_minima": 4.5
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "escanteios_074",
       "alvo": "escanteios",
       "alvo_nome": "Escanteios",
       "minuto": 30,
@@ -56986,7 +61398,7 @@
         {
           "stat": "shots_total",
           "operador": ">=",
-          "limite": 6.0
+          "limite": 7.0
         }
       ],
       "mercado": {
@@ -56995,306 +61407,1605 @@
         "linha": 9.5
       },
       "mercado_curto": "Mais de 9.5 escanteios",
-      "amostra_confirmacao": 236,
-      "prob_base_confirmacao": 0.5317,
-      "prob_condicao_confirmacao": 0.6059,
-      "impacto_pp": 7.42,
-      "p_valor_confirmacao": 0.001019457416508763,
-      "odd_minima_referencia": 1.65,
-      "rotulo": "Impedimentos ≤ 1 E Chutes totais ≥ 6 aos 30' (1 gol(s) no jogo) → Mais de 9.5 escanteios",
-      "regiao": "universal",
-      "confirmacoes": 1,
+      "amostra_confirmacao": 312,
+      "prob_base_confirmacao": 0.5187,
+      "prob_condicao_confirmacao": 0.5962,
+      "impacto_pp": 7.75,
+      "p_valor_confirmacao": 0.00022659702583501093,
+      "odd_minima_referencia": 1.68,
+      "rotulo": "Impedimentos ≤ 1 E Chutes totais ≥ 7 aos 30' (1 gol(s) no jogo) → Mais de 9.5 escanteios",
+      "regiao": "brasil",
+      "confirmacoes": 2,
       "por_valor_atual": {
-        "3": {
-          "n": 236,
-          "n_usado": 236,
-          "p_condicao": 0.6398,
-          "p_base": 0.6076,
-          "impacto_pp": 3.22,
-          "odd_minima": 1.56,
-          "linhas_vizinhas": {
-            "-1": {
-              "linha": 8.5,
-              "n": 236,
-              "n_usado": 236,
-              "p_condicao": 0.7669,
-              "impacto_pp": 3.78,
-              "odd_minima": 1.3
-            },
-            "1": {
-              "linha": 10.5,
-              "n": 236,
-              "n_usado": 236,
-              "p_condicao": 0.4746,
-              "impacto_pp": 3.15,
-              "odd_minima": 2.11
-            }
-          }
-        },
         "2": {
-          "n": 187,
-          "n_usado": 187,
-          "p_condicao": 0.4118,
-          "p_base": 0.3924,
-          "impacto_pp": 1.94,
-          "odd_minima": 2.43,
+          "n": 63,
+          "n_usado": 63,
+          "p_condicao": 0.3492,
+          "p_base": 0.3567,
+          "impacto_pp": -0.75,
+          "odd_minima": 2.86,
           "linhas_vizinhas": {
             "-1": {
               "linha": 8.5,
-              "n": 187,
-              "n_usado": 187,
-              "p_condicao": 0.508,
-              "impacto_pp": -0.59,
-              "odd_minima": 1.97
+              "n": 63,
+              "n_usado": 63,
+              "p_condicao": 0.4286,
+              "impacto_pp": -6.19,
+              "odd_minima": 2.33
             },
             "1": {
               "linha": 10.5,
-              "n": 187,
-              "n_usado": 187,
-              "p_condicao": 0.3155,
-              "impacto_pp": 2.44,
-              "odd_minima": 3.17
-            }
-          }
-        },
-        "1": {
-          "n": 126,
-          "n_usado": 126,
-          "p_condicao": 0.2857,
-          "p_base": 0.2635,
-          "impacto_pp": 2.22,
-          "odd_minima": 3.5,
-          "linhas_vizinhas": {
-            "-1": {
-              "linha": 8.5,
-              "n": 126,
-              "n_usado": 126,
-              "p_condicao": 0.4365,
-              "impacto_pp": 4.12,
-              "odd_minima": 2.29
-            },
-            "1": {
-              "linha": 10.5,
-              "n": 126,
-              "n_usado": 126,
-              "p_condicao": 0.1667,
-              "impacto_pp": 0.79,
-              "odd_minima": 6.0
-            }
-          }
-        },
-        "5": {
-          "n": 111,
-          "n_usado": 111,
-          "p_condicao": 0.8288,
-          "p_base": 0.8024,
-          "impacto_pp": 2.64,
-          "odd_minima": 1.21,
-          "linhas_vizinhas": {
-            "-1": {
-              "linha": 8.5,
-              "n": 111,
-              "n_usado": 111,
-              "p_condicao": 0.9009,
-              "impacto_pp": 1.47,
-              "odd_minima": 1.11
-            },
-            "1": {
-              "linha": 10.5,
-              "n": 111,
-              "n_usado": 111,
-              "p_condicao": 0.7207,
-              "impacto_pp": 5.01,
-              "odd_minima": 1.39
-            }
-          }
-        },
-        "7": {
-          "n": 18,
-          "n_usado": 53,
-          "p_condicao": 0.8679,
-          "p_base": 0.8537,
-          "impacto_pp": 1.43,
-          "odd_minima": 1.15,
-          "linhas_vizinhas": {
-            "-1": {
-              "linha": 8.5,
-              "n": 18,
-              "n_usado": 53,
-              "p_condicao": 0.9057,
-              "impacto_pp": -0.9,
-              "odd_minima": 1.1
-            },
-            "1": {
-              "linha": 10.5,
-              "n": 18,
-              "n_usado": 53,
-              "p_condicao": 0.7925,
-              "impacto_pp": -0.02,
-              "odd_minima": 1.26
+              "n": 63,
+              "n_usado": 63,
+              "p_condicao": 0.254,
+              "impacto_pp": -0.72,
+              "odd_minima": 3.94
             }
           }
         },
         "4": {
-          "n": 178,
-          "n_usado": 178,
-          "p_condicao": 0.691,
-          "p_base": 0.6838,
-          "impacto_pp": 0.72,
-          "odd_minima": 1.45,
+          "n": 71,
+          "n_usado": 71,
+          "p_condicao": 0.662,
+          "p_base": 0.6864,
+          "impacto_pp": -2.45,
+          "odd_minima": 1.51,
           "linhas_vizinhas": {
             "-1": {
               "linha": 8.5,
-              "n": 178,
-              "n_usado": 178,
-              "p_condicao": 0.7921,
-              "impacto_pp": -1.3,
-              "odd_minima": 1.26
+              "n": 71,
+              "n_usado": 71,
+              "p_condicao": 0.7465,
+              "impacto_pp": -3.32,
+              "odd_minima": 1.34
             },
             "1": {
               "linha": 10.5,
-              "n": 178,
-              "n_usado": 178,
-              "p_condicao": 0.5562,
-              "impacto_pp": -0.26,
-              "odd_minima": 1.8
+              "n": 71,
+              "n_usado": 71,
+              "p_condicao": 0.5211,
+              "impacto_pp": -2.97,
+              "odd_minima": 1.92
             }
           }
         },
-        "6": {
-          "n": 53,
-          "n_usado": 53,
-          "p_condicao": 0.8679,
-          "p_base": 0.8537,
-          "impacto_pp": 1.43,
-          "odd_minima": 1.15,
+        "5": {
+          "n": 37,
+          "n_usado": 37,
+          "p_condicao": 0.8378,
+          "p_base": 0.8167,
+          "impacto_pp": 2.12,
+          "odd_minima": 1.19,
           "linhas_vizinhas": {
             "-1": {
               "linha": 8.5,
-              "n": 53,
-              "n_usado": 53,
-              "p_condicao": 0.9057,
-              "impacto_pp": -0.9,
-              "odd_minima": 1.1
+              "n": 37,
+              "n_usado": 37,
+              "p_condicao": 0.9189,
+              "impacto_pp": 1.89,
+              "odd_minima": 1.09
             },
             "1": {
               "linha": 10.5,
-              "n": 53,
-              "n_usado": 53,
-              "p_condicao": 0.7925,
-              "impacto_pp": -0.02,
-              "odd_minima": 1.26
+              "n": 37,
+              "n_usado": 37,
+              "p_condicao": 0.7568,
+              "impacto_pp": 7.34,
+              "odd_minima": 1.32
+            }
+          }
+        },
+        "3": {
+          "n": 70,
+          "n_usado": 70,
+          "p_condicao": 0.6286,
+          "p_base": 0.5563,
+          "impacto_pp": 7.23,
+          "odd_minima": 1.59,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 8.5,
+              "n": 70,
+              "n_usado": 70,
+              "p_condicao": 0.7571,
+              "impacto_pp": 3.84,
+              "odd_minima": 1.32
+            },
+            "1": {
+              "linha": 10.5,
+              "n": 70,
+              "n_usado": 70,
+              "p_condicao": 0.4143,
+              "impacto_pp": 4.55,
+              "odd_minima": 2.41
+            }
+          }
+        },
+        "1": {
+          "n": 35,
+          "n_usado": 35,
+          "p_condicao": 0.4,
+          "p_base": 0.3103,
+          "impacto_pp": 8.97,
+          "odd_minima": 2.5,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 8.5,
+              "n": 35,
+              "n_usado": 35,
+              "p_condicao": 0.5143,
+              "impacto_pp": 5.74,
+              "odd_minima": 1.94
+            },
+            "1": {
+              "linha": 10.5,
+              "n": 35,
+              "n_usado": 35,
+              "p_condicao": 0.2286,
+              "impacto_pp": 5.62,
+              "odd_minima": 4.38
             }
           }
         },
         "8": {
-          "n": 14,
-          "n_usado": 53,
-          "p_condicao": 0.8679,
-          "p_base": 0.8537,
-          "impacto_pp": 1.43,
-          "odd_minima": 1.15,
+          "n": 7,
+          "n_usado": 37,
+          "p_condicao": 0.8378,
+          "p_base": 0.8167,
+          "impacto_pp": 2.12,
+          "odd_minima": 1.19,
           "linhas_vizinhas": {
             "-1": {
               "linha": 8.5,
-              "n": 14,
-              "n_usado": 53,
-              "p_condicao": 0.9057,
-              "impacto_pp": -0.9,
-              "odd_minima": 1.1
+              "n": 7,
+              "n_usado": 37,
+              "p_condicao": 0.9189,
+              "impacto_pp": 1.89,
+              "odd_minima": 1.09
             },
             "1": {
               "linha": 10.5,
-              "n": 14,
-              "n_usado": 53,
-              "p_condicao": 0.7925,
-              "impacto_pp": -0.02,
-              "odd_minima": 1.26
+              "n": 7,
+              "n_usado": 37,
+              "p_condicao": 0.7568,
+              "impacto_pp": 7.34,
+              "odd_minima": 1.32
+            }
+          }
+        },
+        "7": {
+          "n": 7,
+          "n_usado": 37,
+          "p_condicao": 0.8378,
+          "p_base": 0.8167,
+          "impacto_pp": 2.12,
+          "odd_minima": 1.19,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 8.5,
+              "n": 7,
+              "n_usado": 37,
+              "p_condicao": 0.9189,
+              "impacto_pp": 1.89,
+              "odd_minima": 1.09
+            },
+            "1": {
+              "linha": 10.5,
+              "n": 7,
+              "n_usado": 37,
+              "p_condicao": 0.7568,
+              "impacto_pp": 7.34,
+              "odd_minima": 1.32
             }
           }
         },
         "0": {
-          "n": 35,
+          "n": 7,
           "n_usado": 35,
-          "p_condicao": 0.1429,
-          "p_base": 0.1635,
-          "impacto_pp": -2.06,
-          "odd_minima": 7.0,
+          "p_condicao": 0.4,
+          "p_base": 0.2195,
+          "impacto_pp": 18.05,
+          "odd_minima": 2.5,
           "linhas_vizinhas": {
             "-1": {
               "linha": 8.5,
-              "n": 35,
+              "n": 7,
               "n_usado": 35,
-              "p_condicao": 0.1429,
-              "impacto_pp": -6.87,
-              "odd_minima": 7.0
+              "p_condicao": 0.5143,
+              "impacto_pp": 27.04,
+              "odd_minima": 1.94
             },
             "1": {
               "linha": 10.5,
-              "n": 35,
+              "n": 7,
               "n_usado": 35,
-              "p_condicao": 0.0857,
-              "impacto_pp": -1.04,
-              "odd_minima": 11.67
+              "p_condicao": 0.2286,
+              "impacto_pp": 5.78,
+              "odd_minima": 4.38
+            }
+          }
+        },
+        "6": {
+          "n": 14,
+          "n_usado": 37,
+          "p_condicao": 0.8378,
+          "p_base": 0.8167,
+          "impacto_pp": 2.12,
+          "odd_minima": 1.19,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 8.5,
+              "n": 14,
+              "n_usado": 37,
+              "p_condicao": 0.9189,
+              "impacto_pp": 1.89,
+              "odd_minima": 1.09
+            },
+            "1": {
+              "linha": 10.5,
+              "n": 14,
+              "n_usado": 37,
+              "p_condicao": 0.7568,
+              "impacto_pp": 7.34,
+              "odd_minima": 1.32
             }
           }
         },
         "9": {
-          "n": 6,
-          "n_usado": 53,
-          "p_condicao": 0.8679,
-          "p_base": 0.8537,
-          "impacto_pp": 1.43,
-          "odd_minima": 1.15,
-          "linhas_vizinhas": {
-            "-1": {
-              "linha": 8.5,
-              "n": 6,
-              "n_usado": 53,
-              "p_condicao": 0.9057,
-              "impacto_pp": -0.9,
-              "odd_minima": 1.1
-            },
-            "1": {
-              "linha": 10.5,
-              "n": 6,
-              "n_usado": 53,
-              "p_condicao": 0.7925,
-              "impacto_pp": -0.02,
-              "odd_minima": 1.26
-            }
-          }
-        },
-        "10": {
           "n": 1,
-          "n_usado": 53,
-          "p_condicao": 0.8679,
-          "p_base": 0.8537,
-          "impacto_pp": 1.43,
-          "odd_minima": 1.15,
+          "n_usado": 37,
+          "p_condicao": 0.8378,
+          "p_base": 0.8167,
+          "impacto_pp": 2.12,
+          "odd_minima": 1.19,
           "linhas_vizinhas": {
             "-1": {
               "linha": 8.5,
               "n": 1,
-              "n_usado": 53,
-              "p_condicao": 0.9057,
-              "impacto_pp": -0.9,
-              "odd_minima": 1.1
+              "n_usado": 37,
+              "p_condicao": 0.9189,
+              "impacto_pp": 1.89,
+              "odd_minima": 1.09
             },
             "1": {
               "linha": 10.5,
               "n": 1,
-              "n_usado": 53,
-              "p_condicao": 0.7925,
-              "impacto_pp": -0.02,
-              "odd_minima": 1.26
+              "n_usado": 37,
+              "p_condicao": 0.7568,
+              "impacto_pp": 7.34,
+              "odd_minima": 1.32
             }
           }
         }
       }
     },
     {
-      "id": "escanteios_068",
+      "id": "escanteios_075",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 60,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "shots_on_target",
+          "operador": "<=",
+          "limite": 6.0
+        },
+        {
+          "stat": "total_crosses",
+          "operador": "<=",
+          "limite": 27.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 11.5
+      },
+      "mercado_curto": "Menos de 11.5 escanteios",
+      "amostra_confirmacao": 171,
+      "prob_base_confirmacao": 0.7598,
+      "prob_condicao_confirmacao": 0.8363,
+      "impacto_pp": 7.65,
+      "p_valor_confirmacao": 0.0007879789276216099,
+      "odd_minima_referencia": 1.2,
+      "rotulo": "Chutes no alvo ≤ 6 E Cruzamentos ≤ 27 aos 60' (2 gol(s) no jogo) → Menos de 11.5 escanteios",
+      "regiao": "universal",
+      "confirmacoes": 1,
+      "por_valor_atual": {
+        "4": {
+          "n": 100,
+          "n_usado": 100,
+          "p_condicao": 0.97,
+          "p_base": 0.9595,
+          "impacto_pp": 1.05,
+          "odd_minima": 1.03,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 100,
+              "n_usado": 100,
+              "p_condicao": 0.87,
+              "impacto_pp": -0.16,
+              "odd_minima": 1.15
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 100,
+              "n_usado": 100,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.68,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "7": {
+          "n": 98,
+          "n_usado": 98,
+          "p_condicao": 0.7245,
+          "p_base": 0.6778,
+          "impacto_pp": 4.67,
+          "odd_minima": 1.38,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 98,
+              "n_usado": 98,
+              "p_condicao": 0.5714,
+              "impacto_pp": 5.48,
+              "odd_minima": 1.75
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 98,
+              "n_usado": 98,
+              "p_condicao": 0.8469,
+              "impacto_pp": 1.92,
+              "odd_minima": 1.18
+            }
+          }
+        },
+        "3": {
+          "n": 66,
+          "n_usado": 66,
+          "p_condicao": 0.9848,
+          "p_base": 0.9896,
+          "impacto_pp": -0.47,
+          "odd_minima": 1.02,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 66,
+              "n_usado": 66,
+              "p_condicao": 0.9394,
+              "impacto_pp": -1.89,
+              "odd_minima": 1.06
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 66,
+              "n_usado": 66,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "6": {
+          "n": 122,
+          "n_usado": 122,
+          "p_condicao": 0.8443,
+          "p_base": 0.8195,
+          "impacto_pp": 2.48,
+          "odd_minima": 1.18,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 122,
+              "n_usado": 122,
+              "p_condicao": 0.7623,
+              "impacto_pp": 5.01,
+              "odd_minima": 1.31
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 122,
+              "n_usado": 122,
+              "p_condicao": 0.9098,
+              "impacto_pp": 0.25,
+              "odd_minima": 1.1
+            }
+          }
+        },
+        "5": {
+          "n": 99,
+          "n_usado": 99,
+          "p_condicao": 0.8788,
+          "p_base": 0.8844,
+          "impacto_pp": -0.56,
+          "odd_minima": 1.14,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 99,
+              "n_usado": 99,
+              "p_condicao": 0.7778,
+              "impacto_pp": -1.41,
+              "odd_minima": 1.29
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 99,
+              "n_usado": 99,
+              "p_condicao": 0.9293,
+              "impacto_pp": -0.71,
+              "odd_minima": 1.08
+            }
+          }
+        },
+        "12": {
+          "n": 6,
+          "n_usado": 51,
+          "p_condicao": 0.5294,
+          "p_base": 0.0556,
+          "impacto_pp": 47.39,
+          "odd_minima": 1.89,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 6,
+              "n_usado": 51,
+              "p_condicao": 0.2745,
+              "impacto_pp": 27.45,
+              "odd_minima": 3.64
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 6,
+              "n_usado": 51,
+              "p_condicao": 0.7059,
+              "impacto_pp": 62.25,
+              "odd_minima": 1.42
+            }
+          }
+        },
+        "11": {
+          "n": 11,
+          "n_usado": 51,
+          "p_condicao": 0.5294,
+          "p_base": 0.0556,
+          "impacto_pp": 47.39,
+          "odd_minima": 1.89,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 11,
+              "n_usado": 51,
+              "p_condicao": 0.2745,
+              "impacto_pp": 27.45,
+              "odd_minima": 3.64
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 11,
+              "n_usado": 51,
+              "p_condicao": 0.7059,
+              "impacto_pp": 62.25,
+              "odd_minima": 1.42
+            }
+          }
+        },
+        "1": {
+          "n": 20,
+          "n_usado": 66,
+          "p_condicao": 0.9848,
+          "p_base": 1.0,
+          "impacto_pp": -1.52,
+          "odd_minima": 1.02,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 20,
+              "n_usado": 66,
+              "p_condicao": 0.9394,
+              "impacto_pp": -6.06,
+              "odd_minima": 1.06
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 20,
+              "n_usado": 66,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "8": {
+          "n": 51,
+          "n_usado": 51,
+          "p_condicao": 0.5294,
+          "p_base": 0.4435,
+          "impacto_pp": 8.59,
+          "odd_minima": 1.89,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 51,
+              "n_usado": 51,
+              "p_condicao": 0.2745,
+              "impacto_pp": -1.24,
+              "odd_minima": 3.64
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 51,
+              "n_usado": 51,
+              "p_condicao": 0.7059,
+              "impacto_pp": 4.5,
+              "odd_minima": 1.42
+            }
+          }
+        },
+        "2": {
+          "n": 28,
+          "n_usado": 66,
+          "p_condicao": 0.9848,
+          "p_base": 1.0,
+          "impacto_pp": -1.52,
+          "odd_minima": 1.02,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 28,
+              "n_usado": 66,
+              "p_condicao": 0.9394,
+              "impacto_pp": -6.06,
+              "odd_minima": 1.06
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 28,
+              "n_usado": 66,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "10": {
+          "n": 16,
+          "n_usado": 51,
+          "p_condicao": 0.5294,
+          "p_base": 0.1509,
+          "impacto_pp": 37.85,
+          "odd_minima": 1.89,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 16,
+              "n_usado": 51,
+              "p_condicao": 0.2745,
+              "impacto_pp": 23.68,
+              "odd_minima": 3.64
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 16,
+              "n_usado": 51,
+              "p_condicao": 0.7059,
+              "impacto_pp": 44.17,
+              "odd_minima": 1.42
+            }
+          }
+        },
+        "9": {
+          "n": 27,
+          "n_usado": 51,
+          "p_condicao": 0.5294,
+          "p_base": 0.2872,
+          "impacto_pp": 24.22,
+          "odd_minima": 1.89,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 27,
+              "n_usado": 51,
+              "p_condicao": 0.2745,
+              "impacto_pp": 11.49,
+              "odd_minima": 3.64
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 27,
+              "n_usado": 51,
+              "p_condicao": 0.7059,
+              "impacto_pp": 24.84,
+              "odd_minima": 1.42
+            }
+          }
+        },
+        "0": {
+          "n": 9,
+          "n_usado": 66,
+          "p_condicao": 0.9848,
+          "p_base": 1.0,
+          "impacto_pp": -1.52,
+          "odd_minima": 1.02,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 9,
+              "n_usado": 66,
+              "p_condicao": 0.9394,
+              "impacto_pp": -6.06,
+              "odd_minima": 1.06
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 9,
+              "n_usado": 66,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "14": {
+          "n": 1,
+          "n_usado": 51,
+          "p_condicao": 0.5294,
+          "p_base": 0.0556,
+          "impacto_pp": 47.39,
+          "odd_minima": 1.89,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 1,
+              "n_usado": 51,
+              "p_condicao": 0.2745,
+              "impacto_pp": 27.45,
+              "odd_minima": 3.64
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 1,
+              "n_usado": 51,
+              "p_condicao": 0.7059,
+              "impacto_pp": 62.25,
+              "odd_minima": 1.42
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "escanteios_076",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 45,
+      "gols_momento": 1,
+      "condicoes": [
+        {
+          "stat": "shots_total",
+          "operador": ">=",
+          "limite": 10.0
+        },
+        {
+          "stat": "successful_dribbles_percentage",
+          "operador": "<=",
+          "limite": 133.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "mais_de",
+        "linha": 11.5
+      },
+      "mercado_curto": "Mais de 11.5 escanteios",
+      "amostra_confirmacao": 186,
+      "prob_base_confirmacao": 0.3,
+      "prob_condicao_confirmacao": 0.371,
+      "impacto_pp": 7.1,
+      "p_valor_confirmacao": 0.006207757737997815,
+      "odd_minima_referencia": 2.7,
+      "rotulo": "Chutes totais ≥ 10 E % dribles certos ≤ 133 aos 45' (1 gol(s) no jogo) → Mais de 11.5 escanteios",
+      "regiao": "universal",
+      "confirmacoes": 1,
+      "por_valor_atual": {
+        "4": {
+          "n": 181,
+          "n_usado": 181,
+          "p_condicao": 0.2376,
+          "p_base": 0.2225,
+          "impacto_pp": 1.5,
+          "odd_minima": 4.21,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 181,
+              "n_usado": 181,
+              "p_condicao": 0.3425,
+              "impacto_pp": 2.08,
+              "odd_minima": 2.92
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 181,
+              "n_usado": 181,
+              "p_condicao": 0.116,
+              "impacto_pp": -1.53,
+              "odd_minima": 8.62
+            }
+          }
+        },
+        "7": {
+          "n": 103,
+          "n_usado": 103,
+          "p_condicao": 0.6505,
+          "p_base": 0.6258,
+          "impacto_pp": 2.47,
+          "odd_minima": 1.54,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 103,
+              "n_usado": 103,
+              "p_condicao": 0.8058,
+              "impacto_pp": 1.23,
+              "odd_minima": 1.24
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 103,
+              "n_usado": 103,
+              "p_condicao": 0.4757,
+              "impacto_pp": 1.12,
+              "odd_minima": 2.1
+            }
+          }
+        },
+        "3": {
+          "n": 131,
+          "n_usado": 131,
+          "p_condicao": 0.1069,
+          "p_base": 0.0921,
+          "impacto_pp": 1.48,
+          "odd_minima": 9.36,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 131,
+              "n_usado": 131,
+              "p_condicao": 0.1756,
+              "impacto_pp": 1.05,
+              "odd_minima": 5.7
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 131,
+              "n_usado": 131,
+              "p_condicao": 0.0458,
+              "impacto_pp": -0.82,
+              "odd_minima": 21.83
+            }
+          }
+        },
+        "2": {
+          "n": 75,
+          "n_usado": 75,
+          "p_condicao": 0.0667,
+          "p_base": 0.0465,
+          "impacto_pp": 2.02,
+          "odd_minima": 15.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 75,
+              "n_usado": 75,
+              "p_condicao": 0.1067,
+              "impacto_pp": -0.96,
+              "odd_minima": 9.38
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 75,
+              "n_usado": 75,
+              "p_condicao": 0.0267,
+              "impacto_pp": 1.27,
+              "odd_minima": 37.5
+            }
+          }
+        },
+        "8": {
+          "n": 50,
+          "n_usado": 50,
+          "p_condicao": 0.76,
+          "p_base": 0.7816,
+          "impacto_pp": -2.16,
+          "odd_minima": 1.32,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 50,
+              "n_usado": 50,
+              "p_condicao": 0.86,
+              "impacto_pp": -1.36,
+              "odd_minima": 1.16
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 50,
+              "n_usado": 50,
+              "p_condicao": 0.62,
+              "impacto_pp": 2.23,
+              "odd_minima": 1.61
+            }
+          }
+        },
+        "9": {
+          "n": 23,
+          "n_usado": 50,
+          "p_condicao": 0.76,
+          "p_base": 0.9512,
+          "impacto_pp": -19.12,
+          "odd_minima": 1.32,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 23,
+              "n_usado": 50,
+              "p_condicao": 0.86,
+              "impacto_pp": -9.12,
+              "odd_minima": 1.16
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 23,
+              "n_usado": 50,
+              "p_condicao": 0.62,
+              "impacto_pp": -23.37,
+              "odd_minima": 1.61
+            }
+          }
+        },
+        "5": {
+          "n": 131,
+          "n_usado": 131,
+          "p_condicao": 0.3588,
+          "p_base": 0.3419,
+          "impacto_pp": 1.69,
+          "odd_minima": 2.79,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 131,
+              "n_usado": 131,
+              "p_condicao": 0.4656,
+              "impacto_pp": -1.6,
+              "odd_minima": 2.15
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 131,
+              "n_usado": 131,
+              "p_condicao": 0.1908,
+              "impacto_pp": -1.5,
+              "odd_minima": 5.24
+            }
+          }
+        },
+        "10": {
+          "n": 14,
+          "n_usado": 50,
+          "p_condicao": 0.76,
+          "p_base": 0.9512,
+          "impacto_pp": -19.12,
+          "odd_minima": 1.32,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 14,
+              "n_usado": 50,
+              "p_condicao": 0.86,
+              "impacto_pp": -9.12,
+              "odd_minima": 1.16
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 14,
+              "n_usado": 50,
+              "p_condicao": 0.62,
+              "impacto_pp": -23.37,
+              "odd_minima": 1.61
+            }
+          }
+        },
+        "6": {
+          "n": 127,
+          "n_usado": 127,
+          "p_condicao": 0.4724,
+          "p_base": 0.481,
+          "impacto_pp": -0.86,
+          "odd_minima": 2.12,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 127,
+              "n_usado": 127,
+              "p_condicao": 0.6299,
+              "impacto_pp": -1.14,
+              "odd_minima": 1.59
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 127,
+              "n_usado": 127,
+              "p_condicao": 0.3622,
+              "impacto_pp": -0.07,
+              "odd_minima": 2.76
+            }
+          }
+        },
+        "1": {
+          "n": 36,
+          "n_usado": 36,
+          "p_condicao": 0.0556,
+          "p_base": 0.0278,
+          "impacto_pp": 2.78,
+          "odd_minima": 18.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 36,
+              "n_usado": 36,
+              "p_condicao": 0.0556,
+              "impacto_pp": 0.93,
+              "odd_minima": 18.0
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 36,
+              "n_usado": 36,
+              "p_condicao": 0.0,
+              "impacto_pp": -0.93,
+              "odd_minima": null
+            }
+          }
+        },
+        "11": {
+          "n": 7,
+          "n_usado": 50,
+          "p_condicao": 0.76,
+          "p_base": 0.9512,
+          "impacto_pp": -19.12,
+          "odd_minima": 1.32,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 7,
+              "n_usado": 50,
+              "p_condicao": 0.86,
+              "impacto_pp": -9.12,
+              "odd_minima": 1.16
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 7,
+              "n_usado": 50,
+              "p_condicao": 0.62,
+              "impacto_pp": -23.37,
+              "odd_minima": 1.61
+            }
+          }
+        },
+        "12": {
+          "n": 2,
+          "n_usado": 50,
+          "p_condicao": 0.76,
+          "p_base": 0.9512,
+          "impacto_pp": -19.12,
+          "odd_minima": 1.32,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 2,
+              "n_usado": 50,
+              "p_condicao": 0.86,
+              "impacto_pp": -9.12,
+              "odd_minima": 1.16
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 2,
+              "n_usado": 50,
+              "p_condicao": 0.62,
+              "impacto_pp": -23.37,
+              "odd_minima": 1.61
+            }
+          }
+        },
+        "0": {
+          "n": 6,
+          "n_usado": 36,
+          "p_condicao": 0.0556,
+          "p_base": 0.0278,
+          "impacto_pp": 2.78,
+          "odd_minima": 18.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 6,
+              "n_usado": 36,
+              "p_condicao": 0.0556,
+              "impacto_pp": 0.0,
+              "odd_minima": 18.0
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 6,
+              "n_usado": 36,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            }
+          }
+        },
+        "13": {
+          "n": 2,
+          "n_usado": 50,
+          "p_condicao": 0.76,
+          "p_base": 0.9512,
+          "impacto_pp": -19.12,
+          "odd_minima": 1.32,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 10.5,
+              "n": 2,
+              "n_usado": 50,
+              "p_condicao": 0.86,
+              "impacto_pp": -9.12,
+              "odd_minima": 1.16
+            },
+            "1": {
+              "linha": 12.5,
+              "n": 2,
+              "n_usado": 50,
+              "p_condicao": 0.62,
+              "impacto_pp": -23.37,
+              "odd_minima": 1.61
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "escanteios_077",
+      "alvo": "escanteios",
+      "alvo_nome": "Escanteios",
+      "minuto": 90,
+      "gols_momento": 2,
+      "condicoes": [
+        {
+          "stat": "shots_on_target",
+          "operador": "<=",
+          "limite": 8.0
+        }
+      ],
+      "mercado": {
+        "stat": "corners",
+        "direcao": "menos_de",
+        "linha": 10.5
+      },
+      "mercado_curto": "Menos de 10.5 escanteios",
+      "amostra_confirmacao": 155,
+      "prob_base_confirmacao": 0.5831,
+      "prob_condicao_confirmacao": 0.6516,
+      "impacto_pp": 6.86,
+      "p_valor_confirmacao": 0.011969084300937443,
+      "odd_minima_referencia": 1.53,
+      "rotulo": "Chutes no alvo ≤ 8 aos 90' (2 gol(s) no jogo) → Menos de 10.5 escanteios",
+      "regiao": "universal",
+      "confirmacoes": 1,
+      "por_valor_atual": {
+        "16": {
+          "n": 12,
+          "n_usado": 38,
+          "p_condicao": 0.0,
+          "p_base": 0.0,
+          "impacto_pp": 0.0,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 12,
+              "n_usado": 38,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 12,
+              "n_usado": 38,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            }
+          }
+        },
+        "10": {
+          "n": 81,
+          "n_usado": 81,
+          "p_condicao": 0.6173,
+          "p_base": 0.5887,
+          "impacto_pp": 2.86,
+          "odd_minima": 1.62,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 81,
+              "n_usado": 81,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 81,
+              "n_usado": 81,
+              "p_condicao": 0.8889,
+              "impacto_pp": 4.49,
+              "odd_minima": 1.12
+            }
+          }
+        },
+        "7": {
+          "n": 68,
+          "n_usado": 68,
+          "p_condicao": 0.9853,
+          "p_base": 0.9826,
+          "impacto_pp": 0.27,
+          "odd_minima": 1.01,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 68,
+              "n_usado": 68,
+              "p_condicao": 0.9412,
+              "impacto_pp": -1.53,
+              "odd_minima": 1.06
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 68,
+              "n_usado": 68,
+              "p_condicao": 0.9853,
+              "impacto_pp": -0.6,
+              "odd_minima": 1.01
+            }
+          }
+        },
+        "12": {
+          "n": 46,
+          "n_usado": 46,
+          "p_condicao": 0.0,
+          "p_base": 0.0,
+          "impacto_pp": 0.0,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 46,
+              "n_usado": 46,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 46,
+              "n_usado": 46,
+              "p_condicao": 0.0,
+              "impacto_pp": -1.14,
+              "odd_minima": null
+            }
+          }
+        },
+        "9": {
+          "n": 102,
+          "n_usado": 102,
+          "p_condicao": 0.9118,
+          "p_base": 0.9024,
+          "impacto_pp": 0.93,
+          "odd_minima": 1.1,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 102,
+              "n_usado": 102,
+              "p_condicao": 0.5784,
+              "impacto_pp": 0.53,
+              "odd_minima": 1.73
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 102,
+              "n_usado": 102,
+              "p_condicao": 0.9804,
+              "impacto_pp": -0.74,
+              "odd_minima": 1.02
+            }
+          }
+        },
+        "17": {
+          "n": 2,
+          "n_usado": 38,
+          "p_condicao": 0.0,
+          "p_base": 0.0,
+          "impacto_pp": 0.0,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 2,
+              "n_usado": 38,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 2,
+              "n_usado": 38,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            }
+          }
+        },
+        "13": {
+          "n": 38,
+          "n_usado": 38,
+          "p_condicao": 0.0,
+          "p_base": 0.0,
+          "impacto_pp": 0.0,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 38,
+              "n_usado": 38,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 38,
+              "n_usado": 38,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            }
+          }
+        },
+        "11": {
+          "n": 60,
+          "n_usado": 60,
+          "p_condicao": 0.0,
+          "p_base": 0.008,
+          "impacto_pp": -0.8,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 60,
+              "n_usado": 60,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 60,
+              "n_usado": 60,
+              "p_condicao": 0.5,
+              "impacto_pp": -1.2,
+              "odd_minima": 2.0
+            }
+          }
+        },
+        "8": {
+          "n": 104,
+          "n_usado": 104,
+          "p_condicao": 0.9808,
+          "p_base": 0.9801,
+          "impacto_pp": 0.06,
+          "odd_minima": 1.02,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 104,
+              "n_usado": 104,
+              "p_condicao": 0.7885,
+              "impacto_pp": -4.6,
+              "odd_minima": 1.27
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 104,
+              "n_usado": 104,
+              "p_condicao": 0.9904,
+              "impacto_pp": -0.3,
+              "odd_minima": 1.01
+            }
+          }
+        },
+        "6": {
+          "n": 63,
+          "n_usado": 63,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 63,
+              "n_usado": 63,
+              "p_condicao": 0.9841,
+              "impacto_pp": -0.46,
+              "odd_minima": 1.02
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 63,
+              "n_usado": 63,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "15": {
+          "n": 15,
+          "n_usado": 38,
+          "p_condicao": 0.0,
+          "p_base": 0.0,
+          "impacto_pp": 0.0,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 15,
+              "n_usado": 38,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 15,
+              "n_usado": 38,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            }
+          }
+        },
+        "4": {
+          "n": 27,
+          "n_usado": 47,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 27,
+              "n_usado": 47,
+              "p_condicao": 0.9787,
+              "impacto_pp": -2.13,
+              "odd_minima": 1.02
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 27,
+              "n_usado": 47,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "14": {
+          "n": 23,
+          "n_usado": 38,
+          "p_condicao": 0.0,
+          "p_base": 0.0,
+          "impacto_pp": 0.0,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 23,
+              "n_usado": 38,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 23,
+              "n_usado": 38,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            }
+          }
+        },
+        "5": {
+          "n": 47,
+          "n_usado": 47,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 47,
+              "n_usado": 47,
+              "p_condicao": 0.9787,
+              "impacto_pp": -0.68,
+              "odd_minima": 1.02
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 47,
+              "n_usado": 47,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "2": {
+          "n": 5,
+          "n_usado": 47,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 5,
+              "n_usado": 47,
+              "p_condicao": 0.9787,
+              "impacto_pp": -2.13,
+              "odd_minima": 1.02
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 5,
+              "n_usado": 47,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "3": {
+          "n": 19,
+          "n_usado": 47,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 19,
+              "n_usado": 47,
+              "p_condicao": 0.9787,
+              "impacto_pp": -2.13,
+              "odd_minima": 1.02
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 19,
+              "n_usado": 47,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "1": {
+          "n": 5,
+          "n_usado": 47,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 5,
+              "n_usado": 47,
+              "p_condicao": 0.9787,
+              "impacto_pp": -2.13,
+              "odd_minima": 1.02
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 5,
+              "n_usado": 47,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        },
+        "19": {
+          "n": 2,
+          "n_usado": 38,
+          "p_condicao": 0.0,
+          "p_base": 0.0,
+          "impacto_pp": 0.0,
+          "odd_minima": null,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 2,
+              "n_usado": 38,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 2,
+              "n_usado": 38,
+              "p_condicao": 0.0,
+              "impacto_pp": 0.0,
+              "odd_minima": null
+            }
+          }
+        },
+        "0": {
+          "n": 4,
+          "n_usado": 47,
+          "p_condicao": 1.0,
+          "p_base": 1.0,
+          "impacto_pp": 0.0,
+          "odd_minima": 1.0,
+          "linhas_vizinhas": {
+            "-1": {
+              "linha": 9.5,
+              "n": 4,
+              "n_usado": 47,
+              "p_condicao": 0.9787,
+              "impacto_pp": -2.13,
+              "odd_minima": 1.02
+            },
+            "1": {
+              "linha": 11.5,
+              "n": 4,
+              "n_usado": 47,
+              "p_condicao": 1.0,
+              "impacto_pp": 0.0,
+              "odd_minima": 1.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "escanteios_078",
       "alvo": "escanteios",
       "alvo_nome": "Escanteios",
       "minuto": 60,
@@ -57746,7 +63457,7 @@
       }
     },
     {
-      "id": "escanteios_069",
+      "id": "escanteios_079",
       "alvo": "escanteios",
       "alvo_nome": "Escanteios",
       "minuto": 30,
@@ -58037,7 +63748,7 @@
       }
     },
     {
-      "id": "escanteios_070",
+      "id": "escanteios_080",
       "alvo": "escanteios",
       "alvo_nome": "Escanteios",
       "minuto": 15,
@@ -58307,7 +64018,7 @@
       }
     },
     {
-      "id": "escanteios_071",
+      "id": "escanteios_081",
       "alvo": "escanteios",
       "alvo_nome": "Escanteios",
       "minuto": 75,
@@ -58811,7 +64522,7 @@
       }
     },
     {
-      "id": "escanteios_072",
+      "id": "escanteios_082",
       "alvo": "escanteios",
       "alvo_nome": "Escanteios",
       "minuto": 15,
@@ -59029,7 +64740,7 @@
       }
     },
     {
-      "id": "escanteios_073",
+      "id": "escanteios_083",
       "alvo": "escanteios",
       "alvo_nome": "Escanteios",
       "minuto": 15,
@@ -59247,7 +64958,7 @@
       }
     },
     {
-      "id": "escanteios_074",
+      "id": "escanteios_084",
       "alvo": "escanteios",
       "alvo_nome": "Escanteios",
       "minuto": 60,
@@ -59673,7 +65384,7 @@
       }
     },
     {
-      "id": "escanteios_075",
+      "id": "escanteios_085",
       "alvo": "escanteios",
       "alvo_nome": "Escanteios",
       "minuto": 60,
