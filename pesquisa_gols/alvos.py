@@ -23,6 +23,19 @@ ALVOS = {
         "campos_base": ["goals"],
         "linhas": [1, 2, 3, 4],
     },
+    "btts": {
+        "nome": "Ambas Marcam (BTTS)",
+        # Diferente dos outros alvos: não é soma de nenhuma candidata (é
+        # derivado de gols_casa/gols_fora finais, que nem entram no pool de
+        # snapshots) — por isso campos_base vazio, não exclui nada extra do
+        # pool de candidatas. resultado final já vem pronto como 0/1 direto
+        # de resultados_alvo[fid]["btts"] (injetado à parte, ver conversa).
+        "campos_base": [],
+        # Só 1 linha possível — BTTS já é binário (0 ou 1), "+1" = ambas
+        # marcaram (valor final >= 1), "-1" = não (valor final < 1). Não faz
+        # sentido testar outras linhas pra um alvo 0/1.
+        "linhas": [1],
+    },
     "escanteios": {
         "nome": "Escanteios",
         "campos_base": ["corners"],
