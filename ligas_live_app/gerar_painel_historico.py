@@ -16,7 +16,7 @@ Gera ligas_live_app/painel_historico.html — publique manualmente via Artifact
 import os
 from datetime import datetime, timezone
 
-from historico_analytics import carregar_linhas, agrupar_por_tipo, curva_roi_acumulado
+from historico_analytics import carregar_linhas, agrupar_por_tipo, curva_roi_acumulado, resumo_por_fonte
 
 CAMINHO_SAIDA = os.path.join(os.path.dirname(__file__), "painel_historico.html")
 
@@ -49,6 +49,7 @@ def _svg_sparkline(pontos, largura=560, altura=120, pad=14):
 def gerar_html():
     linhas = carregar_linhas()
     resumo_tipos = agrupar_por_tipo(linhas)
+    por_fonte = resumo_por_fonte(linhas)
     n_total = len(linhas)
     greens_total = sum(1 for r in linhas if r["resultado"] == "green")
     reds_total = n_total - greens_total
@@ -78,6 +79,16 @@ def gerar_html():
     </tr>""" for r in reversed(linhas)) or '<tr><td colspan="7" class="vazio-linha">sem sinais fechados ainda</td></tr>'
 
     sparkline_html = _svg_sparkline(pontos_roi) if len(pontos_roi) >= 2 else '<div class="spark-vazio">precisa de 2+ sinais fechados pra desenhar a curva</div>'
+
+    r_real, r_sint = por_fonte["real"], por_fonte["sintética"]
+    linhas_fonte_html = "".join(f"""
+    <tr>
+      <td>{rotulo}</td>
+      <td class="num">{g['n']}</td>
+      <td class="num">{f"<span class='pill-mini green'>{g['greens']}G</span> <span class='pill-mini red'>{g['reds']}R</span>" if g['n'] else '—'}</td>
+      <td class="num">{f"{g['taxa_pct']:.1f}%" if g['n'] else '—'}</td>
+      <td class="num {'pos' if g['roi_pct'] >= 0 else 'neg'}">{f"{g['roi_pct']:+.1f}%" if g['n'] else '—'}</td>
+    </tr>""" for rotulo, g in (("Odd real (mercado)", r_real), ("Odd sintética (1/probabilidade)", r_sint)))
 
     return f"""<title>Assertividade ao Vivo</title>
 <style>
@@ -185,6 +196,17 @@ def gerar_html():
   </div>
 
   <div class="secao-titulo">
+    <h2>ROI por origem da odd</h2>
+    <span class="contagem">real = edge de mercado comprovado · sintética = calibração do modelo</span>
+  </div>
+  <div class="tabela-wrap">
+    <table>
+      <thead><tr><th>Origem</th><th class="num">N</th><th class="num">G / R</th><th class="num">Taxa</th><th class="num">ROI</th></tr></thead>
+      <tbody>{linhas_fonte_html}</tbody>
+    </table>
+  </div>
+
+  <div class="secao-titulo">
     <h2>Por tipo de aposta</h2>
     <span class="contagem">{len(resumo_tipos)} tipos</span>
   </div>
@@ -208,6 +230,7 @@ def gerar_html():
 
   <footer>
     Stake fixo de 1 unidade em toda entrada · Odd usada = odd real ao vivo da casa de apostas quando encontrada no momento do sinal, senão odd mínima sintética (1 / probabilidade estimada da amostra histórica) — a origem de cada odd aparece embaixo dela na tabela.<br>
+    ROI com odd sintética não é "lucro real" — é a odd de equilíbrio da própria probabilidade estimada, então tende a 0% se o modelo estiver bem calibrado (nem edge, nem prejuízo, só confere se a taxa de acerto bate com o previsto). O ROI que importa de verdade é o de "odd real": esse sim mede valor contra o mercado de apostas de fato.<br>
     Fonte: ligas_live_app/historico_sinais.csv, atualizado diariamente pela rotina de checagem de sinais. Este painel é só uma camada de leitura agregada — o histórico linha a linha completo continua sendo mantido no CSV pelas rotinas, independente deste painel existir.
   </footer>
 </div>

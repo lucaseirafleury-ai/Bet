@@ -75,6 +75,33 @@ def curva_roi_acumulado(linhas):
     return pontos
 
 
+def resumo_por_fonte(linhas):
+    """
+    Mesmo resumo de resumo_geral(), mas separado por origem da odd usada no
+    lucro — real (achada ao vivo na bet365/1xbet, ev_pct positivo confirmado
+    contra o mercado) vs. sintética (1/probabilidade estimada, sem checagem
+    de mercado nenhuma). Importa separar porque o ROI com odd sintética
+    tende a 0 por CONSTRUÇÃO quando o modelo está bem calibrado (a odd
+    mínima já é o preço de equilíbrio da própria probabilidade estimada) —
+    misturado com o ROI de odd real, o número final não distingue "edge
+    real contra casa de apostas" de "só uma checagem de calibração do
+    modelo". Ver conversa.
+    """
+    resumo = {}
+    for fonte in ("real", "sintética"):
+        itens = [r for r in linhas if r["fonte_odd"] == fonte]
+        n = len(itens)
+        greens = sum(1 for i in itens if i["resultado"] == "green")
+        reds = n - greens
+        roi_pct = (sum(i["lucro"] for i in itens) / n * 100) if n else 0.0
+        resumo[fonte] = {
+            "n": n, "greens": greens, "reds": reds,
+            "taxa_pct": round(greens / n * 100, 1) if n else 0.0,
+            "roi_pct": round(roi_pct, 1),
+        }
+    return resumo
+
+
 def resumo_geral(linhas):
     n_total = len(linhas)
     greens = sum(1 for r in linhas if r["resultado"] == "green")
