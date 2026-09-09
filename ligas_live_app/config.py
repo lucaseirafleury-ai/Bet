@@ -68,3 +68,8 @@ PUSH_SUBS_FILE = os.path.join(DATA_DIR, "push_subscriptions.json")
 # publicar no painel (ver live_monitor.py::_avaliar_gols_interno).
 GOLS_INTERNO_FILE = os.path.join(DATA_DIR, "gols_interno.json")
 SOMBRA_FILE = os.path.join(DATA_DIR, "sombra_sinais.json")
+# Sinais que bateram condição, acharam odd real, mas foram suprimidos por EV
+# negativo (nunca chegaram a virar card) — ver live_monitor.py::_consolidar_
+# candidatas. Existe pra responder "não temos sinal, ou a odd real está
+# afiada demais pro nosso sinal?" (ver conversa) — nenhuma rota do painel lê.
+SUPRIMIDOS_FILE = os.path.join(DATA_DIR, "suprimidos_por_odd.json")

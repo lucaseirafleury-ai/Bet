@@ -669,6 +669,14 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
         grupos.setdefault(chave, []).append((regra, stats))
 
     insights = []
+    # Candidatas que bateram condição, acharam odd real, mas foram suprimidas
+    # por EV negativo (ver "continue" logo abaixo) — registradas aqui pra
+    # medir separadamente "não tem sinal" (nunca bateu condição) de "bate
+    # condição mas o mercado já precifica isso, então a odd real barra"
+    # (ver conversa: usuário quer saber se o problema é falta de sinal ou
+    # odd afiada). NUNCA publicado — só estatística interna, mesmo padrão de
+    # PERFIS_SOMBRA/GOLS_INTERNO_FILE.
+    suprimidos = []
     for (alvo, direcao), itens in grupos.items():
         direcao_oposta = "mais_de" if direcao == "menos_de" else "menos_de"
         if direcoes_ja_disparadas.get(alvo) == direcao_oposta:
@@ -730,6 +738,23 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
                 }
 
         if melhor_odd is not None and melhor_odd["ev_pct"] < 0:
+            suprimidos.append({
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "fixture_id": relatorio["fixture_id"],
+                "jogo": f"{relatorio['home']} x {relatorio['away']}",
+                "liga": relatorio["liga"],
+                "minuto": minuto,
+                "alvo": alvo,
+                "direcao": direcao,
+                "linha": melhor_odd["linha"],
+                "linha_original_sinal": linha_original if melhor_odd["offset"] != 0 else None,
+                "probabilidade": round(melhor_odd["p_condicao"] * 100, 1),
+                "odd_real": melhor_odd["odd"],
+                "odd_real_casa": melhor_odd["casa"],
+                "probabilidade_implicita_real": round(melhor_odd["probabilidade_implicita"] * 100, 1),
+                "ev_pct": round(melhor_odd["ev_pct"], 1),
+                "rotulo_condicao": melhor_regra["rotulo"],
+            })
             continue  # nenhuma linha realmente apostável tem valor — não publica
 
         # Linha/probabilidade/odd mínima "finais" — da linha original quando não há
@@ -793,7 +818,7 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
             # já existe um filtro de idade máxima, mas isso registra o dado bruto também).
             insight["odd_real_atualizada_em"] = melhor_odd.get("atualizado_em")
         insights.append(insight)
-    return insights
+    return insights, suprimidos
 
 
 def _candidatas_para_conjunto(regras_por_checkpoint, relatorio, minuto, gols_totais_jogo, valores_combinados):
@@ -836,6 +861,8 @@ def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combi
     mais um por regra, ver _consolidar_candidatas. No máximo uma vez por
     (alvo, direção) por partida (dedup por (fixture_id, tipo) já cuida disso
     em ciclo(), já que o tipo agora é estável por alvo+direção).
+
+    Devolve (insights, suprimidos) — ver _consolidar_candidatas.
     """
     candidatas = _candidatas_para_conjunto(
         REGRAS_POR_CHECKPOINT_PLACAR, relatorio, minuto, gols_totais_jogo, valores_combinados
@@ -853,6 +880,8 @@ def checar_sinais_sombra(nome_perfil, relatorio, minuto, gols_totais_jogo, valor
     registrado em config.SOMBRA_FILE pra medir, depois de um período de
     acúmulo, se esse conjunto teria dado ROI real diferente do conjunto
     publicado hoje. Ver comentário em PERFIS_SOMBRA.
+
+    Devolve (insights, suprimidos) — ver _consolidar_candidatas.
     """
     candidatas = _candidatas_para_conjunto(
         REGRAS_SOMBRA_POR_CHECKPOINT_PLACAR[nome_perfil], relatorio, minuto, gols_totais_jogo, valores_combinados
@@ -888,6 +917,14 @@ def ciclo():
     # no painel — só existe pra medir assertividade real ao vivo desses
     # conjuntos candidatos, em paralelo ao conjunto principal.
     estado_sombra = _carregar(config.SOMBRA_FILE, {nome: {"ativos": [], "log": []} for nome in PERFIS_SOMBRA})
+
+    # Sinais suprimidos por EV negativo (bateram condição, acharam odd real,
+    # mas o mercado não dava valor) — ver _consolidar_candidatas. Não tem
+    # "ativos"/avaliação de green-red (não é uma aposta feita, é só
+    # diagnóstico de "tinha sinal, mercado matou"), por isso é só um log
+    # plano capado, mais simples que estado_gols/estado_sombra. "perfil"
+    # marca se veio do conjunto principal ou de qual sombra.
+    estado_suprimidos = _carregar(config.SUPRIMIDOS_FILE, {"log": []})
     for nome in PERFIS_SOMBRA:
         estado_sombra.setdefault(nome, {"ativos": [], "log": []})
 
@@ -1128,7 +1165,7 @@ def ciclo():
         # ciclo (alvos diferentes podem bater ao mesmo tempo — já
         # consolidado por (alvo, direção), não mais por regra individual),
         # por isso extend em vez de um único item na lista.
-        candidatos = checar_sinais_confirmados(
+        candidatos, suprimidos = checar_sinais_confirmados(
             relatorio, minuto, gols_totais_jogo, valores_regras_combinados, insights, fixture_id,
         )
 
@@ -1143,11 +1180,20 @@ def ciclo():
             print(f"[INSIGHT] {c['jogo']} — {c['mensagem']}")
             _notificar_push(c)
 
+        # Sem dedup entre ciclos (diferente de insights/ids_ja_gerados): uma
+        # supressão não é definitiva — a mesma (alvo, direção) pode achar EV
+        # positivo num ciclo seguinte se a odd se mover, então não dá pra
+        # travar. Efeito colateral aceito: pode logar a mesma supressão até
+        # ~3x (duração da janela de checkpoint) — não muda a leitura
+        # qualitativa que o usuário quer (sinal raro vs. odd afiada).
+        for s in suprimidos:
+            estado_suprimidos["log"].append({**s, "perfil": "principal"})
+
         # Conjuntos sombra (204/105 regras, ver PERFIS_SOMBRA) — mesmo match e
         # mesma odd real/EV do conjunto principal, mas SÓ registrados
         # (estado_sombra["ativos"]); nunca vira insight publicado nem push.
         for nome in PERFIS_SOMBRA:
-            candidatos_sombra = checar_sinais_sombra(
+            candidatos_sombra, suprimidos_sombra = checar_sinais_sombra(
                 nome, relatorio, minuto, gols_totais_jogo, valores_regras_combinados,
                 estado_sombra[nome]["ativos"], fixture_id,
             )
@@ -1159,11 +1205,15 @@ def ciclo():
                     continue
                 estado_sombra[nome]["ativos"].append(c)
                 ids_ja_gerados_sombra[nome].add(chave)
+            for s in suprimidos_sombra:
+                estado_suprimidos["log"].append({**s, "perfil": nome})
 
     _salvar(config.LIVE_INSIGHTS_FILE, insights)
     _salvar(config.LIVE_SNAPSHOTS_FILE, snapshots)
     estado_gols["log"] = estado_gols["log"][-200:]  # capado -- só auditoria interna, resumo já tem os totais
     _salvar(config.GOLS_INTERNO_FILE, estado_gols)
+    estado_suprimidos["log"] = estado_suprimidos["log"][-1000:]  # capado -- 5 perfis somados, gira mais rápido
+    _salvar(config.SUPRIMIDOS_FILE, estado_suprimidos)
     for nome in PERFIS_SOMBRA:
         # cap maior que o de gols_interno (500 vs 200): conjuntos de 105/204
         # regras disparam bem mais que o principal (78), então enchem mais
