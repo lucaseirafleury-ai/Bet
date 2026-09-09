@@ -115,6 +115,20 @@ def api_gols_interno():
     }))
 
 
+@app.route("/api/sombra")
+def api_sombra():
+    """
+    Sinais dos conjuntos de regras "sombra" (204 e 105 regras, ver
+    live_monitor.py::PERFIS_SOMBRA) — rodam em paralelo ao conjunto principal
+    (mesmo match, mesma odd real/EV), mas nunca publicam card nem push; só
+    servem pra comparar ROI real ao vivo entre conjuntos candidatos depois de
+    acumular amostra. Não é usada por nenhuma tela do dashboard; existe só pra
+    rotina externa de sincronização ler "log" (por perfil) e persistir de
+    forma durável (o arquivo local é apagado a cada redeploy).
+    """
+    return jsonify(_ler_json(config.SOMBRA_FILE, {"204": {"ativos": [], "log": []}, "105": {"ativos": [], "log": []}}))
+
+
 @app.route("/api/historico-sinais")
 def api_historico_sinais():
     linhas = historico_analytics.carregar_linhas()
