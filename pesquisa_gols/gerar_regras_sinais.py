@@ -107,7 +107,10 @@ def _carregar_dados_pooled():
     resultados = {}
     liga_por_fixture = {}
     for caminho in glob.glob(f"{DADOS_DIR}/.checkpoint_*.json"):
-        league_id = int(os.path.basename(caminho).removeprefix(".checkpoint_").removesuffix(".json"))
+        sufixo = os.path.basename(caminho).removeprefix(".checkpoint_").removesuffix(".json")
+        if not sufixo.isdigit():
+            continue  # não é checkpoint de liga (ex.: checkpoints dos scripts de backtest)
+        league_id = int(sufixo)
         d = json.load(open(caminho, encoding="utf-8"))
         for fid_str, res in d["resultados_alvo"].items():
             resultados[int(fid_str)] = res
@@ -399,15 +402,17 @@ def _deduplicar_familia(itens):
     return [max(grupo, key=lambda x: x["impacto"]) for grupo in grupos.values()]
 
 
-# Acima de quanto impacto uma condição do Brasil confirmada por SÓ UM dos dois
-# caminhos (herdado OU nativo, não os dois) ainda entra no painel — o dobro do
-# piso normal (5pp), calibrado pra preservar achados fortes como
-# "Ataques perigosos" pra escanteios (achado só pela descoberta nativa, nunca
-# passaria pelo caminho herdado porque a Allsvenskan nunca testou esse stat —
-# ver conversa) e ainda assim cortar a maioria das ~275 condições de fonte
-# única mais fracas, que ficam registradas em auditoria, não descartadas
-# (ver _salvar_nao_incluidos).
-IMPACTO_CURADORIA_UNICA_BRASIL = 10.0
+# Piso de confirmações independentes exigido para uma condição do Brasil
+# entrar no painel. Calibrado por backtest retroativo contra odds reais de
+# mercado (3.876 jogos, ver conversa): confirmacoes=1 rendeu ROI real de
+# -12.3% (79 apostas), confirmacoes=2 rendeu -8.1% (821 apostas), e só
+# confirmacoes=3 (as três fontes de descoberta independentes concordando —
+# herdado, nativo A->B e nativo B->A) rendeu ROI real positivo, +5.6% (159
+# apostas). Ou seja: 1 ou 2 fontes passam no teste estatístico interno mas
+# não representam edge real contra o mercado; só a tripla confirmação
+# sobrevive. Tudo que não bate esse piso fica de fora do painel mas
+# registrado em CAMINHO_AUDITORIA_BRASIL (nada é descartado sem rastro).
+CONFIRMACOES_MINIMAS_BRASIL = 3
 CAMINHO_AUDITORIA_BRASIL = os.path.join(BASE, "brasil_candidatos_nao_incluidos.csv")
 
 
@@ -417,15 +422,11 @@ def _selecionar_brasil_por_confianca(itens_combinados):
     de até TRÊS processos de descoberta independentes do Brasil: herdado
     (Allsvenskan -> confirmado em Série A/B), nativo A->B (descoberto na
     Série A -> confirmado na Série B) e nativo B->A (descoberto na Série B ->
-    confirmado na Série A). Dentro de cada família:
-      - se sobrevivem itens de MAIS DE UMA origem -> confirmado por
-        processos de descoberta independentes, entra sempre
-        (confirmacoes = quantas origens distintas, até 3 — quanto mais,
-        mais forte a evidência).
-      - se só uma origem sobrevive -> só entra se o impacto da melhor
-        variação bater IMPACTO_CURADORIA_UNICA_BRASIL (confirmacoes=1); caso
-        contrário, fica de fora do painel mas registrada em
-        CAMINHO_AUDITORIA_BRASIL (nada é descartado sem deixar rastro).
+    confirmado na Série A). Dentro de cada família, só entra a melhor
+    variação se as TRÊS origens sobreviveram nela (confirmacoes >= 3, ver
+    CONFIRMACOES_MINIMAS_BRASIL) — famílias confirmadas por 1 ou 2 fontes
+    ficam de fora do painel, mas registradas em CAMINHO_AUDITORIA_BRASIL
+    (nada é descartado sem deixar rastro).
     """
     ancoras = _ancoras_1stat(itens_combinados)
     grupos = {}
@@ -436,11 +437,8 @@ def _selecionar_brasil_por_confianca(itens_combinados):
     for grupo in grupos.values():
         origens = {i["origem"] for i in grupo}
         melhor = max(grupo, key=lambda x: x["impacto"])
-        if len(origens) > 1:
-            melhor["confirmacoes"] = len(origens)
-            selecionados.append(melhor)
-        elif melhor["impacto"] >= IMPACTO_CURADORIA_UNICA_BRASIL:
-            melhor["confirmacoes"] = 1
+        melhor["confirmacoes"] = len(origens)
+        if len(origens) >= CONFIRMACOES_MINIMAS_BRASIL:
             selecionados.append(melhor)
         else:
             nao_incluidos.append(melhor)
@@ -493,8 +491,10 @@ def _salvar_nao_incluidos(itens, caminho):
         linhas.append({
             "alvo_id": it["alvo_id"], "minuto": it["minuto"], "gols_momento": it["gols_momento"],
             "condicoes": cond_txt, "mercado": f"{it['sinal_mercado']}{it['linha_mercado']:g}",
-            "origem_unica": it["origem"], "amostra": it["amostra"], "impacto_pp": round(it["impacto"], 2),
-            "motivo": f"confirmado por só 1 processo de descoberta e impacto < {IMPACTO_CURADORIA_UNICA_BRASIL}pp",
+            "origem_melhor_variacao": it["origem"], "confirmacoes": it["confirmacoes"],
+            "amostra": it["amostra"], "impacto_pp": round(it["impacto"], 2),
+            "motivo": f"confirmado por só {it['confirmacoes']} de 3 processos de descoberta "
+                      f"(exige {CONFIRMACOES_MINIMAS_BRASIL})",
         })
     os.makedirs(os.path.dirname(caminho), exist_ok=True)
     with open(caminho, "w", newline="", encoding="utf-8") as f:
@@ -678,9 +678,10 @@ payload = {
     "criterio": f"amostra_confirmacao >= {AMOSTRA_MINIMA} e impacto_pp >= {IMPACTO_MINIMO_PP}; "
                 "regiao=universal confirmado nas nórdicas E no Brasil; regiao=nordicas confirmado só "
                 "nas ligas nórdicas (aplicadas só a Allsvenskan/Superettan/1.Division); regiao=brasil "
-                f"confirmado no Brasil por descoberta herdada (Allsvenskan) OU nativa (Série A), "
-                f"exigindo impacto_pp >= {IMPACTO_CURADORIA_UNICA_BRASIL} quando confirmado por só um "
-                "dos dois processos (alvos "
+                f"exige confirmacoes >= {CONFIRMACOES_MINIMAS_BRASIL} (as três fontes de descoberta "
+                "independentes do Brasil concordando: herdado da Allsvenskan, nativo Série A->B e "
+                "nativo Série B->A — piso calibrado por backtest retroativo contra odds reais de "
+                "mercado, ver CONFIRMACOES_MINIMAS_BRASIL) (alvos "
                 f"{ALVOS_REGIAO_BRASIL}, aplicadas só a jogos de Série A/B)",
     "fonte": "pesquisa_gols/resultados/*_confirmacao_*.csv (nórdicas) + *_confirmacao_brasil_*.csv "
              "(herdado) + *_confirmacao_serieB_*.csv (nativo, descobrir_nativo_brasil.py) — todos "
