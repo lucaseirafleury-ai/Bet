@@ -67,3 +67,4 @@ PUSH_SUBS_FILE = os.path.join(DATA_DIR, "push_subscriptions.json")
 # este arquivo; é só pra medir a assertividade dele ao longo do tempo sem
 # publicar no painel (ver live_monitor.py::_avaliar_gols_interno).
 GOLS_INTERNO_FILE = os.path.join(DATA_DIR, "gols_interno.json")
+SOMBRA_FILE = os.path.join(DATA_DIR, "sombra_sinais.json")

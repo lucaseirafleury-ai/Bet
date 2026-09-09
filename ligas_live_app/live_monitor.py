@@ -500,24 +500,49 @@ IMPACTO_MINIMO_PP_VALOR_ATUAL = 5.0  # mesmo limiar usado pra selecionar as regr
 PROBABILIDADE_MINIMA_VALOR_ATUAL = 0.70
 
 
-def _carregar_regras_sinais():
-    if not os.path.exists(CAMINHO_REGRAS_SINAIS):
-        print(f"[sinais confirmados] {CAMINHO_REGRAS_SINAIS} não encontrado — sinal desativado")
+def _carregar_regras_sinais(caminho):
+    if not os.path.exists(caminho):
+        print(f"[sinais confirmados] {caminho} não encontrado — sinal desativado")
         return []
-    with open(CAMINHO_REGRAS_SINAIS, encoding="utf-8") as fp:
+    with open(caminho, encoding="utf-8") as fp:
         regras = json.load(fp).get("regras", [])
-    print(f"[sinais confirmados] {len(regras)} regras carregadas de {CAMINHO_REGRAS_SINAIS}")
+    print(f"[sinais confirmados] {len(regras)} regras carregadas de {caminho}")
     return regras
 
 
-REGRAS_SINAIS = _carregar_regras_sinais()
+def _indexar_regras(regras):
+    """regras -> {(minuto, gols_momento): [regra, ...]} — mesmo índice usado tanto
+    pelo conjunto principal (publicado) quanto pelos conjuntos sombra (só registrados,
+    ver checar_sinais_sombra)."""
+    indice = {}
+    for r in regras:
+        indice.setdefault((r["minuto"], r["gols_momento"]), []).append(r)
+    return indice
+
+
+REGRAS_SINAIS = _carregar_regras_sinais(CAMINHO_REGRAS_SINAIS)
+REGRAS_POR_CHECKPOINT_PLACAR = _indexar_regras(REGRAS_SINAIS)
+
+# Conjuntos "sombra": regras que rodam em paralelo ao conjunto principal (mesma
+# lógica de match/EV real), mas NUNCA publicam card nem push — só ficam
+# registradas (ver checar_sinais_sombra/config.SOMBRA_FILE) pra comparar
+# assertividade real ao vivo entre conjuntos de regras candidatos, depois de
+# um período de acúmulo. Motivo: o backtest retroativo contra odds históricas
+# não teve amostra suficiente pra decidir entre os conjuntos de 78/204/105
+# regras (ver conversa — intervalos de confiança de dezenas de p.p., todos
+# cobrindo zero) — comparação ao vivo real é a única fonte de verdade
+# confiável que resta, mesmo levando meses pra acumular amostra.
+PERFIS_SOMBRA = {
+    "204": os.path.join(os.path.dirname(__file__), "regras_sinais_sombra_204.json"),
+    "105": os.path.join(os.path.dirname(__file__), "regras_sinais_sombra_105.json"),
+}
+REGRAS_SOMBRA = {nome: _carregar_regras_sinais(caminho) for nome, caminho in PERFIS_SOMBRA.items()}
+REGRAS_SOMBRA_POR_CHECKPOINT_PLACAR = {nome: _indexar_regras(regras) for nome, regras in REGRAS_SOMBRA.items()}
+
 CAMPOS_REGRAS_SINAIS = sorted(
-    {c["stat"] for r in REGRAS_SINAIS for c in r["condicoes"]}
-    | {r["mercado"]["stat"] for r in REGRAS_SINAIS}
+    {c["stat"] for regras in [REGRAS_SINAIS, *REGRAS_SOMBRA.values()] for r in regras for c in r["condicoes"]}
+    | {r["mercado"]["stat"] for regras in [REGRAS_SINAIS, *REGRAS_SOMBRA.values()] for r in regras}
 )
-REGRAS_POR_CHECKPOINT_PLACAR = {}
-for _r in REGRAS_SINAIS:
-    REGRAS_POR_CHECKPOINT_PLACAR.setdefault((_r["minuto"], _r["gols_momento"]), []).append(_r)
 
 
 def _regra_bate(regra, valores):
@@ -764,18 +789,16 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
     return insights
 
 
-def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combinados, insights_existentes, fixture_id):
-    """
-    Um insight por (alvo, direção) confirmada que bate com o jogo agora — não
-    mais um por regra, ver _consolidar_candidatas. No máximo uma vez por
-    (alvo, direção) por partida (dedup por (fixture_id, tipo) já cuida disso
-    em ciclo(), já que o tipo agora é estável por alvo+direção).
-    """
+def _candidatas_para_conjunto(regras_por_checkpoint, relatorio, minuto, gols_totais_jogo, valores_combinados):
+    """Núcleo do match de regras (checkpoint+placar+condição+filtros de
+    confiabilidade), independente de QUAL conjunto de regras — reaproveitado
+    tanto pelo conjunto principal (checar_sinais_confirmados) quanto pelos
+    conjuntos sombra (checar_sinais_sombra)."""
     candidatas = []
     for checkpoint in CHECKPOINTS_REGRA:
         if not (checkpoint <= minuto <= checkpoint + JANELA_MINUTOS_REGRA):
             continue
-        for regra in REGRAS_POR_CHECKPOINT_PLACAR.get((checkpoint, gols_totais_jogo), []):
+        for regra in regras_por_checkpoint.get((checkpoint, gols_totais_jogo), []):
             if not _regra_vale_para_liga(regra, relatorio["liga"]):
                 continue
             if not _regra_bate(regra, valores_combinados):
@@ -797,8 +820,37 @@ def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combi
             # diferir da chave usada na tabela quando caiu no fallback pro vizinho.
             stats = dict(stats, valor_atual_real=int(round(valores_combinados.get(regra["mercado"]["stat"], 0.0))))
             candidatas.append((regra, stats))
+    return candidatas
 
+
+def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combinados, insights_existentes, fixture_id):
+    """
+    Um insight por (alvo, direção) confirmada que bate com o jogo agora — não
+    mais um por regra, ver _consolidar_candidatas. No máximo uma vez por
+    (alvo, direção) por partida (dedup por (fixture_id, tipo) já cuida disso
+    em ciclo(), já que o tipo agora é estável por alvo+direção).
+    """
+    candidatas = _candidatas_para_conjunto(
+        REGRAS_POR_CHECKPOINT_PLACAR, relatorio, minuto, gols_totais_jogo, valores_combinados
+    )
     direcoes_ja_disparadas = _direcoes_ja_disparadas(insights_existentes, fixture_id)
+    return _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto)
+
+
+def checar_sinais_sombra(nome_perfil, relatorio, minuto, gols_totais_jogo, valores_combinados, sinais_sombra_existentes, fixture_id):
+    """
+    Mesma lógica de checar_sinais_confirmados (match + odd real + EV — ver
+    _consolidar_candidatas), mas contra um conjunto de regras "sombra"
+    (PERFIS_SOMBRA) em vez do principal. O card resultante NUNCA é publicado
+    (não entra em insights/live_insights.json, não dispara push) — só fica
+    registrado em config.SOMBRA_FILE pra medir, depois de um período de
+    acúmulo, se esse conjunto teria dado ROI real diferente do conjunto
+    publicado hoje. Ver comentário em PERFIS_SOMBRA.
+    """
+    candidatas = _candidatas_para_conjunto(
+        REGRAS_SOMBRA_POR_CHECKPOINT_PLACAR[nome_perfil], relatorio, minuto, gols_totais_jogo, valores_combinados
+    )
+    direcoes_ja_disparadas = _direcoes_ja_disparadas(sinais_sombra_existentes, fixture_id)
     return _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto)
 
 
@@ -822,12 +874,26 @@ def ciclo():
         "log": [],
     })
 
+    # Sinais dos conjuntos sombra (ver PERFIS_SOMBRA/checar_sinais_sombra) —
+    # mesmo padrão de estado_gols: "ativos" são os que já dispararam mas o
+    # jogo ainda não terminou (aguardando avaliação green/red), "log" é o
+    # histórico já avaliado (capado, ver _podar_log_sombra). NUNCA publicado
+    # no painel — só existe pra medir assertividade real ao vivo desses
+    # conjuntos candidatos, em paralelo ao conjunto principal.
+    estado_sombra = _carregar(config.SOMBRA_FILE, {nome: {"ativos": [], "log": []} for nome in PERFIS_SOMBRA})
+    for nome in PERFIS_SOMBRA:
+        estado_sombra.setdefault(nome, {"ativos": [], "log": []})
+
     # Chave sem o minuto: cada combinação (jogo, tipo de sinal, time) dispara no
     # máximo uma vez por partida. Sem isso, um desvio que persiste (ex: time que
     # abre 2 gols de vantagem sobre o esperado) reenvia o mesmo sinal a cada
     # ciclo de 60s pelo resto do jogo — é o que causava "centenas de sinais".
     ids_ja_gerados = {(i["fixture_id"], i["tipo"], i["time"]) for i in insights}
     ids_ja_gerados_gols = {(i["fixture_id"], i["time"]) for i in estado_gols["pendentes"]}
+    ids_ja_gerados_sombra = {
+        nome: {(i["fixture_id"], i["tipo"], i["time"]) for i in estado_sombra[nome]["ativos"]}
+        for nome in PERFIS_SOMBRA
+    }
 
     fixtures = sm.live_fixtures()
     fixtures_monitoradas = [
@@ -861,6 +927,20 @@ def ciclo():
                 estado_gols["pendentes"] = [
                     s for s in estado_gols["pendentes"] if s["fixture_id"] != fixture_id_antigo
                 ]
+                # Mesma avaliação green/red usada pros sinais publicados
+                # (_avaliar_sinais_confirmados só olha alvo/linha/direção
+                # contra o resultado final — reaproveitável tal e qual pros
+                # sinais sombra, que têm exatamente o mesmo formato).
+                for nome in PERFIS_SOMBRA:
+                    sinais_sombra_do_jogo = [
+                        s for s in estado_sombra[nome]["ativos"] if s["fixture_id"] == fixture_id_antigo
+                    ]
+                    if sinais_sombra_do_jogo:
+                        _avaliar_sinais_confirmados(sinais_sombra_do_jogo, registro)
+                        estado_sombra[nome]["log"].extend(sinais_sombra_do_jogo)
+                    estado_sombra[nome]["ativos"] = [
+                        s for s in estado_sombra[nome]["ativos"] if s["fixture_id"] != fixture_id_antigo
+                    ]
             else:
                 # Fim de jogo ainda não confirmado (suspenso/interrompido/erro
                 # passageiro) — mantém o snapshot pro próximo ciclo tentar
@@ -1056,10 +1136,33 @@ def ciclo():
             print(f"[INSIGHT] {c['jogo']} — {c['mensagem']}")
             _notificar_push(c)
 
+        # Conjuntos sombra (204/105 regras, ver PERFIS_SOMBRA) — mesmo match e
+        # mesma odd real/EV do conjunto principal, mas SÓ registrados
+        # (estado_sombra["ativos"]); nunca vira insight publicado nem push.
+        for nome in PERFIS_SOMBRA:
+            candidatos_sombra = checar_sinais_sombra(
+                nome, relatorio, minuto, gols_totais_jogo, valores_regras_combinados,
+                estado_sombra[nome]["ativos"], fixture_id,
+            )
+            for c in candidatos_sombra:
+                if c is None:
+                    continue
+                chave = (c["fixture_id"], c["tipo"], c["time"])
+                if chave in ids_ja_gerados_sombra[nome]:
+                    continue
+                estado_sombra[nome]["ativos"].append(c)
+                ids_ja_gerados_sombra[nome].add(chave)
+
     _salvar(config.LIVE_INSIGHTS_FILE, insights)
     _salvar(config.LIVE_SNAPSHOTS_FILE, snapshots)
     estado_gols["log"] = estado_gols["log"][-200:]  # capado -- só auditoria interna, resumo já tem os totais
     _salvar(config.GOLS_INTERNO_FILE, estado_gols)
+    for nome in PERFIS_SOMBRA:
+        # cap maior que o de gols_interno (500 vs 200): conjuntos de 105/204
+        # regras disparam bem mais que o principal (78), então enchem mais
+        # rápido — ver comentário em PERFIS_SOMBRA.
+        estado_sombra[nome]["log"] = estado_sombra[nome]["log"][-500:]
+    _salvar(config.SOMBRA_FILE, estado_sombra)
     _atualizar_status(len(fixtures_monitoradas))
 
 
