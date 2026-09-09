@@ -15,6 +15,7 @@ import csv
 import glob
 import json
 import os
+from collections import defaultdict
 
 BASE = os.path.join(os.path.dirname(__file__), "resultados")
 DADOS_DIR = os.path.join(os.path.dirname(__file__), "dados")
@@ -444,6 +445,45 @@ def _selecionar_brasil_por_confianca(itens_combinados):
     return selecionados, nao_incluidos
 
 
+def _remover_sobreposicoes(itens):
+    """
+    Remove contradições reais entre regras de 1 SÓ estatística que
+    compartilham alvo/minuto/placar/linha de mercado: uma diz "stat >= X",
+    outra "stat <= Y" — se X <= Y, um jogo com o valor nessa faixa
+    ([X,Y]) dispara as duas ao mesmo tempo, com direções OPOSTAS do mesmo
+    mercado (achado real, ver conversa: "Passes-chave" em chutes_no_alvo/
+    chutes_totais — ex. Passes-chave=15 disparava tanto "Mais de 7.5"
+    quanto "Menos de 7.5" chutes no alvo aos 75'). Mantém só a de maior
+    impacto de cada par sobreposto; não mexe em condições de 2 estatísticas
+    (nenhum caso encontrado lá) nem em pares que não se sobrepõem (ex.:
+    "Mais de 8.5" com "Menos de 9.5" em linhas de mercado diferentes —
+    isso é normal, as duas linhas podem bater ao mesmo tempo sem
+    contradição).
+    """
+    grupos = defaultdict(list)
+    passam_direto = []
+    for item in itens:
+        if len(item["condicoes"]) != 1:
+            passam_direto.append(item)
+            continue
+        c = item["condicoes"][0]
+        chave = (item["alvo_id"], item["minuto"], item["gols_momento"], item["linha_mercado"], c["stat"])
+        grupos[chave].append(item)
+
+    resultado = list(passam_direto)
+    for grupo in grupos.values():
+        maiores = [it for it in grupo if it["condicoes"][0]["operador"] == ">="]
+        menores = [it for it in grupo if it["condicoes"][0]["operador"] == "<="]
+        excluidos = set()
+        for ma in maiores:
+            for me in menores:
+                if ma["condicoes"][0]["limite"] <= me["condicoes"][0]["limite"]:
+                    pior = ma if ma["impacto"] < me["impacto"] else me
+                    excluidos.add(id(pior))
+        resultado.extend(it for it in grupo if id(it) not in excluidos)
+    return resultado
+
+
 def _salvar_nao_incluidos(itens, caminho):
     linhas = []
     for it in itens:
@@ -542,6 +582,7 @@ for s in fortes_brasil:
 _salvar_nao_incluidos(brasil_nao_incluidos, CAMINHO_AUDITORIA_BRASIL)
 
 fortes = fortes + fortes_nordicas + fortes_brasil
+fortes = _remover_sobreposicoes(fortes)
 fortes.sort(key=lambda x: (x["alvo_id"], -x["impacto"]))
 
 print(f"sinais totais: {len(sinais)} | subconjunto forte (amostra>={AMOSTRA_MINIMA}, impacto>={IMPACTO_MINIMO_PP}pp): {len(fortes)}")
