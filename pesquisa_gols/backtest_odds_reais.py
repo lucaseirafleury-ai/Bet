@@ -32,6 +32,7 @@ Uso: python3 backtest_odds_reais.py
 """
 import json
 import os
+import sys
 import time
 from datetime import datetime, timedelta
 
@@ -40,8 +41,29 @@ import requests
 TOKEN = os.environ["SPORTMONKS_TOKEN"]
 BASE_URL = "https://api.sportmonks.com/v3/football"
 DADOS_DIR = os.path.join(os.path.dirname(__file__), "dados")
-REGRAS_PATH = os.path.join(os.path.dirname(__file__), "..", "ligas_live_app", "regras_sinais.json")
-CAMINHO_PROGRESSO = os.path.join(os.path.dirname(__file__), "dados", ".checkpoint_backtest_odds_reais.json")
+
+# Uso: python3 backtest_odds_reais.py [caminho_regras.json] [sufixo_progresso]
+# Sem argumentos: roda contra o regras_sinais.json atual (204 regras, ver
+# conversa). Com argumentos: permite comparar retroativamente um conjunto de
+# regras DIFERENTE (ex.: o snapshot de 78 regras de antes de hoje, salvo em
+# dados/comparacao_roi/regras_sinais_78_original.json) contra os MESMOS
+# jogos — cada conjunto de regras precisa do seu próprio arquivo de
+# progresso (sufixo_progresso), senão uma rodada pisaria no checkpoint da
+# outra.
+REGRAS_PATH = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
+    os.path.dirname(__file__), "..", "ligas_live_app", "regras_sinais.json"
+)
+# Sem sufixo (uso normal, sem argumentos) -> mantém o nome de arquivo
+# ORIGINAL (.checkpoint_backtest_odds_reais.json, sem sufixo) — importante
+# pra não perder compatibilidade com a rodada das 204 regras já em
+# andamento em background quando este arquivo foi editado (ver conversa:
+# ela só seria "resumível" se o nome do progresso continuar batendo).
+SUFIXO_PROGRESSO = sys.argv[2] if len(sys.argv) > 2 else None
+nome_arquivo_progresso = (
+    "checkpoint_backtest_odds_reais.json" if SUFIXO_PROGRESSO is None
+    else f"checkpoint_backtest_odds_reais_{SUFIXO_PROGRESSO}.json"
+)
+CAMINHO_PROGRESSO = os.path.join(DADOS_DIR, f".{nome_arquivo_progresso}")
 
 FREQ_SALVAMENTO = 25  # jogos entre cada save do progresso
 MAX_TENTATIVAS = 4  # retry pra erro de rede/rate-limit, mesmo padrão de sportmonks.py::_get
