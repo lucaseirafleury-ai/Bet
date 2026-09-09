@@ -123,7 +123,7 @@ def rodar():
     for lid, d in [(648, checkpoints_648), (651, checkpoints_651)]:
         for fid_str, jogo in d["jogos"].items():
             fid = int(fid_str)
-            if not jogo.get("finalizado") or fid not in d["resultados_alvo"]:
+            if not jogo.get("finalizado") or fid_str not in d["resultados_alvo"]:
                 continue
             candidatos.append((fid, lid, jogo["data_hora"], d))
 
