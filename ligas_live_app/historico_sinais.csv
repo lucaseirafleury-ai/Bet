@@ -12,3 +12,4 @@ fixture_id,tipo,liga,jogo,data_jogo,alvo,direcao,linha,minuto,probabilidade_esti
 19636119,sinal_escanteios_menos_de,Superettan,Helsingborg x Sandvikens IF,2026-09-05,escanteios,menos_de,9.5,15,73.4,1.36,,,,green,8.0,2026-09-05T15:15:00+00:00,2026-09-05T20:56:01.520491+00:00,,,true
 19635889,sinal_escanteios_menos_de,Allsvenskan,Västerås SK x Sirius,2026-09-05,escanteios,menos_de,11.5,45,85.3,1.17,,,,green,10.0,2026-09-05T16:15:00+00:00,2026-09-05T20:56:01.520491+00:00,,,true
 19667183,sinal_escanteios_menos_de,Serie B,Ceará x Sport Recife,2026-09-05,escanteios,menos_de,11.5,46,85.3,1.17,,,,red,18.0,2026-09-05T22:16:02.677229+00:00,2026-09-06T08:07:42.405546+00:00,,,
+19636104,sinal_escanteios_mais_de,Superettan,United Nordic x Värnamo,2026-09-09,escanteios,mais_de,11.5,30,72.7,1.38,,,,green,12.0,2026-09-09T17:31:22.255043+00:00,2026-09-09T21:35:00.000000+00:00,,,true
