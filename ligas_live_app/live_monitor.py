@@ -535,6 +535,13 @@ REGRAS_POR_CHECKPOINT_PLACAR = _indexar_regras(REGRAS_SINAIS)
 PERFIS_SOMBRA = {
     "204": os.path.join(os.path.dirname(__file__), "regras_sinais_sombra_204.json"),
     "105": os.path.join(os.path.dirname(__file__), "regras_sinais_sombra_105.json"),
+    # Candidatos nórdicos já confirmado_bh=True (mesmo rigor estatístico do
+    # resto) mas com amostra abaixo do piso do painel (AMOSTRA_MINIMA_NORDICAS
+    # em gerar_regras_sinais.py) — "nórdicas só tem 23 regras por falta de N",
+    # rodar em sombra pra acumular ROI/acerto ao vivo real sem esperar mais
+    # amostra HISTÓRICA (essa é fixa; o que cresce aqui é a leitura ao vivo).
+    # Gerado por pesquisa_gols/gerar_regras_sombra_baixa_amostra.py.
+    "nordicas_baixa_n": os.path.join(os.path.dirname(__file__), "regras_sinais_sombra_nordicas_baixa_n.json"),
 }
 REGRAS_SOMBRA = {nome: _carregar_regras_sinais(caminho) for nome, caminho in PERFIS_SOMBRA.items()}
 REGRAS_SOMBRA_POR_CHECKPOINT_PLACAR = {nome: _indexar_regras(regras) for nome, regras in REGRAS_SOMBRA.items()}
