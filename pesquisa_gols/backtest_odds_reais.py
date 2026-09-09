@@ -1,7 +1,9 @@
 """
-Backtest retroativo com odds REAIS de jogos já finalizados — amostra pequena
-(ver conversa: antes de gastar a cota inteira de API rodando ~4.000 jogos,
-validar o método numa amostra de ~80 primeiro).
+Backtest retroativo com odds REAIS de jogos já finalizados — base completa
+(ver conversa: validado antes numa amostra de 80 jogos — 4.1% de cobertura
+de odd real, ROI de -6.9% em 54 apostas, amostra pequena demais pra
+conclusão. Agora roda em todos os jogos finalizados que já temos em cache,
+nas 5 ligas monitoradas, pra ter confiança estatística de verdade).
 
 Ideia: pra cada jogo já finalizado (temos o resultado final em
 resultados_alvo), busca o HISTÓRICO de odds ao vivo
@@ -20,14 +22,16 @@ próxima (mesmo mercado+linha+direção) e calcula:
 Isso dá ROI REAL histórico, não a estimativa teórica de impacto_pp.
 
 CUIDADO: só faz GET em /odds/inplay/fixtures/{id} — não mexe em nenhum
-checkpoint, não escreve nada além do relatório final. 1 chamada de API por
-jogo da amostra (sem custo por sinal).
+checkpoint de dados. Roda ~4.000 chamadas de API (1 por jogo, não por
+sinal) — demorado (~1h), por isso salva progresso incremental em
+CAMINHO_PROGRESSO a cada FREQ_SALVAMENTO jogos: se cair no meio, rodar de
+novo RETOMA dali (mesmo padrão de checkpoint já usado no resto do projeto),
+em vez de perder tudo e recomeçar.
 
 Uso: python3 backtest_odds_reais.py
 """
 import json
 import os
-import random
 import time
 from datetime import datetime, timedelta
 
@@ -37,9 +41,14 @@ TOKEN = os.environ["SPORTMONKS_TOKEN"]
 BASE_URL = "https://api.sportmonks.com/v3/football"
 DADOS_DIR = os.path.join(os.path.dirname(__file__), "dados")
 REGRAS_PATH = os.path.join(os.path.dirname(__file__), "..", "ligas_live_app", "regras_sinais.json")
+CAMINHO_PROGRESSO = os.path.join(os.path.dirname(__file__), "dados", ".checkpoint_backtest_odds_reais.json")
 
-TAMANHO_AMOSTRA = 80
-CHECKPOINTS = [15, 30, 45, 60, 75, 90]
+FREQ_SALVAMENTO = 25  # jogos entre cada save do progresso
+MAX_TENTATIVAS = 4  # retry pra erro de rede/rate-limit, mesmo padrão de sportmonks.py::_get
+
+LIGAS_ID = [573, 579, 447, 648, 651]  # todas as 5 monitoradas (A Lyga/1.Lyga de fora)
+LIGAS_BRASIL = {648, 651}
+LIGAS_NORDICAS = {573, 579, 447}
 
 # market_id principal + fallback por alvo — mesmo mapeamento de
 # ligas_live_app/odds_ao_vivo.py::MARKET_ID_POR_ALVO, restrito aos 2 alvos
@@ -49,14 +58,25 @@ MARKETS_POR_ALVO = {
     "cartoes": {"principal": 255, "fallback": None},
 }
 
-LIGAS_BRASIL = {648, 651}
-LIGAS_NORDICAS = {573, 579, 447}
-
 
 def _get_odds_historico(fixture_id):
-    r = requests.get(f"{BASE_URL}/odds/inplay/fixtures/{fixture_id}", params={"api_token": TOKEN}, timeout=30)
-    r.raise_for_status()
-    return r.json().get("data") or []
+    for tentativa in range(MAX_TENTATIVAS):
+        try:
+            r = requests.get(f"{BASE_URL}/odds/inplay/fixtures/{fixture_id}", params={"api_token": TOKEN}, timeout=30)
+            if r.status_code == 429:
+                espera = 5 * (tentativa + 1)
+                print(f"    [rate limit] esperando {espera}s...")
+                time.sleep(espera)
+                continue
+            r.raise_for_status()
+            return r.json().get("data") or []
+        except requests.exceptions.RequestException as e:
+            if tentativa == MAX_TENTATIVAS - 1:
+                raise
+            espera = 5 * (tentativa + 1)
+            print(f"    [erro de conexão: {e}] esperando {espera}s...")
+            time.sleep(espera)
+    return []
 
 
 def _condicao_bate(condicoes, snap):
@@ -111,32 +131,57 @@ def _achar_odd_real(odds_historico, market_ids, direcao_label, linha, timestamp_
     return candidatas[-1][1]  # a mais recente ANTES/perto do checkpoint
 
 
+def _carregar_progresso():
+    if os.path.exists(CAMINHO_PROGRESSO):
+        d = json.load(open(CAMINHO_PROGRESSO, encoding="utf-8"))
+        d["processados"] = set(d["processados"])
+        print(f"Retomando de checkpoint anterior: {len(d['processados'])} jogos já processados")
+        return d
+    return {
+        "processados": set(),
+        "stats": {"disparos": 0, "odd_encontrada": 0, "ev_positivo": 0, "green": 0, "red": 0, "soma_retorno": 0.0},
+        "erros_api": 0,
+    }
+
+
+def _salvar_progresso(estado):
+    out = dict(estado)
+    out["processados"] = sorted(estado["processados"])
+    with open(CAMINHO_PROGRESSO, "w", encoding="utf-8") as f:
+        json.dump(out, f)
+
+
 def rodar():
     payload = json.load(open(REGRAS_PATH, encoding="utf-8"))
     regras = [r for r in payload["regras"] if r["alvo"] in MARKETS_POR_ALVO]
     print(f"{len(regras)} regras de escanteios/cartões (de {payload['total_regras']} totais) entram no teste")
 
-    checkpoints_648 = json.load(open(os.path.join(DADOS_DIR, ".checkpoint_648.json"), encoding="utf-8"))
-    checkpoints_651 = json.load(open(os.path.join(DADOS_DIR, ".checkpoint_651.json"), encoding="utf-8"))
+    dados_por_liga = {}
+    for lid in LIGAS_ID:
+        dados_por_liga[lid] = json.load(open(os.path.join(DADOS_DIR, f".checkpoint_{lid}.json"), encoding="utf-8"))
 
     candidatos = []
-    for lid, d in [(648, checkpoints_648), (651, checkpoints_651)]:
+    for lid, d in dados_por_liga.items():
         for fid_str, jogo in d["jogos"].items():
             fid = int(fid_str)
             if not jogo.get("finalizado") or fid_str not in d["resultados_alvo"]:
                 continue
             candidatos.append((fid, lid, jogo["data_hora"], d))
 
-    random.seed(42)
-    amostra = random.sample(candidatos, min(TAMANHO_AMOSTRA, len(candidatos)))
-    print(f"Amostra: {len(amostra)} jogos (de {len(candidatos)} finalizados disponíveis)\n")
+    print(f"Total de jogos finalizados nas 5 ligas: {len(candidatos)}\n")
 
-    stats = {"disparos": 0, "odd_encontrada": 0, "ev_positivo": 0, "green": 0, "red": 0, "soma_retorno": 0.0}
-    erros_api = 0
+    estado = _carregar_progresso()
+    stats = estado["stats"]
+    processados = estado["processados"]
+    erros_api = estado["erros_api"]
 
-    for i, (fid, lid, data_hora_str, dados_liga) in enumerate(amostra):
-        if (i + 1) % 10 == 0:
-            print(f"  ... {i+1}/{len(amostra)} jogos processados")
+    pendentes = [c for c in candidatos if c[0] not in processados]
+    print(f"Pendentes nesta execução: {len(pendentes)}\n")
+
+    for i, (fid, lid, data_hora_str, dados_liga) in enumerate(pendentes):
+        if (i + 1) % 100 == 0:
+            print(f"  ... {i+1}/{len(pendentes)} processados nesta execução "
+                  f"({len(processados)}/{len(candidatos)} no total)")
         kickoff = datetime.strptime(data_hora_str, "%Y-%m-%d %H:%M:%S")
         snaps = {}
         for snap in dados_liga["snapshots"]:
@@ -146,10 +191,11 @@ def rodar():
 
         try:
             odds_historico = _get_odds_historico(fid)
-        except Exception as e:
+        except Exception:
             erros_api += 1
+            processados.add(fid)
             continue
-        time.sleep(0.3)  # gentileza com rate limit
+        time.sleep(0.25)
 
         for regra in regras:
             if not _liga_aceita_regra(regra["regiao"], lid):
@@ -191,9 +237,16 @@ def rodar():
                 stats["red"] += 1
                 stats["soma_retorno"] += -1
 
-    print(f"\n{'='*70}\nResumo do backtest (amostra de {len(amostra)} jogos, {erros_api} erros de API)\n{'='*70}")
+        processados.add(fid)
+        if len(processados) % FREQ_SALVAMENTO == 0:
+            _salvar_progresso({"processados": processados, "stats": stats, "erros_api": erros_api})
+
+    _salvar_progresso({"processados": processados, "stats": stats, "erros_api": erros_api})
+
+    print(f"\n{'='*70}\nResumo do backtest ({len(processados)}/{len(candidatos)} jogos, {erros_api} erros de API)\n{'='*70}")
     print(f"Disparos de regra (condição bateu, independente de odd): {stats['disparos']}")
-    print(f"  ... com odd real encontrada no histórico: {stats['odd_encontrada']}")
+    print(f"  ... com odd real encontrada no histórico: {stats['odd_encontrada']} "
+          f"({100*stats['odd_encontrada']/stats['disparos']:.1f}%)" if stats['disparos'] else "")
     print(f"  ... com EV positivo contra essa odd real: {stats['ev_positivo']}")
     if stats["ev_positivo"] > 0:
         n_apostas = stats["green"] + stats["red"]
@@ -201,7 +254,7 @@ def rodar():
         print(f"  green: {stats['green']} | red: {stats['red']} | taxa de acerto: {100*stats['green']/n_apostas:.1f}%")
         print(f"  ROI real (unidades ganhas / apostas, assumindo stake=1): {100*stats['soma_retorno']/n_apostas:.1f}%")
     else:
-        print("\nNenhuma aposta com EV positivo encontrada na amostra.")
+        print("\nNenhuma aposta com EV positivo encontrada.")
 
 
 if __name__ == "__main__":
