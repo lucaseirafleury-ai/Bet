@@ -414,12 +414,14 @@ CAMINHO_AUDITORIA_BRASIL = os.path.join(BASE, "brasil_candidatos_nao_incluidos.c
 def _selecionar_brasil_por_confianca(itens_combinados):
     """
     Agrupa por família (ver _chave_familia) o pool JÁ COMBINADO de condições
-    herdadas (Allsvenskan -> Brasil) e nativas (Série A -> Série B) do Brasil.
-    Dentro de cada família:
-      - se sobrevivem itens de origem "herdado" E "nativo" -> confirmado por
-        DOIS processos de descoberta independentes, entra sempre
-        (confirmacoes=2, a evidência mais forte que este pipeline produz pra
-        região).
+    de até TRÊS processos de descoberta independentes do Brasil: herdado
+    (Allsvenskan -> confirmado em Série A/B), nativo A->B (descoberto na
+    Série A -> confirmado na Série B) e nativo B->A (descoberto na Série B ->
+    confirmado na Série A). Dentro de cada família:
+      - se sobrevivem itens de MAIS DE UMA origem -> confirmado por
+        processos de descoberta independentes, entra sempre
+        (confirmacoes = quantas origens distintas, até 3 — quanto mais,
+        mais forte a evidência).
       - se só uma origem sobrevive -> só entra se o impacto da melhor
         variação bater IMPACTO_CURADORIA_UNICA_BRASIL (confirmacoes=1); caso
         contrário, fica de fora do painel mas registrada em
@@ -435,7 +437,7 @@ def _selecionar_brasil_por_confianca(itens_combinados):
         origens = {i["origem"] for i in grupo}
         melhor = max(grupo, key=lambda x: x["impacto"])
         if len(origens) > 1:
-            melhor["confirmacoes"] = 2
+            melhor["confirmacoes"] = len(origens)
             selecionados.append(melhor)
         elif melhor["impacto"] >= IMPACTO_CURADORIA_UNICA_BRASIL:
             melhor["confirmacoes"] = 1
@@ -562,17 +564,22 @@ for s in fortes_apenas_nordicas_pre:
     s["regiao"] = "nordicas"
 fortes_nordicas = _deduplicar_familia(fortes_apenas_nordicas_pre)
 
-# Brasil: combina os dois caminhos de descoberta independentes — herdado
-# (Allsvenskan -> confirmado em Série A/B, confirmar_brasil.py) e nativo
-# (descoberto na própria Série A -> confirmado na Série B,
-# descobrir_nativo_brasil.py) — ver _selecionar_brasil_por_confianca pro
-# critério de quando um sinal de fonte única ainda entra. Nunca duplica uma
-# regra que já é "universal" (passou nórdicas E Brasil pelo caminho herdado).
+# Brasil: combina os TRÊS caminhos de descoberta independentes — herdado
+# (Allsvenskan -> confirmado em Série A/B, confirmar_brasil.py), nativo A->B
+# (descoberto na Série A -> confirmado na Série B, descobrir_nativo_brasil.py)
+# e nativo B->A (descoberto na Série B -> confirmado na Série A,
+# descobrir_nativo_serieB.py — espelho do anterior, adicionado depois de notar
+# que só deixar a Série A descobrir também deixava a Série B sem chance de
+# propor sua própria hipótese, ver conversa). Ver
+# _selecionar_brasil_por_confianca pro critério de quando um sinal de fonte
+# única ainda entra. Nunca duplica uma regra que já é "universal" (passou
+# nórdicas E Brasil pelo caminho herdado).
 chaves_universais = {_chave_brasil(s) for s in fortes}
 sinais_brasil_herdado = _colapsar(_carregar_brutas(ALVOS_REGIAO_BRASIL, sufixo="_brasil", origem="herdado"))
-sinais_brasil_nativo = _colapsar(_carregar_brutas(ALVOS_REGIAO_BRASIL, sufixo="_serieB", origem="nativo"))
+sinais_brasil_nativo_AB = _colapsar(_carregar_brutas(ALVOS_REGIAO_BRASIL, sufixo="_serieB", origem="nativo_AB"))
+sinais_brasil_nativo_BA = _colapsar(_carregar_brutas(ALVOS_REGIAO_BRASIL, sufixo="_serieA", origem="nativo_BA"))
 candidatos_brasil = [
-    s for s in (sinais_brasil_herdado + sinais_brasil_nativo)
+    s for s in (sinais_brasil_herdado + sinais_brasil_nativo_AB + sinais_brasil_nativo_BA)
     if s["amostra"] >= AMOSTRA_MINIMA and s["impacto"] >= IMPACTO_MINIMO_PP
     and _chave_brasil(s) not in chaves_universais
 ]
