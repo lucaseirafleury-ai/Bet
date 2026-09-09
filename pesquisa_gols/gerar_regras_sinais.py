@@ -506,9 +506,6 @@ def _salvar_nao_incluidos(itens, caminho):
         writer.writerows(linhas)
 
 
-sinais = _colapsar(_carregar_brutas(ALVOS))
-
-
 def _carregar_confirmadas_brasil():
     """
     (alvo_id, minuto, gols_momento, mercado '+/-N', frozenset de (stat,operador,limite))
@@ -539,160 +536,182 @@ def _chave_brasil(item):
     return (item["alvo_id"], item["minuto"], item["gols_momento"], mercado, condset)
 
 
-CONFIRMADAS_BRASIL = _carregar_confirmadas_brasil()
+def montar_regras(fortes):
+    """
+    (lista de "sinais" já filtrados/deduplicados, cada um com "regiao" e
+    "confirmacoes" já setados) -> lista de regras no formato final do painel
+    (com por_valor_atual calibrado). Extraído do pipeline principal pra ser
+    reaproveitado por outros geradores de conjunto (ex.: o de candidatos
+    sombra rejeitados só por falta de amostra, ver
+    gerar_regras_sombra_baixa_amostra.py) sem duplicar a lógica de
+    montagem/recalibração.
+    """
+    fortes = _remover_sobreposicoes(fortes)
+    fortes = sorted(fortes, key=lambda x: (x["alvo_id"], -x["impacto"]))
 
-# Pool nórdico inteiro (amostra/impacto ok), ANTES de saber se também bate no
-# Brasil — dividido em dois destinos abaixo. Antes desta correção, qualquer
-# condição que passasse aqui mas NÃO confirmasse no Brasil era descartada por
-# completo (nunca virava regra nem pras próprias ligas nórdicas onde already
-# se provou fora da amostra — achado real, ver conversa: 17 condições de
-# escanteios/chutes_totais estavam sendo jogadas fora assim).
-fortes_nordicas_bruto = [s for s in sinais if s["amostra"] >= AMOSTRA_MINIMA_NORDICAS and s["impacto"] >= IMPACTO_MINIMO_PP]
+    regras = []
+    contador = {}
+    for s in fortes:
+        alvo_id = s["alvo_id"]
+        contador[alvo_id] = contador.get(alvo_id, 0) + 1
+        regra_id = f"{alvo_id}_{contador[alvo_id]:03d}"
 
-fortes_universal_pre = [s for s in fortes_nordicas_bruto if _chave_brasil(s) in CONFIRMADAS_BRASIL]
-for s in fortes_universal_pre:
-    s["regiao"] = "universal"
-fortes = _deduplicar_familia(fortes_universal_pre)
+        op_txt = {">=": "≥", "<=": "≤"}
+        cond_txt = " E ".join(
+            f"{nome(c['stat'])} {op_txt[c['operador']]} {c['limite']:g}" for c in s["condicoes"]
+        )
+        direcao = "mais_de" if s["sinal_mercado"] == "+" else "menos_de"
+        stat_alvo = ALVO_STAT_BASE[alvo_id]
+        mercado_curto = (
+            f"{'Mais' if direcao == 'mais_de' else 'Menos'} de {s['linha_mercado']:g} {ALVO_TITULO[alvo_id].lower()}"
+        )
+        rotulo = f"{cond_txt} aos {s['minuto']}' ({s['gols_momento']} gol(s) no jogo) → {mercado_curto}"
 
-# Confirmou nas outras ligas nórdicas mas NÃO no Brasil -> só vale pras
-# próprias ligas nórdicas (ver LIGAS_NORDICAS em recalibrar_por_valor_atual e
-# live_monitor.py::LIGAS_REGIAO_NORDICAS). Espelha exatamente o raciocínio já
-# usado pra "regiao=brasil": um efeito pode ser real e específico de uma
-# região sem generalizar pra outra.
-fortes_apenas_nordicas_pre = [s for s in fortes_nordicas_bruto if _chave_brasil(s) not in CONFIRMADAS_BRASIL]
-for s in fortes_apenas_nordicas_pre:
-    s["regiao"] = "nordicas"
-fortes_nordicas = _deduplicar_familia(fortes_apenas_nordicas_pre)
+        regras.append({
+            "id": regra_id,
+            "alvo": alvo_id,
+            "alvo_nome": ALVO_TITULO[alvo_id],
+            "minuto": s["minuto"],
+            "gols_momento": s["gols_momento"],
+            "condicoes": s["condicoes"],
+            "mercado": {
+                "stat": stat_alvo,
+                "direcao": direcao,
+                "linha": s["linha_mercado"],
+            },
+            "mercado_curto": mercado_curto,
+            "amostra_confirmacao": s["amostra"],
+            "prob_base_confirmacao": round(s["p_base"], 4),
+            "prob_condicao_confirmacao": round(s["p_condicao"], 4),
+            "impacto_pp": round(s["impacto"], 2),
+            "p_valor_confirmacao": s["p_valor"],
+            "odd_minima_referencia": round(1 / s["p_condicao"], 2) if s["p_condicao"] > 0 else None,
+            "rotulo": rotulo,
+            # "universal" (confirmou nórdicas E Brasil), "nordicas" (só confirmou
+            # nas ligas nórdicas — live_monitor.py só aplica a Allsvenskan/
+            # Superettan/1.Division) ou "brasil" (só confirmou no Brasil — só
+            # aplica a Série A/B). Ver live_monitor.py::_regra_vale_para_liga.
+            "regiao": s["regiao"],
+            # Quantos processos de descoberta independentes confirmaram esta
+            # condição: 2 só é possível pra regiao=brasil (herdado da Allsvenskan
+            # E descoberto nativamente na Série A, ver
+            # _selecionar_brasil_por_confianca) — universal/nórdicas usam sempre
+            # 1 processo de descoberta (Allsvenskan), então o campo aqui é só
+            # informativo, default 1.
+            "confirmacoes": s.get("confirmacoes", 1),
+        })
 
-# Brasil: combina os TRÊS caminhos de descoberta independentes — herdado
-# (Allsvenskan -> confirmado em Série A/B, confirmar_brasil.py), nativo A->B
-# (descoberto na Série A -> confirmado na Série B, descobrir_nativo_brasil.py)
-# e nativo B->A (descoberto na Série B -> confirmado na Série A,
-# descobrir_nativo_serieB.py — espelho do anterior, adicionado depois de notar
-# que só deixar a Série A descobrir também deixava a Série B sem chance de
-# propor sua própria hipótese, ver conversa). Ver
-# _selecionar_brasil_por_confianca pro critério de quando um sinal de fonte
-# única ainda entra. Nunca duplica uma regra que já é "universal" (passou
-# nórdicas E Brasil pelo caminho herdado).
-chaves_universais = {_chave_brasil(s) for s in fortes}
-sinais_brasil_herdado = _colapsar(_carregar_brutas(ALVOS_REGIAO_BRASIL, sufixo="_brasil", origem="herdado"))
-sinais_brasil_nativo_AB = _colapsar(_carregar_brutas(ALVOS_REGIAO_BRASIL, sufixo="_serieB", origem="nativo_AB"))
-sinais_brasil_nativo_BA = _colapsar(_carregar_brutas(ALVOS_REGIAO_BRASIL, sufixo="_serieA", origem="nativo_BA"))
-candidatos_brasil = [
-    s for s in (sinais_brasil_herdado + sinais_brasil_nativo_AB + sinais_brasil_nativo_BA)
-    if s["amostra"] >= AMOSTRA_MINIMA and s["impacto"] >= IMPACTO_MINIMO_PP
-    and _chave_brasil(s) not in chaves_universais
-]
-fortes_brasil, brasil_nao_incluidos = _selecionar_brasil_por_confianca(candidatos_brasil)
-for s in fortes_brasil:
-    s["regiao"] = "brasil"
-_salvar_nao_incluidos(brasil_nao_incluidos, CAMINHO_AUDITORIA_BRASIL)
+    print("recalibrando cada regra por valor atual do próprio alvo (escanteios/chutes já ocorridos)...")
+    regras = recalibrar_por_valor_atual(regras)
+    coberturas = [len(r["por_valor_atual"]) for r in regras]
+    amostras_min = [min(v["n_usado"] for v in r["por_valor_atual"].values()) for r in regras] if regras else [0]
+    print(f"  cobertura: {sum(coberturas)/len(coberturas):.1f} valores distintos por regra em média "
+          f"(min {min(coberturas)}, max {max(coberturas)})" if regras else "  (nenhuma regra)")
+    if regras:
+        print(f"  amostra usada por valor: pior caso = {min(amostras_min)} jogos (após fallback pro vizinho)")
+    return regras
 
-fortes = fortes + fortes_nordicas + fortes_brasil
-fortes = _remover_sobreposicoes(fortes)
-fortes.sort(key=lambda x: (x["alvo_id"], -x["impacto"]))
 
-print(f"sinais totais: {len(sinais)} | subconjunto forte (amostra>={AMOSTRA_MINIMA}, impacto>={IMPACTO_MINIMO_PP}pp): {len(fortes)}")
-print(f"  ({len(brasil_nao_incluidos)} candidatos do Brasil de fonte única ficaram de fora, registrados em {CAMINHO_AUDITORIA_BRASIL})")
-for alvo_id in ALVOS:
-    n_universal = sum(1 for s in fortes if s["alvo_id"] == alvo_id and s["regiao"] == "universal")
-    n_nordicas = sum(1 for s in fortes if s["alvo_id"] == alvo_id and s["regiao"] == "nordicas")
-    n_brasil = sum(1 for s in fortes if s["alvo_id"] == alvo_id and s["regiao"] == "brasil")
-    if n_universal or n_nordicas or n_brasil:
-        extras = []
-        if n_nordicas:
-            extras.append(f"{n_nordicas} só nórdicas")
-        if n_brasil:
-            extras.append(f"{n_brasil} só Brasil")
-        sufixo_extra = f" (+ {', '.join(extras)})" if extras else ""
-        print(f"  {ALVO_TITULO[alvo_id]}: {n_universal}{sufixo_extra}")
+def gerar():
+    sinais = _colapsar(_carregar_brutas(ALVOS))
+    confirmadas_brasil = _carregar_confirmadas_brasil()
 
-campos_usados = set()
-for s in fortes:
-    for c in s["condicoes"]:
-        campos_usados.add(c["stat"])
-    campos_usados.add(ALVO_STAT_BASE[s["alvo_id"]])
-print("campos crus necessários da API (condição + alvo):", sorted(campos_usados))
+    # Pool nórdico inteiro (amostra/impacto ok), ANTES de saber se também bate no
+    # Brasil — dividido em dois destinos abaixo. Antes desta correção, qualquer
+    # condição que passasse aqui mas NÃO confirmasse no Brasil era descartada por
+    # completo (nunca virava regra nem pras próprias ligas nórdicas onde already
+    # se provou fora da amostra — achado real, ver conversa: 17 condições de
+    # escanteios/chutes_totais estavam sendo jogadas fora assim).
+    fortes_nordicas_bruto = [s for s in sinais if s["amostra"] >= AMOSTRA_MINIMA_NORDICAS and s["impacto"] >= IMPACTO_MINIMO_PP]
 
-regras = []
-contador = {}
-for s in fortes:
-    alvo_id = s["alvo_id"]
-    contador[alvo_id] = contador.get(alvo_id, 0) + 1
-    regra_id = f"{alvo_id}_{contador[alvo_id]:03d}"
+    fortes_universal_pre = [s for s in fortes_nordicas_bruto if _chave_brasil(s) in confirmadas_brasil]
+    for s in fortes_universal_pre:
+        s["regiao"] = "universal"
+    fortes = _deduplicar_familia(fortes_universal_pre)
 
-    op_txt = {">=": "≥", "<=": "≤"}
-    cond_txt = " E ".join(
-        f"{nome(c['stat'])} {op_txt[c['operador']]} {c['limite']:g}" for c in s["condicoes"]
-    )
-    direcao = "mais_de" if s["sinal_mercado"] == "+" else "menos_de"
-    stat_alvo = ALVO_STAT_BASE[alvo_id]
-    mercado_curto = (
-        f"{'Mais' if direcao == 'mais_de' else 'Menos'} de {s['linha_mercado']:g} {ALVO_TITULO[alvo_id].lower()}"
-    )
-    rotulo = f"{cond_txt} aos {s['minuto']}' ({s['gols_momento']} gol(s) no jogo) → {mercado_curto}"
+    # Confirmou nas outras ligas nórdicas mas NÃO no Brasil -> só vale pras
+    # próprias ligas nórdicas (ver LIGAS_NORDICAS em recalibrar_por_valor_atual e
+    # live_monitor.py::LIGAS_REGIAO_NORDICAS). Espelha exatamente o raciocínio já
+    # usado pra "regiao=brasil": um efeito pode ser real e específico de uma
+    # região sem generalizar pra outra.
+    fortes_apenas_nordicas_pre = [s for s in fortes_nordicas_bruto if _chave_brasil(s) not in confirmadas_brasil]
+    for s in fortes_apenas_nordicas_pre:
+        s["regiao"] = "nordicas"
+    fortes_nordicas = _deduplicar_familia(fortes_apenas_nordicas_pre)
 
-    regras.append({
-        "id": regra_id,
-        "alvo": alvo_id,
-        "alvo_nome": ALVO_TITULO[alvo_id],
-        "minuto": s["minuto"],
-        "gols_momento": s["gols_momento"],
-        "condicoes": s["condicoes"],
-        "mercado": {
-            "stat": stat_alvo,
-            "direcao": direcao,
-            "linha": s["linha_mercado"],
-        },
-        "mercado_curto": mercado_curto,
-        "amostra_confirmacao": s["amostra"],
-        "prob_base_confirmacao": round(s["p_base"], 4),
-        "prob_condicao_confirmacao": round(s["p_condicao"], 4),
-        "impacto_pp": round(s["impacto"], 2),
-        "p_valor_confirmacao": s["p_valor"],
-        "odd_minima_referencia": round(1 / s["p_condicao"], 2) if s["p_condicao"] > 0 else None,
-        "rotulo": rotulo,
-        # "universal" (confirmou nórdicas E Brasil), "nordicas" (só confirmou
-        # nas ligas nórdicas — live_monitor.py só aplica a Allsvenskan/
-        # Superettan/1.Division) ou "brasil" (só confirmou no Brasil — só
-        # aplica a Série A/B). Ver live_monitor.py::_regra_vale_para_liga.
-        "regiao": s["regiao"],
-        # Quantos processos de descoberta independentes confirmaram esta
-        # condição: 2 só é possível pra regiao=brasil (herdado da Allsvenskan
-        # E descoberto nativamente na Série A, ver
-        # _selecionar_brasil_por_confianca) — universal/nórdicas usam sempre
-        # 1 processo de descoberta (Allsvenskan), então o campo aqui é só
-        # informativo, default 1.
-        "confirmacoes": s.get("confirmacoes", 1),
-    })
+    # Brasil: combina os TRÊS caminhos de descoberta independentes — herdado
+    # (Allsvenskan -> confirmado em Série A/B, confirmar_brasil.py), nativo A->B
+    # (descoberto na Série A -> confirmado na Série B, descobrir_nativo_brasil.py)
+    # e nativo B->A (descoberto na Série B -> confirmado na Série A,
+    # descobrir_nativo_serieB.py — espelho do anterior, adicionado depois de notar
+    # que só deixar a Série A descobrir também deixava a Série B sem chance de
+    # propor sua própria hipótese, ver conversa). Ver
+    # _selecionar_brasil_por_confianca pro critério de quando um sinal de fonte
+    # única ainda entra. Nunca duplica uma regra que já é "universal" (passou
+    # nórdicas E Brasil pelo caminho herdado).
+    chaves_universais = {_chave_brasil(s) for s in fortes}
+    sinais_brasil_herdado = _colapsar(_carregar_brutas(ALVOS_REGIAO_BRASIL, sufixo="_brasil", origem="herdado"))
+    sinais_brasil_nativo_AB = _colapsar(_carregar_brutas(ALVOS_REGIAO_BRASIL, sufixo="_serieB", origem="nativo_AB"))
+    sinais_brasil_nativo_BA = _colapsar(_carregar_brutas(ALVOS_REGIAO_BRASIL, sufixo="_serieA", origem="nativo_BA"))
+    candidatos_brasil = [
+        s for s in (sinais_brasil_herdado + sinais_brasil_nativo_AB + sinais_brasil_nativo_BA)
+        if s["amostra"] >= AMOSTRA_MINIMA and s["impacto"] >= IMPACTO_MINIMO_PP
+        and _chave_brasil(s) not in chaves_universais
+    ]
+    fortes_brasil, brasil_nao_incluidos = _selecionar_brasil_por_confianca(candidatos_brasil)
+    for s in fortes_brasil:
+        s["regiao"] = "brasil"
+    _salvar_nao_incluidos(brasil_nao_incluidos, CAMINHO_AUDITORIA_BRASIL)
 
-print("\nrecalibrando cada regra por valor atual do próprio alvo (escanteios/chutes já ocorridos)...")
-regras = recalibrar_por_valor_atual(regras)
-coberturas = [len(r["por_valor_atual"]) for r in regras]
-amostras_min = [min(v["n_usado"] for v in r["por_valor_atual"].values()) for r in regras]
-print(f"  cobertura: {sum(coberturas)/len(coberturas):.1f} valores distintos por regra em média "
-      f"(min {min(coberturas)}, max {max(coberturas)})")
-print(f"  amostra usada por valor: pior caso = {min(amostras_min)} jogos (após fallback pro vizinho)")
+    fortes = fortes + fortes_nordicas + fortes_brasil
 
-payload = {
-    "criterio": f"amostra_confirmacao >= {AMOSTRA_MINIMA} e impacto_pp >= {IMPACTO_MINIMO_PP}; "
-                "regiao=universal confirmado nas nórdicas E no Brasil; regiao=nordicas confirmado só "
-                "nas ligas nórdicas (aplicadas só a Allsvenskan/Superettan/1.Division); regiao=brasil "
-                f"exige confirmacoes >= {CONFIRMACOES_MINIMAS_BRASIL} (as três fontes de descoberta "
-                "independentes do Brasil concordando: herdado da Allsvenskan, nativo Série A->B e "
-                "nativo Série B->A — piso calibrado por backtest retroativo contra odds reais de "
-                "mercado, ver CONFIRMACOES_MINIMAS_BRASIL) (alvos "
-                f"{ALVOS_REGIAO_BRASIL}, aplicadas só a jogos de Série A/B)",
-    "fonte": "pesquisa_gols/resultados/*_confirmacao_*.csv (nórdicas) + *_confirmacao_brasil_*.csv "
-             "(herdado) + *_confirmacao_serieB_*.csv (nativo, descobrir_nativo_brasil.py) — todos "
-             "confirmado_bh=True — + recalibração por valor atual do alvo (universal: pool de todas "
-             "as ligas; nordicas: só as 3 ligas nórdicas; brasil: só Série A/B — ver "
-             "recalibrar_por_valor_atual em gerar_regras_sinais.py)",
-    "total_regras": len(regras),
-    "regras": regras,
-}
+    print(f"sinais totais: {len(sinais)} | subconjunto forte (amostra>={AMOSTRA_MINIMA}, impacto>={IMPACTO_MINIMO_PP}pp): {len(fortes)}")
+    print(f"  ({len(brasil_nao_incluidos)} candidatos do Brasil de fonte única ficaram de fora, registrados em {CAMINHO_AUDITORIA_BRASIL})")
+    for alvo_id in ALVOS:
+        n_universal = sum(1 for s in fortes if s["alvo_id"] == alvo_id and s["regiao"] == "universal")
+        n_nordicas = sum(1 for s in fortes if s["alvo_id"] == alvo_id and s["regiao"] == "nordicas")
+        n_brasil = sum(1 for s in fortes if s["alvo_id"] == alvo_id and s["regiao"] == "brasil")
+        if n_universal or n_nordicas or n_brasil:
+            extras = []
+            if n_nordicas:
+                extras.append(f"{n_nordicas} só nórdicas")
+            if n_brasil:
+                extras.append(f"{n_brasil} só Brasil")
+            sufixo_extra = f" (+ {', '.join(extras)})" if extras else ""
+            print(f"  {ALVO_TITULO[alvo_id]}: {n_universal}{sufixo_extra}")
 
-os.makedirs(os.path.dirname(DESTINO), exist_ok=True)
-with open(DESTINO, "w", encoding="utf-8") as f:
-    json.dump(payload, f, ensure_ascii=False, indent=2)
-print(f"\nsalvo em {os.path.abspath(DESTINO)}")
+    campos_usados = set()
+    for s in fortes:
+        for c in s["condicoes"]:
+            campos_usados.add(c["stat"])
+        campos_usados.add(ALVO_STAT_BASE[s["alvo_id"]])
+    print("campos crus necessários da API (condição + alvo):", sorted(campos_usados))
+
+    regras = montar_regras(fortes)
+
+    payload = {
+        "criterio": f"amostra_confirmacao >= {AMOSTRA_MINIMA} e impacto_pp >= {IMPACTO_MINIMO_PP}; "
+                    "regiao=universal confirmado nas nórdicas E no Brasil; regiao=nordicas confirmado só "
+                    "nas ligas nórdicas (aplicadas só a Allsvenskan/Superettan/1.Division); regiao=brasil "
+                    f"exige confirmacoes >= {CONFIRMACOES_MINIMAS_BRASIL} (as três fontes de descoberta "
+                    "independentes do Brasil concordando: herdado da Allsvenskan, nativo Série A->B e "
+                    "nativo Série B->A — piso calibrado por backtest retroativo contra odds reais de "
+                    "mercado, ver CONFIRMACOES_MINIMAS_BRASIL) (alvos "
+                    f"{ALVOS_REGIAO_BRASIL}, aplicadas só a jogos de Série A/B)",
+        "fonte": "pesquisa_gols/resultados/*_confirmacao_*.csv (nórdicas) + *_confirmacao_brasil_*.csv "
+                 "(herdado) + *_confirmacao_serieB_*.csv (nativo, descobrir_nativo_brasil.py) — todos "
+                 "confirmado_bh=True — + recalibração por valor atual do alvo (universal: pool de todas "
+                 "as ligas; nordicas: só as 3 ligas nórdicas; brasil: só Série A/B — ver "
+                 "recalibrar_por_valor_atual em gerar_regras_sinais.py)",
+        "total_regras": len(regras),
+        "regras": regras,
+    }
+
+    os.makedirs(os.path.dirname(DESTINO), exist_ok=True)
+    with open(DESTINO, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+    print(f"\nsalvo em {os.path.abspath(DESTINO)}")
+
+
+if __name__ == "__main__":
+    gerar()
