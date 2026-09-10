@@ -1,2 +1,2 @@
-fixture_id,tipo,perfil,liga,jogo,minuto,alvo,direcao,linha,linha_original_sinal,probabilidade,odd_real,odd_real_casa,probabilidade_implicita_real,ev_pct,rotulo_condicao,timestamp
-19667175,sinal_escanteios_mais_de,principal,Serie B,América Mineiro x Náutico,75,escanteios,mais_de,12.5,11.5,72.2,1.25,bet365,80.0,-9.7,"Chutes totais ≥ 18 E Desarmes ≤ 30 aos 75' (2 gol(s) no jogo) → Mais de 11.5 escanteios",2026-09-10T01:04:42.677251+00:00
+fixture_id,tipo,perfil,liga,jogo,minuto,alvo,direcao,linha,linha_original_sinal,probabilidade,odd_real,odd_real_casa,probabilidade_implicita_real,ev_pct,rotulo_condicao,motivo,timestamp
+19667175,sinal_escanteios_mais_de,principal,Serie B,América Mineiro x Náutico,75,escanteios,mais_de,12.5,11.5,72.2,1.25,bet365,80.0,-9.7,"Chutes totais ≥ 18 E Desarmes ≤ 30 aos 75' (2 gol(s) no jogo) → Mais de 11.5 escanteios",ev_negativo,2026-09-10T01:04:42.677251+00:00

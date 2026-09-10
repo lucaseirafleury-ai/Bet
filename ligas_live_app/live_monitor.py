@@ -499,6 +499,22 @@ IMPACTO_MINIMO_PP_VALOR_ATUAL = 5.0  # mesmo limiar usado pra selecionar as regr
 # negativo apesar do acerto alto (86,8%) — pouco volume não compensa.
 PROBABILIDADE_MINIMA_VALOR_ATUAL = 0.70
 
+# Teto de EV% sobre odd REAL: caso real que motivou (09/09/2026, Varberg BoIS x
+# Norrköping) — sinal de "menos de 10.5 escanteios" com p_condição=54.5% (abaixo
+# do PROBABILIDADE_MINIMA_VALOR_ATUAL acima, mas esse corte é pulado quando há
+# odd real, ver comentário no laço de candidatos_linha) publicou em cima de uma
+# odd bet365 de 9.00 (EV +390,9%) — implausível pra esse mercado (a odd não
+# estava stale por timestamp, mas quase certamente foi um preço momentâneo
+# incorreto da casa, não um valor real de mercado). Resultado: red. Um EV
+# positivo gigante é sinal mais forte de erro de precificação da casa do que de
+# uma oportunidade real — casas não deixam esse tipo de discrepância aberta por
+# muito tempo em mercados líquidos como escanteios/cartões. backtest_odds_reais_por_ev.py
+# (faixas de EV real vs. ROI real, dados históricos) mostra a faixa 3-15% como
+# a mais confiável; acima disso a amostra é pequena e mais suscetível a esse
+# tipo de artefato. Escolhido 15% como teto: generoso o bastante pra não
+# cortar EVs legítimos "só" grandes, mas barra o tipo de outlier de 390%.
+TETO_EV_PCT_ODD_REAL = 15.0
+
 
 def _carregar_regras_sinais(caminho):
     if not os.path.exists(caminho):
@@ -737,7 +753,7 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
                     "odd_minima": odd_min_cand, "ev_pct": ev_pct,
                 }
 
-        if melhor_odd is not None and melhor_odd["ev_pct"] < 0:
+        if melhor_odd is not None and (melhor_odd["ev_pct"] < 0 or melhor_odd["ev_pct"] > TETO_EV_PCT_ODD_REAL):
             suprimidos.append({
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "fixture_id": relatorio["fixture_id"],
@@ -754,8 +770,9 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
                 "probabilidade_implicita_real": round(melhor_odd["probabilidade_implicita"] * 100, 1),
                 "ev_pct": round(melhor_odd["ev_pct"], 1),
                 "rotulo_condicao": melhor_regra["rotulo"],
+                "motivo": "ev_negativo" if melhor_odd["ev_pct"] < 0 else "ev_acima_do_teto",
             })
-            continue  # nenhuma linha realmente apostável tem valor — não publica
+            continue  # nenhuma linha realmente apostável tem valor (ou o EV é implausível) — não publica
 
         # Linha/probabilidade/odd mínima "finais" — da linha original quando não há
         # substituição, ou da linha vizinha escolhida quando a casa só tinha essa.
