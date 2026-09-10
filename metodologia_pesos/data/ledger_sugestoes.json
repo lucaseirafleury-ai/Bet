@@ -165,5 +165,39 @@
     "casa_ref": "bet365",
     "resultado": "red",
     "lucro": -1.0
+  },
+  {
+    "fixture_id": 19621812,
+    "criterio": "BTTS",
+    "stake": "normal",
+    "liga": "Série A",
+    "liga_chave": "seriea",
+    "jogo": "Coritiba x Athletico PR",
+    "data_jogo": "2026-09-12 00:00:00",
+    "lado": "btts",
+    "linha_aposta": null,
+    "odd": 1.9,
+    "edge": 0.10757045177825231,
+    "data_registro": "2026-09-10",
+    "casa_ref": "bet365",
+    "resultado": "pendente",
+    "lucro": null
+  },
+  {
+    "fixture_id": 19621810,
+    "criterio": "BTTS",
+    "stake": "normal",
+    "liga": "Série A",
+    "liga_chave": "seriea",
+    "jogo": "Chapecoense x Internacional",
+    "data_jogo": "2026-09-12 20:00:00",
+    "lado": "btts",
+    "linha_aposta": null,
+    "odd": 1.66,
+    "edge": 0.0980027158940987,
+    "data_registro": "2026-09-10",
+    "casa_ref": "bet365",
+    "resultado": "pendente",
+    "lucro": null
   }
 ]
