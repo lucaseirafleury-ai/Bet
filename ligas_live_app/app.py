@@ -133,15 +133,20 @@ def api_sombra():
 def api_suprimidos():
     """
     Sinais que bateram condição, acharam odd real, mas foram suprimidos por
-    EV negativo (ver live_monitor.py::_consolidar_candidatas) — nunca viraram
-    card nem push. Existe pra distinguir "não temos sinal" de "a odd real
-    está afiada demais pro nosso sinal" (ver conversa). "perfil" marca se veio
-    do conjunto principal ou de qual perfil sombra. Não é usada por nenhuma
-    tela do dashboard; existe só pra rotina externa de sincronização ler o
-    "log" e persistir de forma durável (o arquivo local é apagado a cada
-    redeploy).
+    EV negativo ou por EV acima do teto (ver
+    live_monitor.py::_consolidar_candidatas/TETO_EV_PCT_ODD_REAL) — nunca
+    viraram card nem push. Existe pra distinguir "não temos sinal" de "a odd
+    real está afiada demais pro nosso sinal" (ver conversa). "perfil" marca se
+    veio do conjunto principal ou de qual perfil sombra. "log" é o diagnóstico
+    bruto (todos os motivos, sem dedup entre ciclos); "teto_ativos"/
+    "teto_avaliados" acompanham só o caso "ev_acima_do_teto" até o fim do
+    jogo, com resultado (green/red) real — dado de validação pra saber se o
+    teto está cortando artefato de odd errada ou descartando valor real. Não
+    é usada por nenhuma tela do dashboard; existe só pra rotina externa de
+    sincronização ler e persistir de forma durável (o arquivo local é apagado
+    a cada redeploy).
     """
-    return jsonify(_ler_json(config.SUPRIMIDOS_FILE, {"log": []}))
+    return jsonify(_ler_json(config.SUPRIMIDOS_FILE, {"log": [], "teto_ativos": [], "teto_avaliados": []}))
 
 
 @app.route("/api/historico-sinais")
