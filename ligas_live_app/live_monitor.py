@@ -935,13 +935,22 @@ def ciclo():
     # conjuntos candidatos, em paralelo ao conjunto principal.
     estado_sombra = _carregar(config.SOMBRA_FILE, {nome: {"ativos": [], "log": []} for nome in PERFIS_SOMBRA})
 
-    # Sinais suprimidos por EV negativo (bateram condição, acharam odd real,
-    # mas o mercado não dava valor) — ver _consolidar_candidatas. Não tem
-    # "ativos"/avaliação de green-red (não é uma aposta feita, é só
-    # diagnóstico de "tinha sinal, mercado matou"), por isso é só um log
-    # plano capado, mais simples que estado_gols/estado_sombra. "perfil"
-    # marca se veio do conjunto principal ou de qual sombra.
-    estado_suprimidos = _carregar(config.SUPRIMIDOS_FILE, {"log": []})
+    # Sinais suprimidos por EV negativo ou por EV acima do teto (bateram
+    # condição, acharam odd real, mas não publicaram — ver
+    # _consolidar_candidatas). "log" é só diagnóstico bruto (sem
+    # avaliação de green/red, sem dedup entre ciclos — ver comentário mais
+    # abaixo). Só o caso "ev_acima_do_teto" ganha acompanhamento de
+    # resultado real (teto_ativos/teto_avaliados, mesmo padrão de
+    # estado_sombra): o objetivo é validar depois se o teto (
+    # TETO_EV_PCT_ODD_REAL) está mesmo cortando artefatos de precificação
+    # (deveria dar red com frequência alta) ou descartando valor real
+    # (green tão frequente quanto os sinais publicados) — pedido do
+    # usuário depois do caso Varberg BoIS x Norrköping (EV +390%, red).
+    # "ev_negativo" não precisa disso: EV negativo já é economicamente
+    # claro (odd não compensa a probabilidade), não há dúvida a validar.
+    estado_suprimidos = _carregar(config.SUPRIMIDOS_FILE, {"log": [], "teto_ativos": [], "teto_avaliados": []})
+    estado_suprimidos.setdefault("teto_ativos", [])
+    estado_suprimidos.setdefault("teto_avaliados", [])
     for nome in PERFIS_SOMBRA:
         estado_sombra.setdefault(nome, {"ativos": [], "log": []})
 
@@ -951,6 +960,13 @@ def ciclo():
     # ciclo de 60s pelo resto do jogo — é o que causava "centenas de sinais".
     ids_ja_gerados = {(i["fixture_id"], i["tipo"], i["time"]) for i in insights}
     ids_ja_gerados_gols = {(i["fixture_id"], i["time"]) for i in estado_gols["pendentes"]}
+    # (fixture_id, alvo, direção, perfil) de cada supressão-por-teto já em
+    # acompanhamento — evita duplicar em "teto_ativos" a cada ciclo de 60s
+    # enquanto a mesma condição continuar batendo (diferente de "log", que
+    # aceita duplicatas de propósito, ver comentário mais abaixo).
+    ids_ja_gerados_suprimidos_teto = {
+        (i["fixture_id"], i["alvo"], i["direcao"], i["perfil"]) for i in estado_suprimidos["teto_ativos"]
+    }
     ids_ja_gerados_sombra = {
         nome: {(i["fixture_id"], i["tipo"], i["time"]) for i in estado_sombra[nome]["ativos"]}
         for nome in PERFIS_SOMBRA
@@ -1002,6 +1018,20 @@ def ciclo():
                     estado_sombra[nome]["ativos"] = [
                         s for s in estado_sombra[nome]["ativos"] if s["fixture_id"] != fixture_id_antigo
                     ]
+                # Supressões por EV acima do teto (ver TETO_EV_PCT_ODD_REAL) —
+                # mesma avaliação green/red, mas nenhuma aposta foi de fato
+                # feita: é dado de validação (o usuário quer saber se o teto
+                # está cortando artefato de odd errada ou descartando valor
+                # real), não histórico de resultado de aposta.
+                suprimidos_teto_do_jogo = [
+                    s for s in estado_suprimidos["teto_ativos"] if s["fixture_id"] == fixture_id_antigo
+                ]
+                if suprimidos_teto_do_jogo:
+                    _avaliar_sinais_confirmados(suprimidos_teto_do_jogo, registro)
+                    estado_suprimidos["teto_avaliados"].extend(suprimidos_teto_do_jogo)
+                estado_suprimidos["teto_ativos"] = [
+                    s for s in estado_suprimidos["teto_ativos"] if s["fixture_id"] != fixture_id_antigo
+                ]
             else:
                 # Fim de jogo ainda não confirmado (suspenso/interrompido/erro
                 # passageiro) — mantém o snapshot pro próximo ciclo tentar
@@ -1204,7 +1234,13 @@ def ciclo():
         # ~3x (duração da janela de checkpoint) — não muda a leitura
         # qualitativa que o usuário quer (sinal raro vs. odd afiada).
         for s in suprimidos:
-            estado_suprimidos["log"].append({**s, "perfil": "principal"})
+            entry = {**s, "perfil": "principal"}
+            estado_suprimidos["log"].append(entry)
+            if entry.get("motivo") == "ev_acima_do_teto":
+                chave_teto = (entry["fixture_id"], entry["alvo"], entry["direcao"], entry["perfil"])
+                if chave_teto not in ids_ja_gerados_suprimidos_teto:
+                    estado_suprimidos["teto_ativos"].append(entry)
+                    ids_ja_gerados_suprimidos_teto.add(chave_teto)
 
         # Conjuntos sombra (204/105 regras, ver PERFIS_SOMBRA) — mesmo match e
         # mesma odd real/EV do conjunto principal, mas SÓ registrados
@@ -1223,13 +1259,20 @@ def ciclo():
                 estado_sombra[nome]["ativos"].append(c)
                 ids_ja_gerados_sombra[nome].add(chave)
             for s in suprimidos_sombra:
-                estado_suprimidos["log"].append({**s, "perfil": nome})
+                entry = {**s, "perfil": nome}
+                estado_suprimidos["log"].append(entry)
+                if entry.get("motivo") == "ev_acima_do_teto":
+                    chave_teto = (entry["fixture_id"], entry["alvo"], entry["direcao"], entry["perfil"])
+                    if chave_teto not in ids_ja_gerados_suprimidos_teto:
+                        estado_suprimidos["teto_ativos"].append(entry)
+                        ids_ja_gerados_suprimidos_teto.add(chave_teto)
 
     _salvar(config.LIVE_INSIGHTS_FILE, insights)
     _salvar(config.LIVE_SNAPSHOTS_FILE, snapshots)
     estado_gols["log"] = estado_gols["log"][-200:]  # capado -- só auditoria interna, resumo já tem os totais
     _salvar(config.GOLS_INTERNO_FILE, estado_gols)
     estado_suprimidos["log"] = estado_suprimidos["log"][-1000:]  # capado -- 5 perfis somados, gira mais rápido
+    estado_suprimidos["teto_avaliados"] = estado_suprimidos["teto_avaliados"][-500:]  # capado, mesmo padrão de estado_sombra
     _salvar(config.SUPRIMIDOS_FILE, estado_suprimidos)
     for nome in PERFIS_SOMBRA:
         # cap maior que o de gols_interno (500 vs 200): conjuntos de 105/204
