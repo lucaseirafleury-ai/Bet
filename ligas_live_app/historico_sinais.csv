@@ -15,3 +15,4 @@ fixture_id,tipo,liga,jogo,data_jogo,alvo,direcao,linha,minuto,probabilidade_esti
 19636104,sinal_escanteios_mais_de,Superettan,United Nordic x Värnamo,2026-09-09,escanteios,mais_de,11.5,30,72.7,1.38,,,,green,12.0,2026-09-09T17:31:22.255043+00:00,2026-09-09T21:35:00.000000+00:00,,,true
 19667174,sinal_chutes_totais_menos_de,Serie B,Operário PR x CRB,2026-09-09,chutes_totais,menos_de,26.5,31,72.9,1.37,,,,green,25.0,2026-09-10T00:03:40.834767+00:00,2026-09-10T08:10:00.000000+00:00,,,
 19636106,sinal_escanteios_menos_de,Superettan,Varberg BoIS x Norrköping,2026-09-10,escanteios,menos_de,10.5,75,54.5,1.83,9.0,bet365,390.9,red,11.0,2026-09-10T18:31:10.662671+00:00,2026-09-10T19:37:00+00:00,2026-09-10 18:31:02,11.5,
+19667168,sinal_chutes_totais_menos_de,Serie B,Vila Nova x Goiás,2026-09-10,chutes_totais,menos_de,26.5,30,72.9,1.37,,,,red,32.0,2026-09-10T23:00:14.575752+00:00,2026-09-11T08:08:13+00:00,,,
