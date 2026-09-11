@@ -228,6 +228,22 @@ def calcular_momentum(stats_home, stats_away):
 # de atraso de apito de verdade.
 LIMIAR_DISCREPANCIA_MINUTO_AGENDADO = 10
 
+# Teto pro mesmo alarme (ver docstring): caso real que motivou (10-11/09/2026,
+# São Bernardo x Londrina, Série B) — a partida ficou de verdade em estado
+# "Delayed" e começou ~81min depois do horário agendado (`starting_at`, que a
+# Sportmonks NUNCA atualiza pro horário real de bola rolando). `started` do
+# período estava correto (bateu com o jogo real, ~12min quando checado). Sem
+# teto, esse atraso REAL de partida (comum em ligas menores) acionava a mesma
+# lógica pensada só pro caso Superettan (started mal registrado por 12-14min,
+# ver acima) — e o candidato via agendado virava ~93min pra um jogo que tinha
+# 12min reais, o pior dos dois mundos que essa conta tenta evitar. Não dá pra
+# distinguir "started mal registrado" de "atraso real de apito" só pela
+# magnitude (jogo pode atrasar horas de verdade), mas um ERRO DE REGISTRO da
+# Sportmonks é um bug pontual de pipeline, então plausivelmente limitado — daí
+# o teto bem acima do pior caso Superettan documentado (12-14min), mas bem
+# abaixo de um atraso real de partida.
+TETO_DISCREPANCIA_MINUTO_AGENDADO = 25
+
 
 def extrair_minuto(fixture):
     """
@@ -274,6 +290,17 @@ def extrair_minuto(fixture):
     registrado tarde" de "apito atrasou de verdade" (que já é bem menor que
     o limiar, confirmado empiricamente). Só no 1º tempo — no 2º incluiria o
     intervalo e superestimaria.
+
+    Só entra quando a discrepância também fica ABAIXO de
+    TETO_DISCREPANCIA_MINUTO_AGENDADO — caso real que mostrou por que esse
+    teto é necessário (ver docstring da constante): um atraso GENUÍNO no
+    apito (partida marcada pra um horário, mas que realmente só começou bem
+    depois — estado "Delayed" confirmado na Sportmonks) produz a MESMA
+    assinatura (candidato via agendado bem maior que via `started`) que o
+    bug de registro do Superettan, mas pede a conclusão OPOSTA: `started`
+    está certo, é o agendado que ficou obsoleto. Sem o teto, um atraso real
+    de ~80min fazia o minuto exibido pular pra ~93 num jogo que tinha ~12min
+    de verdade.
     """
     periods = fixture.get("periods", [])
     periodo_ativo = next((p for p in periods if p.get("ticking") is True), None)
@@ -296,7 +323,8 @@ def extrair_minuto(fixture):
     if inicio_agendado and (periodo_ativo.get("description") or "").lower() == "1st-half":
         minuto_via_agendado = int((time.time() - inicio_agendado) / 60) + 1
         referencia = minuto_via_started if minuto_via_started is not None else minuto_informado
-        if minuto_via_agendado - referencia > LIMIAR_DISCREPANCIA_MINUTO_AGENDADO:
+        discrepancia = minuto_via_agendado - referencia
+        if LIMIAR_DISCREPANCIA_MINUTO_AGENDADO < discrepancia <= TETO_DISCREPANCIA_MINUTO_AGENDADO:
             candidatos.append(minuto_via_agendado)
 
     return max(candidatos)
