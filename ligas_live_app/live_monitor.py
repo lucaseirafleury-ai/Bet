@@ -593,16 +593,39 @@ def _regra_bate(regra, valores):
 # mas não confirmou nas ligas nórdicas (pode ser efeito real, só que
 # específico de como os árbitros brasileiros apitam) — regra assim nunca
 # deve avaliar como válida fora dessas duas ligas.
-LIGAS_REGIAO_BRASIL = {"Série A", "Série B"}
+#
+# BUG REAL corrigido aqui (ver conversa, 13/09/2026): este conjunto só tinha
+# os nomes ACENTUADOS ("Série A"/"Série B"), copiados do rótulo de exibição
+# em config.LIGAS_MONITORADAS — mas relatorio["liga"] vem direto de
+# `fixture.get("league", {}).get("name")` (Sportmonks), que devolve "Serie A"/
+# "Serie B" SEM acento. Resultado: `liga in LIGAS_REGIAO_BRASIL` nunca batia,
+# então TODA regra "regiao": "brasil" (26 das 78 regras publicadas hoje —
+# um terço do conjunto) nunca disparava, silenciosamente, desde que esse
+# filtro foi introduzido. Inclui as duas grafias por segurança.
+LIGAS_REGIAO_BRASIL = {"Serie A", "Série A", "Serie B", "Série B"}
 
 # Espelho de LIGAS_REGIAO_BRASIL pra "regiao": "nordicas" — condições que
 # confirmaram nas ligas nórdicas mas não (ou ainda não com amostra
 # suficiente) no Brasil; ver gerar_regras_sinais.py. Nomes batem com os
-# valores de config.LIGAS_MONITORADAS.
+# valores de config.LIGAS_MONITORADAS (nenhum tem acento, não sofrem do bug
+# acima).
 LIGAS_REGIAO_NORDICAS = {"Allsvenskan", "Superettan", "1. Division"}
+
+# Alvos cuja aposta em si a casa não oferece fora da Série A — chutes totais/
+# no alvo não têm mercado ao vivo em nenhuma bookmaker aceita (bet365/1xbet)
+# nas ligas nórdicas nem na Série B (confirmado pelo usuário observando as
+# casas diretamente) — sinal desses alvos nessas ligas nunca teria como ser
+# validado contra dinheiro real, só synthetic odd_minima pra sempre. Restrição
+# por MERCADO/liga, independente do campo "regiao" da regra (que é sobre
+# validação estatística da condição, não sobre disponibilidade de aposta) —
+# por isso um conjunto/checagem à parte, não reaproveita LIGAS_REGIAO_BRASIL.
+ALVOS_RESTRITOS_SERIE_A = {"chutes_totais", "chutes_no_alvo"}
+LIGAS_SERIE_A = {"Serie A", "Série A"}
 
 
 def _regra_vale_para_liga(regra, liga):
+    if regra.get("alvo") in ALVOS_RESTRITOS_SERIE_A and liga not in LIGAS_SERIE_A:
+        return False
     regiao = regra.get("regiao")
     if regiao == "brasil":
         return liga in LIGAS_REGIAO_BRASIL
