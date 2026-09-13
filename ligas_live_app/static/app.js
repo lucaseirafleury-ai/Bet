@@ -156,7 +156,7 @@ function renderLive(snapshots, insights) {
     <div class="live-card">
       <div class="live-header">
         <span class="liga-tag">${j.liga}</span>
-        <span class="minuto-tag">min ${j.minuto}</span>
+        <span class="minuto-tag">${j.minuto_exibicao === "Intervalo" ? "Intervalo" : `min ${j.minuto_exibicao ?? j.minuto}`}</span>
       </div>
       <div class="placar-atual">${j.gols_home} - ${j.gols_away}</div>
       <div class="times-row"><span>${j.home} <span style="color:var(--muted)">x</span> ${j.away}</span><span style="color:var(--muted)">esperado pré-live: ${j.placar_modal_prelive}</span></div>

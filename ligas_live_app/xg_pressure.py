@@ -328,3 +328,45 @@ def extrair_minuto(fixture):
             candidatos.append(minuto_via_agendado)
 
     return max(candidatos)
+
+
+# state_id da Sportmonks pro intervalo (Half Time) — confirmado num jogo real
+# (Oddevold x Norrköping, 13/09/2026: state "Half Time", nenhum período
+# ticking, último minutes=44). Não reaproveita ESTADOS_REALMENTE_AO_VIVO de
+# live_monitor.py (que inclui esse mesmo id, 3, como "ainda é jogo ao vivo,
+# continue monitorando") — são preocupações diferentes: aquele decide SE
+# continua processando o jogo, este só decide COMO mostrar o minuto.
+ESTADO_INTERVALO = 3
+
+
+def formatar_minuto_exibicao(fixture, minuto):
+    """
+    Rótulo de minuto pro DISPLAY (painel e mensagens de sinal) — nunca usado
+    pelo motor de regras, que continua com o inteiro cru de extrair_minuto
+    (é contra esse número que os checkpoints/janelas são calibrados, ver
+    CHECKPOINTS_REGRA em live_monitor.py; um acréscimo como "45+2" tratado
+    como texto quebraria toda comparação numérica).
+
+    Caso real que motivou (ver conversa, 13/09/2026): a Sportmonks não separa
+    o tempo normal do acréscimo no campo `minutes` — ele só continua contando
+    (confirmado em jogos reais: 2º tempo terminando em "minutes"=97 ou 93,
+    nunca "90+7"/"90+3") — e durante o intervalo, sem nenhum período
+    'ticking', o app caía no último minuto conhecido do 1º tempo (ex.: 44),
+    indistinguível de estar realmente ao vivo no minuto 44. Aqui: mostra
+    "Intervalo" explicitamente durante o Half Time, e "45+X"/"90+X" quando o
+    minuto cru passa da marca cheia do tempo em andamento.
+    """
+    periods = fixture.get("periods", [])
+    periodo_ativo = next((p for p in periods if p.get("ticking") is True), None)
+
+    if periodo_ativo is None:
+        if fixture.get("state_id") == ESTADO_INTERVALO:
+            return "Intervalo"
+        return str(minuto)
+
+    descricao = (periodo_ativo.get("description") or "").lower()
+    if descricao == "1st-half" and minuto > 45:
+        return f"45+{minuto - 45}"
+    if descricao == "2nd-half" and minuto > 90:
+        return f"90+{minuto - 90}"
+    return str(minuto)
