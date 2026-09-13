@@ -654,7 +654,7 @@ def _direcoes_ja_disparadas(insights_existentes, fixture_id):
     return disparadas
 
 
-def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto):
+def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto, estado_confirmacao_odd):
     """
     Agrupa as regras que bateram por (alvo, direção do mercado) — várias
     condições diferentes costumam apontar pro MESMO mercado ao mesmo tempo
@@ -742,9 +742,22 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
         ]
 
         melhor_odd = None
+        aguardando_confirmacao = False
         for off, linha_cand, p_cond, odd_min_cand, _impacto_pp_cand in candidatos_linha:
             info = odds_ao_vivo.buscar_odd_real(relatorio["fixture_id"], alvo, direcao, linha_cand)
             if not info:
+                continue
+            chave_confirmacao = f"{relatorio['fixture_id']}|{alvo}|{direcao}|{linha_cand}"
+            info = odds_ao_vivo.confirmar_odd_real(estado_confirmacao_odd, chave_confirmacao, info)
+            if not info:
+                # Existe odd real aqui, só ainda não confirmada (ver docstring de
+                # confirmar_odd_real) — NÃO trata como "sem odd real": cair pro
+                # caminho sintético abaixo publicaria sem o filtro de EV que a odd
+                # real deveria aplicar, na prática destravando o próprio problema
+                # que a confirmação existe pra evitar (uma odd real ruim vista 1x
+                # publicando livre no primeiro ciclo, antes de ter chance de ser
+                # rejeitada). Em vez disso, segura a decisão pro próximo ciclo.
+                aguardando_confirmacao = True
                 continue
             ev_pct = (p_cond * info["odd"] - 1) * 100
             if melhor_odd is None or ev_pct > melhor_odd["ev_pct"]:
@@ -752,6 +765,9 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
                     **info, "linha": linha_cand, "offset": off, "p_condicao": p_cond,
                     "odd_minima": odd_min_cand, "ev_pct": ev_pct,
                 }
+
+        if melhor_odd is None and aguardando_confirmacao:
+            continue  # odd real pendente de confirmação — nem publica (sintético) nem suprime ainda, aguarda o próximo ciclo
 
         if melhor_odd is not None and (melhor_odd["ev_pct"] < 0 or melhor_odd["ev_pct"] > TETO_EV_PCT_ODD_REAL):
             suprimidos.append({
@@ -872,7 +888,7 @@ def _candidatas_para_conjunto(regras_por_checkpoint, relatorio, minuto, gols_tot
     return candidatas
 
 
-def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combinados, insights_existentes, fixture_id):
+def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combinados, insights_existentes, fixture_id, estado_confirmacao_odd):
     """
     Um insight por (alvo, direção) confirmada que bate com o jogo agora — não
     mais um por regra, ver _consolidar_candidatas. No máximo uma vez por
@@ -885,10 +901,10 @@ def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combi
         REGRAS_POR_CHECKPOINT_PLACAR, relatorio, minuto, gols_totais_jogo, valores_combinados
     )
     direcoes_ja_disparadas = _direcoes_ja_disparadas(insights_existentes, fixture_id)
-    return _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto)
+    return _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto, estado_confirmacao_odd)
 
 
-def checar_sinais_sombra(nome_perfil, relatorio, minuto, gols_totais_jogo, valores_combinados, sinais_sombra_existentes, fixture_id):
+def checar_sinais_sombra(nome_perfil, relatorio, minuto, gols_totais_jogo, valores_combinados, sinais_sombra_existentes, fixture_id, estado_confirmacao_odd):
     """
     Mesma lógica de checar_sinais_confirmados (match + odd real + EV — ver
     _consolidar_candidatas), mas contra um conjunto de regras "sombra"
@@ -904,7 +920,7 @@ def checar_sinais_sombra(nome_perfil, relatorio, minuto, gols_totais_jogo, valor
         REGRAS_SOMBRA_POR_CHECKPOINT_PLACAR[nome_perfil], relatorio, minuto, gols_totais_jogo, valores_combinados
     )
     direcoes_ja_disparadas = _direcoes_ja_disparadas(sinais_sombra_existentes, fixture_id)
-    return _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto)
+    return _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto, estado_confirmacao_odd)
 
 
 # ── Ciclo principal ────────────────────────────────────────────
@@ -953,6 +969,20 @@ def ciclo():
     estado_suprimidos.setdefault("teto_avaliados", [])
     for nome in PERFIS_SOMBRA:
         estado_sombra.setdefault(nome, {"ativos": [], "log": []})
+
+    # Última leitura de odd real por (fixture_id, alvo, direção, linha) — ver
+    # odds_ao_vivo.confirmar_odd_real: exige 2 leituras espaçadas no tempo
+    # concordando antes de tratar uma odd real como confiável. Compartilhado
+    # entre o conjunto principal e os sombras (é a MESMA odd de mercado,
+    # independente de qual conjunto de regras está checando). Podado por
+    # idade aqui (não por fixture ativo) porque é mais simples e as chaves
+    # de jogos encerrados naturalmente páram de ser atualizadas/consultadas.
+    estado_confirmacao_odd = _carregar(config.CONFIRMACAO_ODD_FILE, {})
+    limite_confirmacao = datetime.now(timezone.utc) - timedelta(minutes=30)
+    estado_confirmacao_odd = {
+        chave: v for chave, v in estado_confirmacao_odd.items()
+        if datetime.fromisoformat(v["visto_em"]) >= limite_confirmacao
+    }
 
     # Chave sem o minuto: cada combinação (jogo, tipo de sinal, time) dispara no
     # máximo uma vez por partida. Sem isso, um desvio que persiste (ex: time que
@@ -1214,6 +1244,7 @@ def ciclo():
         # por isso extend em vez de um único item na lista.
         candidatos, suprimidos = checar_sinais_confirmados(
             relatorio, minuto, gols_totais_jogo, valores_regras_combinados, insights, fixture_id,
+            estado_confirmacao_odd,
         )
 
         for c in candidatos:
@@ -1248,7 +1279,7 @@ def ciclo():
         for nome in PERFIS_SOMBRA:
             candidatos_sombra, suprimidos_sombra = checar_sinais_sombra(
                 nome, relatorio, minuto, gols_totais_jogo, valores_regras_combinados,
-                estado_sombra[nome]["ativos"], fixture_id,
+                estado_sombra[nome]["ativos"], fixture_id, estado_confirmacao_odd,
             )
             for c in candidatos_sombra:
                 if c is None:
@@ -1280,6 +1311,7 @@ def ciclo():
         # rápido — ver comentário em PERFIS_SOMBRA.
         estado_sombra[nome]["log"] = estado_sombra[nome]["log"][-500:]
     _salvar(config.SOMBRA_FILE, estado_sombra)
+    _salvar(config.CONFIRMACAO_ODD_FILE, estado_confirmacao_odd)
     _atualizar_status(len(fixtures_monitoradas))
 
 

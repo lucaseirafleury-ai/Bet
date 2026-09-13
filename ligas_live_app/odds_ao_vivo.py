@@ -196,3 +196,65 @@ def buscar_odd_real(fixture_id, alvo, direcao, linha):
         "probabilidade_implicita": round(1 / escolhida["_odd"], 4),
         "atualizado_em": escolhida.get("latest_bookmaker_update"),
     }
+
+
+# Tolerância de variação entre duas leituras pra ainda considerar "a mesma
+# odd" (a casa pode arredondar/oscilar centavos sem ser uma mudança real de
+# preço) — folgada o bastante pra não exigir bater centavo a centavo, apertada
+# o bastante pra não deixar passar uma odd realmente diferente.
+TOLERANCIA_CONFIRMACAO_ODD = 0.03
+
+# Intervalo mínimo entre duas leituras pra contarem como confirmação de
+# verdade, não a mesma leitura reaproveitada por perfis diferentes (principal
+# + sombras) dentro do MESMO ciclo de 60s — esses caem a poucos segundos um do
+# outro, então qualquer intervalo bem menor que o período do ciclo já separa
+# os dois casos com folga.
+INTERVALO_MINIMO_CONFIRMACAO_SEGUNDOS = 30
+
+
+def confirmar_odd_real(estado_confirmacao, chave, info):
+    """
+    Exige que a MESMA odd real apareça em pelo menos 2 leituras espaçadas no
+    tempo (ciclos de polling diferentes, não perfis diferentes reaproveitando
+    a leitura do mesmo ciclo) antes de tratá-la como confiável — motivado por
+    um caso real (Varberg BoIS x Norrköping, 10/09/2026): bet365 mostrou 9.00
+    pra "menos de 10.5 escanteios" (implica 11.1%, contra 54.5% estimado —
+    EV +390.9%), o sinal publicou em cima dessa ÚNICA leitura, e o resultado
+    foi red. Não dá pra saber com certeza se foi um preço realmente aberto
+    por um instante ou um erro passageiro da casa/Sportmonks, mas em qualquer
+    um dos dois casos uma segunda leitura, alguns ciclos depois, confirmando
+    valor parecido é evidência muito mais forte de que é um preço real
+    publicado do que uma leitura isolada, especialmente quando o EV implícito
+    é implausivelmente alto (ver TETO_EV_PCT_ODD_REAL em live_monitor.py,
+    checado depois desta confirmação, não substituído por ela).
+
+    `estado_confirmacao` é mutado in-place (dict persistido entre ciclos,
+    ver config.CONFIRMACAO_ODD_FILE) — cada chamada atualiza a última leitura
+    vista pra essa `chave` (string, tipicamente "fixture_id|alvo|direcao|
+    linha"), então a confirmação desliza: qualquer 2 leituras consecutivas
+    concordando (fora do mesmo ciclo) confirmam, mesmo que a odd tenha
+    mudado de nível desde a primeira vez que foi vista.
+
+    Devolve `info` (a leitura atual) se confirmada, ou None se ainda não —
+    quem chama trata `None` exatamente como "buscar_odd_real não achou nada"
+    (cai pro odd_minima sintético / fica de fora da comparação de EV dessa
+    linha), nunca como erro.
+    """
+    agora = datetime.now(timezone.utc)
+    anterior = estado_confirmacao.get(chave)
+    estado_confirmacao[chave] = {
+        "odd": info["odd"], "casa": info["casa"], "visto_em": agora.isoformat(),
+    }
+    if anterior is None:
+        return None  # primeira leitura dessa chave — ainda não há o que confirmar contra
+    try:
+        visto_em_anterior = datetime.fromisoformat(anterior["visto_em"])
+    except (TypeError, ValueError):
+        return None
+    if (agora - visto_em_anterior).total_seconds() < INTERVALO_MINIMO_CONFIRMACAO_SEGUNDOS:
+        return None  # leitura anterior é do mesmo ciclo (outro perfil) — não conta como 2ª leitura real
+    if anterior["casa"] != info["casa"]:
+        return None  # mudou de casa — não é a mesma cotação sendo confirmada
+    if abs(info["odd"] - anterior["odd"]) / anterior["odd"] > TOLERANCIA_CONFIRMACAO_ODD:
+        return None  # odd mudou demais — trata como nova leitura, precisa confirmar de novo
+    return info
