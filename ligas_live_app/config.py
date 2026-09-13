@@ -73,3 +73,10 @@ SOMBRA_FILE = os.path.join(DATA_DIR, "sombra_sinais.json")
 # candidatas. Existe pra responder "não temos sinal, ou a odd real está
 # afiada demais pro nosso sinal?" (ver conversa) — nenhuma rota do painel lê.
 SUPRIMIDOS_FILE = os.path.join(DATA_DIR, "suprimidos_por_odd.json")
+# Última leitura de odd real vista por (fixture_id, alvo, direcao, linha) —
+# usado por odds_ao_vivo.confirmar_odd_real pra exigir 2 leituras
+# espaçadas no tempo concordando antes de tratar uma odd real como
+# confiável, em vez de aceitar de primeira (ver conversa: odd bet365 de
+# 9.00 isolada, provavelmente preço incorreto/momentâneo, passou pelo teto
+# de EV e resultou red). Nenhuma rota do painel lê.
+CONFIRMACAO_ODD_FILE = os.path.join(DATA_DIR, "confirmacao_odds.json")
