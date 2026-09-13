@@ -33,6 +33,7 @@ from xg_pressure import (
     calcular_xg_proxy, calcular_pressao, calcular_cartoes,
     calcular_escanteios, calcular_eficiencia, calcular_momentum,
     extrair_stats_completas, extrair_minuto, extrair_stats_para_regras,
+    formatar_minuto_exibicao,
 )
 from live_poisson import (
     probabilidades_ao_vivo, probabilidade_escanteios,
@@ -723,7 +724,7 @@ def _direcoes_ja_disparadas(insights_existentes, fixture_id):
     return disparadas
 
 
-def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto, estado_confirmacao_odd):
+def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto, estado_confirmacao_odd, minuto_exibicao=None):
     """
     Agrupa as regras que bateram por (alvo, direção do mercado) — várias
     condições diferentes costumam apontar pro MESMO mercado ao mesmo tempo
@@ -884,7 +885,7 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
             )
 
         mensagem = (
-            f"min {minuto} — {mercado_curto_exibido}.{reforco} Recalculado já considerando que o jogo "
+            f"min {minuto_exibicao if minuto_exibicao is not None else minuto} — {mercado_curto_exibido}.{reforco} Recalculado já considerando que o jogo "
             f"tem {melhor_stats['valor_atual_real']} {nome_alvo_valor} até agora: {melhor_stats['n']} jogos de "
             f"referência com esse mesmo valor (impacto +{melhor_stats['impacto_pp']:.1f} p.p. sobre a base nesse "
             f"estado de jogo). Probabilidade estimada: {p_condicao_final*100:.1f}%. Odd mínima de "
@@ -962,7 +963,7 @@ def _candidatas_para_conjunto(regras_por_checkpoint, relatorio, minuto, gols_tot
     return candidatas
 
 
-def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combinados, insights_existentes, fixture_id, estado_confirmacao_odd):
+def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combinados, insights_existentes, fixture_id, estado_confirmacao_odd, minuto_exibicao=None):
     """
     Um insight por (alvo, direção) confirmada que bate com o jogo agora — não
     mais um por regra, ver _consolidar_candidatas. No máximo uma vez por
@@ -975,7 +976,7 @@ def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combi
         REGRAS_POR_CHECKPOINT_PLACAR, relatorio, minuto, gols_totais_jogo, valores_combinados
     )
     direcoes_ja_disparadas = _direcoes_ja_disparadas(insights_existentes, fixture_id)
-    return _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto, estado_confirmacao_odd)
+    return _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto, estado_confirmacao_odd, minuto_exibicao)
 
 
 def checar_sinais_sombra(nome_perfil, relatorio, minuto, gols_totais_jogo, valores_combinados, sinais_sombra_existentes, fixture_id, estado_confirmacao_odd):
@@ -1154,6 +1155,7 @@ def ciclo():
             continue  # jogo sem análise pré-live correspondente
 
         minuto = extrair_minuto(f)
+        minuto_exibicao = formatar_minuto_exibicao(f, minuto)
 
         participants = f.get("participants", [])
         home = next((p for p in participants if p["meta"]["location"] == "home"), None)
@@ -1265,6 +1267,7 @@ def ciclo():
         # ── snapshot rico p/ o painel (sempre publicado, sem limiar) ──
         snapshots[str(fixture_id)] = {
             "fixture_id": fixture_id, "liga": relatorio["liga"], "minuto": minuto,
+            "minuto_exibicao": minuto_exibicao,
             "home": home["name"], "away": away["name"],
             "gols_home": gols_home, "gols_away": gols_away,
             "xg_proxy_home": xg_home, "xg_proxy_away": xg_away,
@@ -1319,7 +1322,7 @@ def ciclo():
         # por isso extend em vez de um único item na lista.
         candidatos, suprimidos = checar_sinais_confirmados(
             relatorio, minuto, gols_totais_jogo, valores_regras_combinados, insights, fixture_id,
-            estado_confirmacao_odd,
+            estado_confirmacao_odd, minuto_exibicao,
         )
 
         for c in candidatos:
