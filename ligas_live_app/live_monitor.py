@@ -174,7 +174,21 @@ def _arquivar_jogo_finalizado(fixture_id, snapshot_final, insights):
         return None
 
     try:
-        fixture = sm.fixture_by_id(fixture_id, include="events.type;participants;scores")
+        # "statistics.type" além de events/participants/scores: SEM isso, o
+        # registro final de escanteios/cartões/chutes vinha só do último
+        # snapshot AO VIVO conhecido (até ~60s antes do jogo sumir do feed),
+        # nunca refeito aqui — só os GOLS eram corrigidos contra `scores`
+        # abaixo. Bug real corrigido aqui (ver conversa, achado revisando o
+        # código): qualquer escanteio/cartão/chute nos instantes finais
+        # (acréscimos são o caso mais comum) ficava de fora do valor "final"
+        # usado por _avaliar_sinais_confirmados pra decidir green/red —
+        # confirmado num caso real (Botafogo x Bragantino, 12/09/2026):
+        # escanteios registrado como 7 (3+4), valor real da Sportmonks 9;
+        # chutes totais registrado como 34, real 35. Sem sinal de escanteios
+        # nesse jogo específico o erro não virou green/red trocado, mas o
+        # mecanismo é o mesmo que decide toda avaliação de escanteios/
+        # cartões/chutes do histórico.
+        fixture = sm.fixture_by_id(fixture_id, include="events.type;participants;scores;statistics.type")
     except Exception as e:
         print(f"[arquivo] não deu pra buscar detalhes finais do fixture {fixture_id}: {e} — tentando de novo no próximo ciclo")
         return None
@@ -204,6 +218,29 @@ def _arquivar_jogo_finalizado(fixture_id, snapshot_final, insights):
             gols_away_final,
         )
 
+    # Recalcula escanteios/cartões/chutes a partir das estatísticas FRESCAS
+    # (não do snapshot ao vivo, que pode estar até ~60s atrasado) — mesmas
+    # funções usadas no ciclo ao vivo, mesma fonte de verdade. Se a Sportmonks
+    # não devolver `statistics` por algum motivo (fixture antigo, cobertura
+    # incompleta), cai pro snapshot ao vivo em vez de zerar o valor.
+    stats_fixture = fixture.get("statistics", [])
+    stats_home = [s for s in stats_fixture if s.get("participant_id") == (home_p or {}).get("id")]
+    stats_away = [s for s in stats_fixture if s.get("participant_id") == (away_p or {}).get("id")]
+    if stats_fixture and home_p and away_p:
+        escanteios_home_final = calcular_escanteios(stats_home)
+        escanteios_away_final = calcular_escanteios(stats_away)
+        cartoes_home_final = calcular_cartoes(stats_home)
+        cartoes_away_final = calcular_cartoes(stats_away)
+        stats_completas_home_final = extrair_stats_completas(stats_home)
+        stats_completas_away_final = extrair_stats_completas(stats_away)
+    else:
+        escanteios_home_final = snapshot_final.get("escanteios_home")
+        escanteios_away_final = snapshot_final.get("escanteios_away")
+        cartoes_home_final = snapshot_final.get("cartoes_home")
+        cartoes_away_final = snapshot_final.get("cartoes_away")
+        stats_completas_home_final = snapshot_final.get("stats_completas_home")
+        stats_completas_away_final = snapshot_final.get("stats_completas_away")
+
     sinais_do_jogo = [i for i in insights if i.get("fixture_id") == fixture_id]
 
     registro = {
@@ -218,16 +255,16 @@ def _arquivar_jogo_finalizado(fixture_id, snapshot_final, insights):
         "xg_proxy_away": snapshot_final.get("xg_proxy_away"),
         "divergencia_xg_gols_home": snapshot_final.get("divergencia_xg_gols_home"),
         "divergencia_xg_gols_away": snapshot_final.get("divergencia_xg_gols_away"),
-        "escanteios_home": snapshot_final.get("escanteios_home"),
-        "escanteios_away": snapshot_final.get("escanteios_away"),
-        "cartoes_home": snapshot_final.get("cartoes_home"),
-        "cartoes_away": snapshot_final.get("cartoes_away"),
+        "escanteios_home": escanteios_home_final,
+        "escanteios_away": escanteios_away_final,
+        "cartoes_home": cartoes_home_final,
+        "cartoes_away": cartoes_away_final,
         "eficiencia_home": snapshot_final.get("eficiencia_home"),
         "eficiencia_away": snapshot_final.get("eficiencia_away"),
         "momentum_home": snapshot_final.get("momentum_home"),
         "momentum_away": snapshot_final.get("momentum_away"),
-        "stats_completas_home": snapshot_final.get("stats_completas_home"),
-        "stats_completas_away": snapshot_final.get("stats_completas_away"),
+        "stats_completas_home": stats_completas_home_final,
+        "stats_completas_away": stats_completas_away_final,
         "placar_modal_prelive": snapshot_final.get("placar_modal_prelive"),
         "sinais": sinais_do_jogo,
         "arquivado_em": datetime.now(timezone.utc).isoformat(),
