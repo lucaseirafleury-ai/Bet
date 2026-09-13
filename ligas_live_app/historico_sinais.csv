@@ -16,3 +16,5 @@ fixture_id,tipo,liga,jogo,data_jogo,alvo,direcao,linha,minuto,probabilidade_esti
 19667174,sinal_chutes_totais_menos_de,Serie B,Operário PR x CRB,2026-09-09,chutes_totais,menos_de,26.5,31,72.9,1.37,,,,green,25.0,2026-09-10T00:03:40.834767+00:00,2026-09-10T08:10:00.000000+00:00,,,
 19636106,sinal_escanteios_menos_de,Superettan,Varberg BoIS x Norrköping,2026-09-10,escanteios,menos_de,10.5,75,54.5,1.83,9.0,bet365,390.9,red,11.0,2026-09-10T18:31:10.662671+00:00,2026-09-10T19:37:00+00:00,2026-09-10 18:31:02,11.5,
 19667168,sinal_chutes_totais_menos_de,Serie B,Vila Nova x Goiás,2026-09-10,chutes_totais,menos_de,26.5,30,72.9,1.37,,,,red,32.0,2026-09-10T23:00:14.575752+00:00,2026-09-11T08:08:13+00:00,,,
+19621818,sinal_chutes_totais_menos_de,Serie A,Botafogo x Bragantino,2026-09-12,chutes_totais,menos_de,26.5,30,72.9,1.37,,,,red,34.0,2026-09-13T00:00:14.038800+00:00,2026-09-13T08:07:00+00:00,,,
+19621816,sinal_escanteios_mais_de,Serie A,Palmeiras x São Paulo,2026-09-12,escanteios,mais_de,12.5,75,72.2,1.38,1.57,bet365,13.4,green,15.0,2026-09-12T23:06:31.311892+00:00,2026-09-13T08:07:00+00:00,2026-09-12 23:06:21,11.5,
