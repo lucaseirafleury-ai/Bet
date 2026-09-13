@@ -977,6 +977,21 @@ atualizada, esta lista aqui não é mantida em detalhe:
    divergência achada — as fórmulas centrais do motor estão
    matematicamente corretas, confirmado por um caminho de cálculo
    independente. Ver `docs/retrospectiva_conferencia_geral_2026-09-08.md`.
+61. **Rotina do painel passou de 1x/dia pra 3x/dia (8h, 12h, 16h BRT)** —
+   Lucas notou que, como a odd de mercado se move ao longo do dia, um
+   jogo com edge logo abaixo do limiar na checagem da manhã podia
+   cruzar o limiar mais tarde no mesmo dia e nunca aparecer (só seria
+   pego no dia seguinte, se ainda estivesse dentro da janela de
+   `dias_a_frente`). Conferi nos dados reais do ledger: no BTTS, 5 de 8
+   sugestões já registradas entraram com edge a até 3pp do limiar de
+   5% — evidência de que a densidade de "quase qualificou" perto da
+   linha de corte é real, não hipotética. O problema também é
+   simétrico (o inverso: uma sugestão já publicada de manhã pode não
+   valer mais a odd mostrada à tarde). Ajustado `trig_01L2QbvMFE1kq7jtPGKn5TPc`
+   (cron `0 11 * * *` → `0 11,15,19 * * *`, prompt atualizado pra
+   refletir a nova cadência) — nenhuma mudança de código necessária
+   (`registrar_novas_sugestoes`/`recalcular_pendentes`/`resolver_pendentes`
+   já são idempotentes, seguros pra rodar mais vezes ao dia).
 
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
