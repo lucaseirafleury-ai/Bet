@@ -656,12 +656,21 @@ LIGAS_REGIAO_NORDICAS = {"Allsvenskan", "Superettan", "1. Division"}
 # por MERCADO/liga, independente do campo "regiao" da regra (que é sobre
 # validação estatística da condição, não sobre disponibilidade de aposta) —
 # por isso um conjunto/checagem à parte, não reaproveita LIGAS_REGIAO_BRASIL.
+#
+# Só se aplica ao conjunto PRINCIPAL (publicado) — ver `aplicar_restricao_
+# mercado` em _regra_vale_para_liga/_candidatas_para_conjunto. Motivo (ver
+# conversa, 13/09/2026): restringir também os conjuntos sombra cortaria a
+# amostra de chutes de ~6x (5 dos 6 sinais históricos vieram das 4 ligas
+# agora excluídas) — sem necessidade, já que sombra nunca publica card nem
+# aposta de verdade, só existe pra medir se a condição estatística continua
+# batendo. "Publicar só onde dá pra apostar" e "medir calibração onde tiver
+# dado" são objetivos diferentes; só o primeiro precisa da restrição.
 ALVOS_RESTRITOS_SERIE_A = {"chutes_totais", "chutes_no_alvo"}
 LIGAS_SERIE_A = {"Serie A", "Série A"}
 
 
-def _regra_vale_para_liga(regra, liga):
-    if regra.get("alvo") in ALVOS_RESTRITOS_SERIE_A and liga not in LIGAS_SERIE_A:
+def _regra_vale_para_liga(regra, liga, aplicar_restricao_mercado=True):
+    if aplicar_restricao_mercado and regra.get("alvo") in ALVOS_RESTRITOS_SERIE_A and liga not in LIGAS_SERIE_A:
         return False
     regiao = regra.get("regiao")
     if regiao == "brasil":
@@ -914,17 +923,22 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
     return insights, suprimidos
 
 
-def _candidatas_para_conjunto(regras_por_checkpoint, relatorio, minuto, gols_totais_jogo, valores_combinados):
+def _candidatas_para_conjunto(regras_por_checkpoint, relatorio, minuto, gols_totais_jogo, valores_combinados,
+                               aplicar_restricao_mercado=True):
     """Núcleo do match de regras (checkpoint+placar+condição+filtros de
     confiabilidade), independente de QUAL conjunto de regras — reaproveitado
     tanto pelo conjunto principal (checar_sinais_confirmados) quanto pelos
-    conjuntos sombra (checar_sinais_sombra)."""
+    conjuntos sombra (checar_sinais_sombra). `aplicar_restricao_mercado=False`
+    (usado só pelos sombras) pula a restrição de alvo/liga por disponibilidade
+    de mercado (ALVOS_RESTRITOS_SERIE_A) — sombra nunca publica card nem
+    aposta de verdade, então pode seguir medindo calibração nas ligas sem
+    mercado real (ver conversa)."""
     candidatas = []
     for checkpoint in CHECKPOINTS_REGRA:
         if not (checkpoint <= minuto <= checkpoint + JANELA_MINUTOS_REGRA):
             continue
         for regra in regras_por_checkpoint.get((checkpoint, gols_totais_jogo), []):
-            if not _regra_vale_para_liga(regra, relatorio["liga"]):
+            if not _regra_vale_para_liga(regra, relatorio["liga"], aplicar_restricao_mercado):
                 continue
             if not _regra_bate(regra, valores_combinados):
                 continue
@@ -977,7 +991,8 @@ def checar_sinais_sombra(nome_perfil, relatorio, minuto, gols_totais_jogo, valor
     Devolve (insights, suprimidos) — ver _consolidar_candidatas.
     """
     candidatas = _candidatas_para_conjunto(
-        REGRAS_SOMBRA_POR_CHECKPOINT_PLACAR[nome_perfil], relatorio, minuto, gols_totais_jogo, valores_combinados
+        REGRAS_SOMBRA_POR_CHECKPOINT_PLACAR[nome_perfil], relatorio, minuto, gols_totais_jogo, valores_combinados,
+        aplicar_restricao_mercado=False,
     )
     direcoes_ja_disparadas = _direcoes_ja_disparadas(sinais_sombra_existentes, fixture_id)
     return _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto, estado_confirmacao_odd)
