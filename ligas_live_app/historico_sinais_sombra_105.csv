@@ -1,0 +1,3 @@
+fixture_id,tipo,liga,jogo,data_jogo,alvo,direcao,linha,minuto,probabilidade_estimada,odd_minima,odd_real,odd_real_casa,ev_pct,resultado,valor_final_alvo,timestamp_sinal,timestamp_verificacao,odd_real_atualizada_em,linha_original_sinal,reconstruido
+19667158,sinal_chutes_totais_mais_de,Serie B,Juventude x Athletic Club,2026-09-13,chutes_totais,mais_de,22.5,77,73.3,1.36,,,,green,27.0,2026-09-13T22:40:09.267607+00:00,2026-09-14T08:10:07.440729+00:00,,,
+19667163,sinal_escanteios_menos_de,Serie B,Fortaleza x Ceará,2026-09-13,escanteios,menos_de,9.5,60,100.0,1.0,,,,green,7.0,2026-09-13T22:51:25.730881+00:00,2026-09-14T08:10:07.440729+00:00,,,
