@@ -1,0 +1,6 @@
+fixture_id,tipo,liga,jogo,data_jogo,alvo,direcao,linha,minuto,probabilidade_estimada,odd_minima,odd_real,odd_real_casa,ev_pct,resultado,valor_final_alvo,timestamp_sinal,timestamp_verificacao,odd_real_atualizada_em,linha_original_sinal,reconstruido
+19667158,sinal_chutes_totais_menos_de,Serie B,Juventude x Athletic Club,2026-09-13,chutes_totais,menos_de,24.5,75,85.3,1.17,,,,red,27.0,2026-09-13T22:38:05.711044+00:00,2026-09-14T08:10:07.440729+00:00,,,
+19667163,sinal_escanteios_menos_de,Serie B,Fortaleza x Ceará,2026-09-13,escanteios,menos_de,9.5,60,100.0,1.0,,,,green,7.0,2026-09-13T22:51:24.614307+00:00,2026-09-14T08:10:07.440729+00:00,,,
+19667163,sinal_chutes_totais_mais_de,Serie B,Fortaleza x Ceará,2026-09-13,chutes_totais,mais_de,24.5,76,79.0,1.27,,,,green,26.0,2026-09-13T23:07:47.500620+00:00,2026-09-14T08:10:07.440729+00:00,,,
+19667166,sinal_chutes_totais_mais_de,Serie B,Novorizontino x Cuiabá,2026-09-13,chutes_totais,mais_de,26.5,75,91.2,1.1,,,,green,34.0,2026-09-13T23:07:48.770876+00:00,2026-09-14T08:10:07.440729+00:00,,,
+19667166,sinal_chutes_totais_menos_de,Serie B,Novorizontino x Cuiabá,2026-09-13,chutes_totais,menos_de,28.5,75,79.4,1.26,,,,red,34.0,2026-09-13T23:07:50.123360+00:00,2026-09-14T08:10:07.440729+00:00,,,
