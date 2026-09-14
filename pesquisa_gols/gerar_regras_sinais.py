@@ -162,21 +162,71 @@ def _condicao_bate(condicoes, snap):
     return True
 
 
+# Nunca deixa o fallback (regressão) devolver uma certeza absoluta — é uma
+# EXTRAPOLAÇÃO fora do dado observado, não uma medição direta; publicar
+# p=100% (ou 0%) tornaria odd_minima=1/p degenerada (1.00, sem espaço pra
+# EV) e afirmaria uma certeza que os dados não sustentam.
+P_MIN_FALLBACK = 0.02
+P_MAX_FALLBACK = 0.98
+
+
 def _tabela_com_fallback(casos_por_valor):
-    """{valor_atual: [bateu, ...]} -> {valor_atual: {"n":.., "p":..}}, usando o valor vizinho com amostra
-    suficiente quando o valor exato tem poucos jogos (mesmo padrão de fallback do resto do projeto)."""
+    """
+    {valor_atual: [bateu, ...]} -> {valor_atual: {"n":.., "n_usado":.., "p":..}}.
+
+    Pros valores com amostra própria suficiente (>=AMOSTRA_MINIMA_VALOR_ATUAL),
+    usa a proporção observada direto. Pros demais, ANTES usava a proporção do
+    valor_atual vizinho mais próximo por distância absoluta — bug real
+    reportado (Norrby x Varberg BoIS, 14/09/2026): "mais de 11.5 escanteios"
+    aos 30min com 9 escanteios já feitos mostrava 70.5% de probabilidade,
+    idêntico ao que valeria pra só 7 escanteios — o vizinho mais próximo COM
+    amostra suficiente era 7 (nada com amostra boa existe acima disso pra essa
+    condição), e todo valor de 8 em diante ficava "empacado" nesse mesmo
+    número, mesmo sendo estatisticamente óbvio que mais escanteios já feitos
+    só pode aumentar (nunca diminuir) a chance de passar de uma linha fixa.
+
+    Corrigido com uma regressão linear (ponderada pelo tamanho de amostra de
+    cada ponto) sobre os valores QUE TÊM amostra suficiente — usada tanto pra
+    INTERPOLAR (valor sem amostra própria entre dois pontos confiáveis) quanto
+    pra EXTRAPOLAR (valor além do maior/menor ponto confiável, como o caso
+    acima). Isso respeita a tendência real dos dados em vez de travar num
+    platô artificial. Resultado clipado em [P_MIN_FALLBACK, P_MAX_FALLBACK] —
+    é extrapolação, nunca uma medição direta, então nunca deveria virar 0%/100%.
+
+    Com só 1 ponto de amostra suficiente (não dá pra ajustar reta), cai pro
+    comportamento antigo (usa a proporção desse único ponto). Sem NENHUM
+    ponto de amostra suficiente, último recurso: usa a própria amostra
+    pequena (pode ser pouco confiável, mas não há nada melhor disponível).
+    """
     com_amostra = sorted(v for v, casos in casos_por_valor.items() if len(casos) >= AMOSTRA_MINIMA_VALOR_ATUAL)
+
+    slope = intercept = None
+    if len(com_amostra) >= 2:
+        pesos = [len(casos_por_valor[v]) for v in com_amostra]
+        proporcoes = [sum(casos_por_valor[v]) / len(casos_por_valor[v]) for v in com_amostra]
+        soma_pesos = sum(pesos)
+        media_x = sum(w * x for w, x in zip(pesos, com_amostra)) / soma_pesos
+        media_y = sum(w * y for w, y in zip(pesos, proporcoes)) / soma_pesos
+        variancia_x = sum(w * (x - media_x) ** 2 for w, x in zip(pesos, com_amostra))
+        if variancia_x > 0:
+            covariancia = sum(w * (x - media_x) * (y - media_y) for w, x, y in zip(pesos, com_amostra, proporcoes))
+            slope = covariancia / variancia_x
+            intercept = media_y - slope * media_x
+
     tabela = {}
     for valor, casos in casos_por_valor.items():
         if len(casos) >= AMOSTRA_MINIMA_VALOR_ATUAL:
-            casos_uso = casos
+            tabela[valor] = {"n": len(casos), "n_usado": len(casos), "p": sum(casos) / len(casos)}
+            continue
+        if slope is not None:
+            p = max(P_MIN_FALLBACK, min(P_MAX_FALLBACK, intercept + slope * valor))
+            n_usado = sum(len(casos_por_valor[v]) for v in com_amostra)
         elif com_amostra:
             casos_uso = casos_por_valor[min(com_amostra, key=lambda v: abs(v - valor))]
+            p, n_usado = sum(casos_uso) / len(casos_uso), len(casos_uso)
         else:
-            casos_uso = casos  # último recurso — nenhum valor com amostra boa pra esse alvo/regra
-        # n = jogos observados EXATAMENTE nesse valor (transparência); n_usado = amostra
-        # de fato usada pra estimar "p" (pode vir de um valor vizinho, se n for pequeno).
-        tabela[valor] = {"n": len(casos), "n_usado": len(casos_uso), "p": sum(casos_uso) / len(casos_uso)}
+            p, n_usado = (sum(casos) / len(casos) if casos else 0.0), len(casos)
+        tabela[valor] = {"n": len(casos), "n_usado": n_usado, "p": p}
     return tabela
 
 
