@@ -23,6 +23,18 @@ DESTINO = os.path.join(os.path.dirname(__file__), "..", "ligas_live_app", "regra
 
 AMOSTRA_MINIMA_VALOR_ATUAL = 30  # abaixo disso, a proporção não é confiável — busca o valor_atual vizinho
 
+# Offsets de linha pra recalibrar em recalibrar_por_valor_atual (ver docstring)
+# — case real reportado (Norrby x Varberg BoIS, 14/09/2026): sinal calibrado
+# pra "mais de 11.5" escanteios aos 30min (9 escanteios já feitos) só tinha
+# linhas_vizinhas ±1 (10.5/12.5) pra tentar achar odd real, mas o mercado
+# (bet365, market 68, escanteios) já tinha fechado 10.5/12.5/13.5 no momento
+# do sinal — jogo com ritmo de escanteios muito acima do normal, o mercado
+# ao vivo reprecifica rápido demais pra ±1 linha acompanhar. Ampliado pra ±3
+# pra dar mais chance de achar uma linha ainda aberta com probabilidade
+# calibrada (não é ilimitado: linhas mais distantes já têm amostra mais fraca
+# do próprio valor_atual, e _tabela_com_fallback já lida com isso).
+OFFSETS_LINHAS_VIZINHAS = (-3, -2, -1, 1, 2, 3)
+
 AMOSTRA_MINIMA = 200
 IMPACTO_MINIMO_PP = 5.0
 
@@ -184,7 +196,8 @@ def recalibrar_por_valor_atual(regras):
     reestimativa mais fina de uma condição já fixada, então usar mais dado
     aqui não tem o mesmo risco de vazamento que teria na descoberta original.
 
-    Também recalcula a mesma coisa pras linhas VIZINHAS (±1, mesma direção) —
+    Também recalcula a mesma coisa pras linhas VIZINHAS (ver OFFSETS_LINHAS_VIZINHAS,
+    mesma direção) —
     caso real reportado: casa de apostas só tinha "mais de 10.5" disponível
     quando o sinal era calibrado pra "mais de 9.5"; sem isso, não dava pra
     saber a probabilidade real de bater a linha que realmente estava
@@ -197,7 +210,8 @@ def recalibrar_por_valor_atual(regras):
     for regra in regras:
         stat_alvo, linha, direcao = regra["mercado"]["stat"], regra["mercado"]["linha"], regra["mercado"]["direcao"]
         alvo = regra["alvo"]
-        linhas_a_calcular = {0: linha, -1: linha - 1, 1: linha + 1}
+        linhas_a_calcular = {0: linha}
+        linhas_a_calcular.update({off: linha + off for off in OFFSETS_LINHAS_VIZINHAS})
 
         # Regra "brasil" só vale pra Série A/B; "nordicas" só vale pras 3
         # ligas nórdicas — nenhuma das duas foi confirmada (ou nem chegou a
@@ -241,7 +255,7 @@ def recalibrar_por_valor_atual(regras):
             p_condicao = entrada["p"]
             p_base = tabelas_base[0].get(valor, {"p": regra["prob_base_confirmacao"]})["p"]
             linhas_vizinhas = {}
-            for off in (-1, 1):
+            for off in OFFSETS_LINHAS_VIZINHAS:
                 entrada_off = tabelas_condicao[off].get(valor)
                 if entrada_off is None:
                     continue

@@ -850,10 +850,16 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
             if c[4] >= IMPACTO_MINIMO_PP_VALOR_ATUAL
         ]
 
+        # Busca as linhas de odds ao vivo UMA VEZ só e reaproveita pra todas as
+        # linhas candidatas (original + vizinhas) — antes disso cada uma fazia
+        # sua própria chamada de API pro MESMO fixture (até 7, desde que
+        # OFFSETS_LINHAS_VIZINHAS ampliou pra ±3 — ver conversa, 14/09/2026).
+        linhas_odds = odds_ao_vivo.buscar_linhas_odds(relatorio["fixture_id"]) if candidatos_linha else []
+
         melhor_odd = None
         aguardando_confirmacao = False
         for off, linha_cand, p_cond, odd_min_cand, _impacto_pp_cand in candidatos_linha:
-            info = odds_ao_vivo.buscar_odd_real(relatorio["fixture_id"], alvo, direcao, linha_cand)
+            info = odds_ao_vivo.buscar_odd_real(relatorio["fixture_id"], alvo, direcao, linha_cand, linhas=linhas_odds)
             if not info:
                 continue
             chave_confirmacao = f"{relatorio['fixture_id']}|{alvo}|{direcao}|{linha_cand}"
@@ -877,6 +883,41 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
 
         if melhor_odd is None and aguardando_confirmacao:
             continue  # odd real pendente de confirmação — nem publica (sintético) nem suprime ainda, aguarda o próximo ciclo
+
+        if melhor_odd is None and not aguardando_confirmacao and candidatos_linha:
+            # Nenhuma linha tentada (original + vizinhas) achou odd real — antes
+            # de cair pro sintético, confirma que a casa não fechou TODAS elas
+            # por já ter avançado além da mais extrema (ver mercado_avancou_alem:
+            # caso real Norrby x Varberg BoIS, 14/09/2026 — sinal de "mais de
+            # 11.5 escanteios" publicado com odd sintética quando a bet365 já
+            # tinha fechado a linha havia minutos, só restando linhas bem mais
+            # altas abertas). Usa a linha mais extrema entre as tentadas (maior
+            # pra mais_de, menor pra menos_de) — se até ELA já ficou pra trás,
+            # nenhuma das tentadas é uma aposta real disponível.
+            linha_mais_extrema = (
+                max(c[1] for c in candidatos_linha) if direcao == "mais_de"
+                else min(c[1] for c in candidatos_linha)
+            )
+            if odds_ao_vivo.mercado_avancou_alem(linhas_odds, alvo, direcao, linha_mais_extrema):
+                suprimidos.append({
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "fixture_id": relatorio["fixture_id"],
+                    "jogo": f"{relatorio['home']} x {relatorio['away']}",
+                    "liga": relatorio["liga"],
+                    "minuto": minuto,
+                    "alvo": alvo,
+                    "direcao": direcao,
+                    "linha": linha_original,
+                    "linha_original_sinal": None,
+                    "probabilidade": round(melhor_stats["p_condicao"] * 100, 1),
+                    "odd_real": None,
+                    "odd_real_casa": None,
+                    "probabilidade_implicita_real": None,
+                    "ev_pct": None,
+                    "rotulo_condicao": melhor_regra["rotulo"],
+                    "motivo": "mercado_avancado",
+                })
+                continue  # a casa já fechou até a linha mais extrema tentada — não publica com odd sintética
 
         if melhor_odd is not None and (melhor_odd["ev_pct"] < 0 or melhor_odd["ev_pct"] > TETO_EV_PCT_ODD_REAL):
             suprimidos.append({
