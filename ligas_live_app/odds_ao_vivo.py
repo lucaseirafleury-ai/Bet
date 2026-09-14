@@ -134,22 +134,45 @@ def _tentativas_mercado(alvo, direcao, linha):
     return tentativas
 
 
-def buscar_odd_real(fixture_id, alvo, direcao, linha):
+def buscar_linhas_odds(fixture_id):
+    """
+    Busca as linhas de odds ao vivo cruas da fixture (sem filtrar por
+    mercado/label/total) — extraído de buscar_odd_real pra poder ser buscado
+    UMA VEZ por (alvo, direção) e reaproveitado tanto pelas várias linhas
+    candidatas (original + vizinhas) quanto por mercado_avancou_alem, em vez
+    de uma chamada de API por linha tentada (bug real: com OFFSETS_LINHAS_VIZINHAS
+    ampliado pra ±3, eram até 7 chamadas de API pro MESMO fixture na mesma
+    checagem). Devolve [] em qualquer falha (rede, fixture sem odds ainda) —
+    quem chama trata igual a "não achou nada".
+    """
+    try:
+        linhas = sm.odds_inplay_fixture(fixture_id)
+    except Exception as e:
+        print(f"  [odds ao vivo] erro buscando fixture {fixture_id}: {e}")
+        return []
+    if not linhas:
+        print(f"  [odds ao vivo] fixture {fixture_id}: API não retornou nenhuma linha de odds ao vivo ainda")
+        return []
+    return linhas
+
+
+def buscar_odd_real(fixture_id, alvo, direcao, linha, linhas=None):
     """
     Devolve {"odd", "casa", "probabilidade_implicita", "atualizado_em"} para
     o mercado/linha exatos do sinal, ou None se não achar.
+
+    `linhas`: dado cru já buscado por buscar_linhas_odds(fixture_id) — passe
+    quando for checar várias linhas (original + vizinhas) do MESMO fixture na
+    mesma checagem, pra não repetir a chamada de API. Se None, busca aqui
+    (comportamento antigo, mantido pra quem chama uma linha só).
     """
     tentativas = _tentativas_mercado(alvo, direcao, linha)
     if not tentativas:
         return None
 
-    try:
-        linhas = sm.odds_inplay_fixture(fixture_id)
-    except Exception as e:
-        print(f"  [odds ao vivo] erro buscando fixture {fixture_id}: {e}")
-        return None
+    if linhas is None:
+        linhas = buscar_linhas_odds(fixture_id)
     if not linhas:
-        print(f"  [odds ao vivo] fixture {fixture_id}: API não retornou nenhuma linha de odds ao vivo ainda")
         return None
 
     candidatas = []
@@ -196,6 +219,47 @@ def buscar_odd_real(fixture_id, alvo, direcao, linha):
         "probabilidade_implicita": round(1 / escolhida["_odd"], 4),
         "atualizado_em": escolhida.get("latest_bookmaker_update"),
     }
+
+
+def mercado_avancou_alem(linhas, alvo, direcao, linha_extrema):
+    """
+    True se a casa já tiver uma linha ABERTA mais além (mais_de: total MAIOR;
+    menos_de: total MENOR) do que `linha_extrema` — a mais distante entre a
+    linha original do sinal e as vizinhas que passaram no filtro de impacto
+    (ver candidatos_linha em _consolidar_candidatas). Sinal direto de que o
+    jogo já teve muito mais (ou muito menos) eventos do que o normal pra esse
+    estado, a própria casa já fechou linha_extrema (e tudo abaixo/acima dela,
+    a depender da direção) e só abriu linhas mais longe — nenhuma linha que
+    tentamos ainda é uma aposta real disponível, então nem cabe publicar com
+    odd sintética (que assumiria implicitamente que dava pra apostar nela).
+
+    Caso real que motivou (ver conversa, 14/09/2026 — Norrby x Varberg BoIS):
+    sinal de "mais de 11.5 escanteios" aos 32min (9 escanteios já feitos)
+    publicado com odd SINTÉTICA de 1.38 — só que a bet365 já tinha fechado
+    a linha 13 (Over/Under 13) 7 minutos antes do sinal, sobrando só linhas
+    >=14 abertas: a 11.5 (e as vizinhas 10.5/12.5, que nem passavam no filtro
+    de impacto pra esse valor_atual) já eram inegociáveis havia minutos.
+
+    Só usa entradas com `stopped=False` (linha realmente aberta agora) — uma
+    linha fechada não conta como "mercado avançou até aqui", só como "não
+    coberta neste instante" (ver buscar_odd_real, que já ignora `stopped`).
+    """
+    tentativas = _tentativas_mercado(alvo, direcao, linha_extrema)
+    if not tentativas or not linhas:
+        return False
+    for market_id, label, total_alvo in tentativas:
+        for o in linhas:
+            if o.get("stopped") or o.get("market_id") != market_id or o.get("label") != label:
+                continue
+            try:
+                total = float(o.get("total"))
+            except (TypeError, ValueError):
+                continue
+            if direcao == "mais_de" and total > total_alvo:
+                return True
+            if direcao == "menos_de" and total < total_alvo:
+                return True
+    return False
 
 
 # Tolerância de variação entre duas leituras pra ainda considerar "a mesma

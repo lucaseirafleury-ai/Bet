@@ -23,6 +23,18 @@ DESTINO = os.path.join(os.path.dirname(__file__), "..", "ligas_live_app", "regra
 
 AMOSTRA_MINIMA_VALOR_ATUAL = 30  # abaixo disso, a proporção não é confiável — busca o valor_atual vizinho
 
+# Offsets de linha pra recalibrar em recalibrar_por_valor_atual (ver docstring)
+# — case real reportado (Norrby x Varberg BoIS, 14/09/2026): sinal calibrado
+# pra "mais de 11.5" escanteios aos 30min (9 escanteios já feitos) só tinha
+# linhas_vizinhas ±1 (10.5/12.5) pra tentar achar odd real, mas o mercado
+# (bet365, market 68, escanteios) já tinha fechado 10.5/12.5/13.5 no momento
+# do sinal — jogo com ritmo de escanteios muito acima do normal, o mercado
+# ao vivo reprecifica rápido demais pra ±1 linha acompanhar. Ampliado pra ±3
+# pra dar mais chance de achar uma linha ainda aberta com probabilidade
+# calibrada (não é ilimitado: linhas mais distantes já têm amostra mais fraca
+# do próprio valor_atual, e _tabela_com_fallback já lida com isso).
+OFFSETS_LINHAS_VIZINHAS = (-3, -2, -1, 1, 2, 3)
+
 AMOSTRA_MINIMA = 200
 IMPACTO_MINIMO_PP = 5.0
 
@@ -150,21 +162,71 @@ def _condicao_bate(condicoes, snap):
     return True
 
 
+# Nunca deixa o fallback (regressão) devolver uma certeza absoluta — é uma
+# EXTRAPOLAÇÃO fora do dado observado, não uma medição direta; publicar
+# p=100% (ou 0%) tornaria odd_minima=1/p degenerada (1.00, sem espaço pra
+# EV) e afirmaria uma certeza que os dados não sustentam.
+P_MIN_FALLBACK = 0.02
+P_MAX_FALLBACK = 0.98
+
+
 def _tabela_com_fallback(casos_por_valor):
-    """{valor_atual: [bateu, ...]} -> {valor_atual: {"n":.., "p":..}}, usando o valor vizinho com amostra
-    suficiente quando o valor exato tem poucos jogos (mesmo padrão de fallback do resto do projeto)."""
+    """
+    {valor_atual: [bateu, ...]} -> {valor_atual: {"n":.., "n_usado":.., "p":..}}.
+
+    Pros valores com amostra própria suficiente (>=AMOSTRA_MINIMA_VALOR_ATUAL),
+    usa a proporção observada direto. Pros demais, ANTES usava a proporção do
+    valor_atual vizinho mais próximo por distância absoluta — bug real
+    reportado (Norrby x Varberg BoIS, 14/09/2026): "mais de 11.5 escanteios"
+    aos 30min com 9 escanteios já feitos mostrava 70.5% de probabilidade,
+    idêntico ao que valeria pra só 7 escanteios — o vizinho mais próximo COM
+    amostra suficiente era 7 (nada com amostra boa existe acima disso pra essa
+    condição), e todo valor de 8 em diante ficava "empacado" nesse mesmo
+    número, mesmo sendo estatisticamente óbvio que mais escanteios já feitos
+    só pode aumentar (nunca diminuir) a chance de passar de uma linha fixa.
+
+    Corrigido com uma regressão linear (ponderada pelo tamanho de amostra de
+    cada ponto) sobre os valores QUE TÊM amostra suficiente — usada tanto pra
+    INTERPOLAR (valor sem amostra própria entre dois pontos confiáveis) quanto
+    pra EXTRAPOLAR (valor além do maior/menor ponto confiável, como o caso
+    acima). Isso respeita a tendência real dos dados em vez de travar num
+    platô artificial. Resultado clipado em [P_MIN_FALLBACK, P_MAX_FALLBACK] —
+    é extrapolação, nunca uma medição direta, então nunca deveria virar 0%/100%.
+
+    Com só 1 ponto de amostra suficiente (não dá pra ajustar reta), cai pro
+    comportamento antigo (usa a proporção desse único ponto). Sem NENHUM
+    ponto de amostra suficiente, último recurso: usa a própria amostra
+    pequena (pode ser pouco confiável, mas não há nada melhor disponível).
+    """
     com_amostra = sorted(v for v, casos in casos_por_valor.items() if len(casos) >= AMOSTRA_MINIMA_VALOR_ATUAL)
+
+    slope = intercept = None
+    if len(com_amostra) >= 2:
+        pesos = [len(casos_por_valor[v]) for v in com_amostra]
+        proporcoes = [sum(casos_por_valor[v]) / len(casos_por_valor[v]) for v in com_amostra]
+        soma_pesos = sum(pesos)
+        media_x = sum(w * x for w, x in zip(pesos, com_amostra)) / soma_pesos
+        media_y = sum(w * y for w, y in zip(pesos, proporcoes)) / soma_pesos
+        variancia_x = sum(w * (x - media_x) ** 2 for w, x in zip(pesos, com_amostra))
+        if variancia_x > 0:
+            covariancia = sum(w * (x - media_x) * (y - media_y) for w, x, y in zip(pesos, com_amostra, proporcoes))
+            slope = covariancia / variancia_x
+            intercept = media_y - slope * media_x
+
     tabela = {}
     for valor, casos in casos_por_valor.items():
         if len(casos) >= AMOSTRA_MINIMA_VALOR_ATUAL:
-            casos_uso = casos
+            tabela[valor] = {"n": len(casos), "n_usado": len(casos), "p": sum(casos) / len(casos)}
+            continue
+        if slope is not None:
+            p = max(P_MIN_FALLBACK, min(P_MAX_FALLBACK, intercept + slope * valor))
+            n_usado = sum(len(casos_por_valor[v]) for v in com_amostra)
         elif com_amostra:
             casos_uso = casos_por_valor[min(com_amostra, key=lambda v: abs(v - valor))]
+            p, n_usado = sum(casos_uso) / len(casos_uso), len(casos_uso)
         else:
-            casos_uso = casos  # último recurso — nenhum valor com amostra boa pra esse alvo/regra
-        # n = jogos observados EXATAMENTE nesse valor (transparência); n_usado = amostra
-        # de fato usada pra estimar "p" (pode vir de um valor vizinho, se n for pequeno).
-        tabela[valor] = {"n": len(casos), "n_usado": len(casos_uso), "p": sum(casos_uso) / len(casos_uso)}
+            p, n_usado = (sum(casos) / len(casos) if casos else 0.0), len(casos)
+        tabela[valor] = {"n": len(casos), "n_usado": n_usado, "p": p}
     return tabela
 
 
@@ -184,20 +246,41 @@ def recalibrar_por_valor_atual(regras):
     reestimativa mais fina de uma condição já fixada, então usar mais dado
     aqui não tem o mesmo risco de vazamento que teria na descoberta original.
 
-    Também recalcula a mesma coisa pras linhas VIZINHAS (±1, mesma direção) —
+    Também recalcula a mesma coisa pras linhas VIZINHAS (ver OFFSETS_LINHAS_VIZINHAS,
+    mesma direção) —
     caso real reportado: casa de apostas só tinha "mais de 10.5" disponível
     quando o sinal era calibrado pra "mais de 9.5"; sem isso, não dava pra
     saber a probabilidade real de bater a linha que realmente estava
     disponível pra apostar, só a da linha original. Guardado em
     "linhas_vizinhas" pra não mexer no formato já existente (linha original
     continua nas chaves de sempre, por compatibilidade).
+
+    A probabilidade em si (p_condicao/p_base) é estimada agrupando por DELTA
+    — "quanto falta pra bater a linha" (linha_off - valor_atual), não pelo
+    valor_atual sozinho pra uma linha FIXA. Achado real (ver conversa,
+    14/09/2026 — Norrby x Varberg BoIS): pra essa mesma regra, valor_atual=4
+    faltando 5 (linha 8.5), valor_atual=5 faltando 5 (linha 9.5), valor=6
+    faltando 5 (linha 10.5) e valor=7 faltando 5 (linha 11.5) — todos com
+    amostra própria boa (n>=30) — deram 66%, 69%, 64% e 70% respectivamente:
+    praticamente CONSTANTE. Ou seja, "quanto falta" prevê a probabilidade
+    muito melhor do que o valor absoluto sozinho — faz sentido, já que o
+    tempo restante até o fim do jogo é o mesmo pro checkpoint fixo (minuto da
+    regra), então a distribuição de quantos escanteios ainda saem depende
+    muito mais de "quantos faltam" do que de "quantos já saíram". Agrupar por
+    delta (em vez de por valor, por linha fixa) junta a amostra de VÁRIOS
+    (valor, linha vizinha) diferentes que head pro mesmo delta — muito mais
+    dado por ponto, e generaliza de verdade pra valor_atual raros (extrapolar
+    em cima do delta, que é estável, é muito mais seguro que extrapolar em
+    cima do valor absoluto pra uma linha fixa, que decai rápido por pura
+    escassez de amostra em cada linha isolada).
     """
     snaps_por_fixture, resultados, liga_por_fixture = _carregar_dados_pooled()
 
     for regra in regras:
         stat_alvo, linha, direcao = regra["mercado"]["stat"], regra["mercado"]["linha"], regra["mercado"]["direcao"]
         alvo = regra["alvo"]
-        linhas_a_calcular = {0: linha, -1: linha - 1, 1: linha + 1}
+        linhas_a_calcular = {0: linha}
+        linhas_a_calcular.update({off: linha + off for off in OFFSETS_LINHAS_VIZINHAS})
 
         # Regra "brasil" só vale pra Série A/B; "nordicas" só vale pras 3
         # ligas nórdicas — nenhuma das duas foi confirmada (ou nem chegou a
@@ -212,9 +295,16 @@ def recalibrar_por_valor_atual(regras):
         else:
             fixtures_desta_regiao = None
 
-        # offset -> valor_atual -> [bateu, ...]
-        casos_condicao = {off: {} for off in linhas_a_calcular}
-        casos_base = {off: {} for off in linhas_a_calcular}
+        # offset -> valor_atual -> [bateu, ...] — só pra "n" (transparência:
+        # quantos jogos de referência tinham EXATAMENTE esse valor_atual e
+        # bateram a condição), o formato de sempre.
+        casos_condicao_por_valor = {off: {} for off in linhas_a_calcular}
+        # delta (linha_off - valor_atual) -> [bateu, ...] — POOLED entre todos
+        # os (offset, valor_atual) que caem no mesmo delta, usado pra estimar
+        # p_condicao/p_base de verdade (ver docstring acima).
+        casos_condicao_por_delta = {}
+        casos_base_por_delta = {}
+
         for fid, snaps in snaps_por_fixture.items():
             if fixtures_desta_regiao is not None and fid not in fixtures_desta_regiao:
                 continue
@@ -229,35 +319,40 @@ def recalibrar_por_valor_atual(regras):
             condicao_ok = _condicao_bate(regra["condicoes"], snap)
             for off, linha_off in linhas_a_calcular.items():
                 bateu = (res[alvo] > linha_off) if direcao == "mais_de" else (res[alvo] < linha_off)
-                casos_base[off].setdefault(valor_atual, []).append(bateu)
+                delta = linha_off - valor_atual
+                casos_base_por_delta.setdefault(delta, []).append(bateu)
                 if condicao_ok:
-                    casos_condicao[off].setdefault(valor_atual, []).append(bateu)
+                    casos_condicao_por_valor[off].setdefault(valor_atual, []).append(bateu)
+                    casos_condicao_por_delta.setdefault(delta, []).append(bateu)
 
-        tabelas_condicao = {off: _tabela_com_fallback(casos_condicao[off]) for off in linhas_a_calcular}
-        tabelas_base = {off: _tabela_com_fallback(casos_base[off]) for off in linhas_a_calcular}
+        tabela_condicao_por_delta = _tabela_com_fallback(casos_condicao_por_delta)
+        tabela_base_por_delta = _tabela_com_fallback(casos_base_por_delta)
 
         por_valor_atual = {}
-        for valor, entrada in tabelas_condicao[0].items():
-            p_condicao = entrada["p"]
-            p_base = tabelas_base[0].get(valor, {"p": regra["prob_base_confirmacao"]})["p"]
+        for valor, casos_deste_valor in casos_condicao_por_valor[0].items():
+            delta_0 = linha - valor
+            p_condicao = tabela_condicao_por_delta[delta_0]["p"]
+            p_base = tabela_base_por_delta.get(delta_0, {"p": regra["prob_base_confirmacao"]})["p"]
             linhas_vizinhas = {}
-            for off in (-1, 1):
-                entrada_off = tabelas_condicao[off].get(valor)
-                if entrada_off is None:
+            for off in OFFSETS_LINHAS_VIZINHAS:
+                casos_off_deste_valor = casos_condicao_por_valor[off].get(valor)
+                if casos_off_deste_valor is None:
                     continue
-                p_off = entrada_off["p"]
-                p_base_off = tabelas_base[off].get(valor, {"p": p_base})["p"]
+                delta_off = linhas_a_calcular[off] - valor
+                entrada_delta = tabela_condicao_por_delta[delta_off]
+                p_off = entrada_delta["p"]
+                p_base_off = tabela_base_por_delta.get(delta_off, {"p": p_base})["p"]
                 linhas_vizinhas[str(off)] = {
                     "linha": linhas_a_calcular[off],
-                    "n": entrada_off["n"],
-                    "n_usado": entrada_off["n_usado"],
+                    "n": len(casos_off_deste_valor),
+                    "n_usado": entrada_delta["n_usado"],
                     "p_condicao": round(p_off, 4),
                     "impacto_pp": round((p_off - p_base_off) * 100, 2),
                     "odd_minima": round(1 / p_off, 2) if p_off > 0 else None,
                 }
             por_valor_atual[str(valor)] = {
-                "n": entrada["n"],
-                "n_usado": entrada["n_usado"],
+                "n": len(casos_deste_valor),
+                "n_usado": tabela_condicao_por_delta[delta_0]["n_usado"],
                 "p_condicao": round(p_condicao, 4),
                 "p_base": round(p_base, 4),
                 "impacto_pp": round((p_condicao - p_base) * 100, 2),
