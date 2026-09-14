@@ -535,7 +535,31 @@ IMPACTO_MINIMO_PP_VALOR_ATUAL = 5.0  # mesmo limiar usado pra selecionar as regr
 # pico pontual (69%), que é provavelmente ruído de amostra. Em 75% o volume
 # era baixo demais (~6,4% dos jogos, 319 sinais) e o lucro total já ficava
 # negativo apesar do acerto alto (86,8%) — pouco volume não compensa.
-PROBABILIDADE_MINIMA_VALOR_ATUAL = 0.70
+#
+# ATUALIZAÇÃO (ver conversa, 14/09/2026): esse backtest juntava Brasil e
+# nórdicas num teste só. Depois da correção da probabilidade por delta
+# (gerar_regras_sinais.py::recalibrar_por_valor_atual), o mesmo piso de 70%
+# passou a zerar quase toda condição das nórdicas (calibração honesta: só 23
+# regras lá, contra 82 do Brasil, dão bem menos margem pra sobrar acima de
+# 70% depois que a base parou de ser subestimada) — 0% dos jogos nórdicos
+# geravam sinal. Backtest por FAIXA de probabilidade prometida (contra o
+# resultado real) mostrou que as duas regiões calibram honestamente (acerto
+# real bate ou supera o prometido) até 60%: nórdicas 65-70%→74,8% real,
+# 60-65%→71,4% real; Brasil no mesmo range: 69,3%/60,7% real — ambas dentro
+# do esperado, não é "forçar mais sinal", é sinal genuíno que o piso único
+# escondia. Por isso agora o piso é POR REGIÃO da LIGA sendo avaliada (não
+# da "regiao" da regra) — Brasil mantém 70% (não precisava mudar), nórdicas
+# cai pra 60% (dá 9,7% dos jogos nórdicos com sinal, acerto real 71,4%).
+PROBABILIDADE_MINIMA_POR_LIGA = {"nordicas": 0.60, "brasil": 0.70}
+PROBABILIDADE_MINIMA_VALOR_ATUAL_PADRAO = 0.70  # fallback pra liga não mapeada (nunca deveria acontecer nas 5 atuais)
+
+
+def _piso_probabilidade_para_liga(liga):
+    if liga in LIGAS_REGIAO_NORDICAS:
+        return PROBABILIDADE_MINIMA_POR_LIGA["nordicas"]
+    if liga in LIGAS_REGIAO_BRASIL:
+        return PROBABILIDADE_MINIMA_POR_LIGA["brasil"]
+    return PROBABILIDADE_MINIMA_VALOR_ATUAL_PADRAO
 
 # Teto de EV% sobre odd REAL: caso real que motivou (09/09/2026, Varberg BoIS x
 # Norrköping) — sinal de "menos de 10.5 escanteios" com p_condição=54.5% (abaixo
@@ -991,7 +1015,7 @@ def _candidatas_para_conjunto(regras_por_checkpoint, relatorio, minuto, gols_tot
                 # às vezes porque o "impacto" original era em boa parte confundido com
                 # o valor atual, não um efeito genuíno da condição) — não mostra.
                 continue
-            if stats["p_condicao"] < PROBABILIDADE_MINIMA_VALOR_ATUAL:
+            if stats["p_condicao"] < _piso_probabilidade_para_liga(relatorio["liga"]):
                 # bateu a base, mas a probabilidade em si ainda é baixa demais pra
                 # ser uma aposta assertiva (ex.: 20% -> 27% é +7pp de impacto, mas
                 # ainda 73% de chance de perder) — vantagem sobre a base não basta.
