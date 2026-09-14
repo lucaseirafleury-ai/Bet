@@ -97,7 +97,7 @@ def rodar():
     regras = payload["regras"]
     print(f"{len(regras)} regras publicadas — replicando exatamente o gate de produção "
           f"(liga aceita p/ regiao, impacto_pp>={lm.IMPACTO_MINIMO_PP_VALOR_ATUAL}, "
-          f"p_condicao>={lm.PROBABILIDADE_MINIMA_VALOR_ATUAL*100:.0f}%)\n")
+          f"p_condicao>=piso por região da liga — ver lm._piso_probabilidade_para_liga)\n")
 
     agregados = defaultdict(lambda: {"com_vermelho": [], "sem_vermelho": []})
     por_regra = []
@@ -137,7 +137,7 @@ def rodar():
             # MESMO gate de _candidatas_para_conjunto em produção.
             if entrada["impacto_pp"] < lm.IMPACTO_MINIMO_PP_VALOR_ATUAL:
                 continue
-            if entrada["p_condicao"] < lm.PROBABILIDADE_MINIMA_VALOR_ATUAL:
+            if entrada["p_condicao"] < lm._piso_probabilidade_para_liga(liga_nome):
                 continue
 
             res = resultados.get(fid)

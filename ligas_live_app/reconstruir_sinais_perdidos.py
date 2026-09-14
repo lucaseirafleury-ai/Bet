@@ -122,12 +122,14 @@ def _reconstruir_fixture(fixture_resumo, mapa_types, data_hoje_str):
             if not (checkpoint <= minuto <= checkpoint + lm.JANELA_MINUTOS_REGRA):
                 continue
             for regra in lm.REGRAS_POR_CHECKPOINT_PLACAR.get((checkpoint, gols_totais_jogo), []):
+                if not lm._regra_vale_para_liga(regra, liga_nome):
+                    continue
                 if not lm._regra_bate(regra, valores_combinados):
                     continue
                 stats = lm._stats_para_valor_atual(regra, valores_combinados)
                 if stats is None or stats["impacto_pp"] < lm.IMPACTO_MINIMO_PP_VALOR_ATUAL:
                     continue
-                if stats["p_condicao"] < lm.PROBABILIDADE_MINIMA_VALOR_ATUAL:
+                if stats["p_condicao"] < lm._piso_probabilidade_para_liga(liga_nome):
                     continue
                 stats = dict(stats, valor_atual_real=int(round(valores_combinados.get(regra["mercado"]["stat"], 0.0))))
                 candidatas.append((regra, stats))
