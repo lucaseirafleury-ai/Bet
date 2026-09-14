@@ -169,9 +169,29 @@ def fixtures_finalizadas_ligas(dias_para_tras=30):
 
 
 def live_fixtures(include="statistics.type;participants;league;scores;periods"):
-    """Fixtures atualmente ao vivo (dentro das ligas assinadas)."""
-    data = _get("/livescores/inplay", {"include": include})
-    return data.get("data", [])
+    """
+    Fixtures atualmente ao vivo — de TODO o mundo, não só as nossas 5 ligas
+    (quem filtra pras ligas monitoradas é live_monitor.ciclo(), depois desta
+    chamada). BUG REAL corrigido aqui (ver conversa, 14/09/2026: "domingo de
+    muitos jogos, zero sinal"): esta função só lia a primeira página do
+    /livescores/inplay, sem paginar — mesma classe de bug já documentada e
+    corrigida em fixtures_between() acima, só que nunca replicada aqui. Em
+    dias normais (poucos jogos ao vivo no mundo todo) a primeira página já
+    cobre tudo, escondendo o problema; num domingo com o mundo inteiro
+    jogando, o total de partidas ao vivo GLOBAIS passa do limite de uma
+    página, e as nossas 5 ligas podem cair inteiramente fora da página 1 —
+    silenciosamente invisíveis pro ciclo() por tempo indeterminado (a ordem
+    de retorno da API não é garantida a favorecer nossas ligas).
+    """
+    todas = []
+    page = 1
+    while True:
+        data = _get("/livescores/inplay", {"include": include, "page": page})
+        todas.extend(data.get("data", []))
+        if not data.get("pagination", {}).get("has_more"):
+            break
+        page += 1
+    return todas
 
 
 def odds_inplay_fixture(fixture_id):

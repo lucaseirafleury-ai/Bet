@@ -133,7 +133,14 @@ def _reconstruir_fixture(fixture_resumo, mapa_types, data_hoje_str):
                 candidatas.append((regra, stats))
 
         direcoes_ja_disparadas = lm._direcoes_ja_disparadas(insights_deste_jogo, fixture_id)
-        novos = lm._consolidar_candidatas(relatorio_min, candidatas, direcoes_ja_disparadas, minuto)
+        # estado_confirmacao_odd={} é seguro aqui: odds_ao_vivo.buscar_odd_real
+        # está stubado pra sempre devolver None (ver docstring do módulo), então
+        # confirmar_odd_real nunca chega a ser chamado de verdade.
+        # _consolidar_candidatas agora devolve (insights, suprimidos) — ver
+        # COMBOS_SUPRIMIDOS_POS_VERMELHO/ev_negativo/ev_acima_do_teto. Este
+        # script só reconstrói sinais PUBLICÁVEIS; supressões não importam
+        # aqui (não há odd real nem estado de vermelho simulados).
+        novos, _suprimidos = lm._consolidar_candidatas(relatorio_min, candidatas, direcoes_ja_disparadas, minuto, {})
         for n in novos:
             chave = (n["fixture_id"], n["tipo"], n["time"])
             if any((i["fixture_id"], i["tipo"], i["time"]) == chave for i in insights_deste_jogo):
