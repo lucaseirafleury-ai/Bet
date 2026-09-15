@@ -57,12 +57,22 @@ def _get(path, params=None, base_url=BASE_URL, tentativas=5):
             print(f"  [rate limit] esperando {espera}s antes de tentar de novo ({path})...")
             time.sleep(espera)
             continue
+        if r.status_code >= 500 and tentativa < tentativas:
+            # 5xx da Sportmonks/Cloudflare (502/503/504/520/522/524) é
+            # transitório — visto de verdade num rebusca: um 520 isolado no
+            # meio de centenas de chamadas idênticas que funcionaram. Sem
+            # este retry a exceção sobe, a fixture é pulada e (antes do fix
+            # em buscar_sportmonks.buscar) sumia do dataset em silêncio.
+            espera = 5 * tentativa
+            print(f"  [erro {r.status_code} no servidor] esperando {espera}s antes de tentar de novo ({path})...")
+            time.sleep(espera)
+            continue
         try:
             r.raise_for_status()
         except requests.HTTPError:
             raise requests.HTTPError(f"Sportmonks respondeu {r.status_code} em {path}") from None
         return r.json()
-    raise requests.HTTPError(f"Sportmonks respondeu 429 repetidamente em {path}, desisti após {tentativas} tentativas")
+    raise requests.HTTPError(f"Sportmonks respondeu {r.status_code} repetidamente em {path}, desisti após {tentativas} tentativas")
 
 
 def _janelas_de_data(date_from, date_to, max_dias=MAX_DIAS_POR_JANELA):

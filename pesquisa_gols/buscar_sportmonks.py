@@ -432,8 +432,16 @@ def buscar(date_from, date_to, league_id=ALLSVENSKAN_LEAGUE_ID, tipos_disponivei
         try:
             processar_fixture(f, candidatas_resolvidas, goal_type_id, tipos_disponiveis, jogos, resultados_alvo, snapshots)
         except Exception as e:
-            print(f"  [ERRO] {e}")
-        processados.add(f["id"])
+            # NÃO marca como processada. `processados` vai pro checkpoint, que
+            # é cache permanente: marcar aqui fazia a fixture ser pulada em
+            # toda execução futura — o jogo sumia do dataset pra sempre, com
+            # rastro de uma linha de log. Deixando de fora, a próxima execução
+            # tenta de novo. Fixtures legitimamente sem dado (sem trends, sem
+            # placar final) não passam por aqui: processar_fixture devolve
+            # cedo, sem exceção, e são marcadas normalmente.
+            print(f"  [ERRO] {e} — fixture NÃO marcada como processada, será tentada de novo")
+        else:
+            processados.add(f["id"])
         if caminho_checkpoint and novas % INTERVALO_CHECKPOINT_FIXTURES == 0:
             _salvar_checkpoint(caminho_checkpoint, jogos, resultados_alvo, snapshots, processados, candidatas_resolvidas)
         time.sleep(INTERVALO_ENTRE_FIXTURES_SEGUNDOS)
