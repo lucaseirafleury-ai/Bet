@@ -132,24 +132,49 @@ def _liga_aceita_regra(regiao, league_id):
     return True
 
 
-def _achar_odd_real(odds_historico, market_ids, direcao_label, linha, timestamp_checkpoint):
-    """Entre as entradas do(s) market_id(s) dados, acha a odd da linha/direção certas
-    com atualização mais próxima (e não muito posterior) ao timestamp do checkpoint —
-    evita usar uma odd que só existiu DEPOIS do momento do sinal (vazamento de futuro)."""
+def _tentativas_mercado(alvo, direcao, linha):
+    """
+    (market_id, label, total) a tentar, espelhando
+    ligas_live_app/odds_ao_vivo.py::_tentativas_mercado — o painel ao vivo
+    aposta nestes formatos, então o backtest tem que medir os mesmos.
+
+    Por que isto existe: o backtest casava `float(total) == linha` exato num
+    mercado de linha .5. Medido na API em 15/09/2026, o market_id 67 não vem
+    MAIS em nenhuma fixture (0 entradas em jogos de 2025 e de 2026), e o que
+    existe é o 68 com total INTEIRO ('6', '13'). Com linha 9.5 contra total
+    '9', `abs(9 - 9.5) = 0.5` reprovava sempre — daí 1 odd achada em 5.241
+    disparos, contra 1.468 em 49.419 numa rodada de 09/09, quando o 67 ainda
+    vinha. Conversão: mais_de X.5 == Over X; menos_de X.5 == Under X+1.
+    """
+    cfg = MARKETS_POR_ALVO.get(alvo)
+    if not cfg:
+        return []
+    label = "Over" if direcao == "mais_de" else "Under"
+    tentativas = [(cfg["principal"], label, linha)]
+    if alvo == "escanteios":
+        total_inteiro = int(linha - 0.5) if direcao == "mais_de" else int(linha + 0.5)
+        tentativas.append((cfg["principal"], label, total_inteiro))  # formato bet365, mesmo market_id
+        if cfg["fallback"]:
+            tentativas.append((cfg["fallback"], label, total_inteiro))
+    return tentativas
+
+
+def _achar_odd_real(odds_historico, tentativas, timestamp_checkpoint):
+    """Entre as (market_id, label, total) tentadas, acha a odd com atualização
+    mais próxima (e não muito posterior) ao timestamp do checkpoint — evita usar
+    uma odd que só existiu DEPOIS do momento do sinal (vazamento de futuro)."""
+    alvos = {(m, l, round(float(t), 2)) for m, l, t in tentativas}
     candidatas = []
     for d in odds_historico:
-        if d["market_id"] not in market_ids:
-            continue
-        if d["label"] != direcao_label:
-            continue
         total = d.get("total")
         if total is None:
             continue
         try:
-            if abs(float(total) - linha) > 0.01:
+            chave = (d["market_id"], d["label"], round(float(total), 2))
+            if chave not in alvos:
                 continue
             valor = float(d["value"])
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, KeyError):
             continue
         try:
             ts = datetime.strptime(d["latest_bookmaker_update"], "%Y-%m-%d %H:%M:%S")
@@ -249,12 +274,9 @@ def rodar():
             alvo = regra["alvo"]
             direcao = regra["mercado"]["direcao"]
             linha = regra["mercado"]["linha"]
-            label = "Over" if direcao == "mais_de" else "Under"
-            markets_cfg = MARKETS_POR_ALVO[alvo]
-            market_ids = {markets_cfg["principal"]} | ({markets_cfg["fallback"]} if markets_cfg["fallback"] else set())
-
+            tentativas = _tentativas_mercado(alvo, direcao, linha)
             timestamp_checkpoint = kickoff + timedelta(minutes=regra["minuto"])
-            odd = _achar_odd_real(odds_historico, market_ids, label, linha, timestamp_checkpoint)
+            odd = _achar_odd_real(odds_historico, tentativas, timestamp_checkpoint)
             if odd is None:
                 continue
             stats["odd_encontrada"] += 1
