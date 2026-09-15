@@ -15,7 +15,11 @@ import csv
 import glob
 import json
 import os
+import sys
 from collections import defaultdict
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from buscar_sportmonks import VERSAO_ROTULO
 
 BASE = os.path.join(os.path.dirname(__file__), "resultados")
 DADOS_DIR = os.path.join(os.path.dirname(__file__), "dados")
@@ -114,21 +118,41 @@ LIGAS_NORDICAS = {573, 579, 447}  # Allsvenskan, Superettan, 1. Division
 
 def _carregar_dados_pooled():
     """fixture_id -> {minuto: snapshot}, fixture_id -> resultados_alvo, fixture_id -> league_id
-    (extraído do próprio nome do arquivo .checkpoint_<league_id>.json) — todas as ligas juntas."""
+    (extraído do próprio nome do arquivo .checkpoint_<league_id>.json) — todas as ligas juntas.
+
+    Só entram checkpoints cujos rótulos estão na versão ATUAL
+    (buscar_sportmonks.VERSAO_ROTULO). Misturar versões aqui é silencioso e
+    caro: uma regra de região "universal" recalibra sobre o pool inteiro
+    (fixtures_desta_regiao = None em recalibrar_por_valor_atual), então
+    checkpoints de ligas que não foram rebuscadas — ex.: 405/408, de
+    explorações antigas, ~1.115 jogos — entrariam com rótulos da fonte velha
+    (`trends`) no cálculo da probabilidade publicada, justamente a fonte que
+    a correção de rótulo existe pra parar de usar."""
     snaps_por_fixture = {}
     resultados = {}
     liga_por_fixture = {}
+    ignorados = []
     for caminho in glob.glob(f"{DADOS_DIR}/.checkpoint_*.json"):
         sufixo = os.path.basename(caminho).removeprefix(".checkpoint_").removesuffix(".json")
         if not sufixo.isdigit():
             continue  # não é checkpoint de liga (ex.: checkpoints dos scripts de backtest)
         league_id = int(sufixo)
         d = json.load(open(caminho, encoding="utf-8"))
+        versao = d.get("versao_rotulo", 1)
+        if versao != VERSAO_ROTULO:
+            ignorados.append((league_id, versao, len(d["resultados_alvo"])))
+            continue
         for fid_str, res in d["resultados_alvo"].items():
             resultados[int(fid_str)] = res
             liga_por_fixture[int(fid_str)] = league_id
         for snap in d["snapshots"]:
             snaps_por_fixture.setdefault(snap["fixture_id"], {})[snap["minuto"]] = snap
+    if ignorados:
+        for league_id, versao, n in sorted(ignorados):
+            print(f"  [aviso] liga {league_id} ignorada no pool: rótulos na versão {versao}, "
+                  f"a atual é {VERSAO_ROTULO} ({n} jogos fora)")
+    print(f"  pool: {len(resultados)} jogos de {len(set(liga_por_fixture.values()))} ligas "
+          f"(rótulos versão {VERSAO_ROTULO})")
     return snaps_por_fixture, resultados, liga_por_fixture
 
 
