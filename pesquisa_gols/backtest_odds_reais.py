@@ -98,7 +98,18 @@ def _get_odds_historico(fixture_id):
             espera = 5 * (tentativa + 1)
             print(f"    [erro de conexão: {e}] esperando {espera}s...")
             time.sleep(espera)
-    return []
+    # Esgotou as tentativas (todas 429). Antes devolvia [] aqui, que é
+    # INDISTINGUÍVEL de "esse jogo não tem odds": o jogo entrava em
+    # `processados` sem contribuir com nada, sem erro e sem entrar em
+    # erros_api — e como o progresso é cache permanente, uma nova execução
+    # nem tentava de novo. Pior: jogos descartados assim não são aleatórios,
+    # concentram-se nas janelas de cota estourada, então enviesam o ROI.
+    # Levantar aqui faz o chamador contar em erros_api e o resumo final
+    # mostrar quantos jogos ficaram de fora.
+    raise requests.exceptions.RetryError(
+        f"rate limit persistente em /odds/inplay/fixtures/{fixture_id} "
+        f"após {MAX_TENTATIVAS} tentativas"
+    )
 
 
 def _condicao_bate(condicoes, snap):
@@ -213,9 +224,15 @@ def rodar():
 
         try:
             odds_historico = _get_odds_historico(fid)
-        except Exception:
+        except Exception as e:
+            # NÃO marca como processado: o arquivo de progresso é cache
+            # permanente, então marcar aqui faria este jogo ser pulado em toda
+            # execução futura — some do backtest pra sempre por causa de uma
+            # falha transitória de API. Deixando de fora, basta rodar de novo
+            # pra ele ser tentado. (Mesmo fix já aplicado em
+            # buscar_sportmonks.buscar.)
             erros_api += 1
-            processados.add(fid)
+            print(f"    [ERRO API] fixture {fid}: {e} — não marcado como processado")
             continue
         time.sleep(0.25)
 
