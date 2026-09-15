@@ -4,3 +4,6 @@ fixture_id,tipo,liga,jogo,data_jogo,alvo,direcao,linha,minuto,probabilidade_esti
 19667163,sinal_chutes_totais_mais_de,Serie B,Fortaleza x Ceará,2026-09-13,chutes_totais,mais_de,24.5,76,79.0,1.27,,,,green,26.0,2026-09-13T23:07:47.500620+00:00,2026-09-14T08:10:07.440729+00:00,,,
 19667166,sinal_chutes_totais_mais_de,Serie B,Novorizontino x Cuiabá,2026-09-13,chutes_totais,mais_de,26.5,75,91.2,1.1,,,,green,34.0,2026-09-13T23:07:48.770876+00:00,2026-09-14T08:10:07.440729+00:00,,,
 19667166,sinal_chutes_totais_menos_de,Serie B,Novorizontino x Cuiabá,2026-09-13,chutes_totais,menos_de,28.5,75,79.4,1.26,,,,red,34.0,2026-09-13T23:07:50.123360+00:00,2026-09-14T08:10:07.440729+00:00,,,
+19621811,sinal_chutes_totais_mais_de,Serie A,Bahia x Remo,2026-09-14,chutes_totais,mais_de,22.5,30,71.4,1.4,,,,green,31.0,2026-09-14T23:31:09.860616+00:00,2026-09-15T08:10:32.426643+00:00,,,
+19621811,sinal_escanteios_mais_de,Serie A,Bahia x Remo,2026-09-14,escanteios,mais_de,7.5,45,78.7,1.27,1.44,bet365,13.4,green,13.0,2026-09-14T23:51:31.962143+00:00,2026-09-15T08:10:32.426643+00:00,2026-09-14 23:51:24,,
+19667161,sinal_chutes_totais_mais_de,Serie B,Avaí x Vila Nova,2026-09-15,chutes_totais,mais_de,22.5,31,85.9,1.16,,,,red,19.0,2026-09-15T01:04:41.823901+00:00,2026-09-15T08:10:32.426643+00:00,,,
