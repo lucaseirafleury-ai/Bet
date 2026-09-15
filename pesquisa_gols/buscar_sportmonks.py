@@ -171,16 +171,62 @@ def valor_acumulado_no_minuto(trends, type_id, participant_id, minuto):
 ALVOS_POR_EVENTO = {"cartoes": identificar_type_ids_cartao}
 
 
+def totais_de_statistics(statistics):
+    """
+    type_id -> total da partida (casa+fora), lido do include `statistics`.
+
+    Por que isto existe: os rótulos de treino saíam do último ponto dos
+    `trends`, enquanto o painel ao vivo (ligas_live_app/xg_pressure.py::
+    extrair_stats_para_regras) e a apuração de resultado leem `statistics`.
+    As duas fontes NÃO coincidem — medido em 120 fixtures das 5 ligas:
+    escanteios batem exatamente em 78% dos jogos (média statistics-trends
+    +0,29), chutes totais em apenas 32% (média +1,45). Treinar numa fonte e
+    apostar/apurar noutra enviesa toda regra de "menos de" para parecer mais
+    segura do que é. Ver a auditoria de metodologia de 15/09/2026.
+
+    Casa o `type_id` direto (presente em cada item de `statistics`), não o
+    nome — mesma chave que `candidatas_resolvidas` já usa, então não depende
+    de string de nome de estatística bater entre os dois endpoints.
+    """
+    totais = {}
+    for item in statistics or []:
+        type_id = item.get("type_id")
+        valor = (item.get("data") or {}).get("value")
+        if type_id is None or valor is None:
+            continue
+        try:
+            totais[type_id] = totais.get(type_id, 0.0) + float(valor)
+        except (TypeError, ValueError):
+            continue
+    return totais
+
+
 def resultados_finais_dos_alvos(trends, events, candidatas_resolvidas, tipos_disponiveis,
-                                 home_id, away_id, gols_casa_final, gols_fora_final):
+                                 home_id, away_id, gols_casa_final, gols_fora_final,
+                                 statistics=None):
     """
     valor final da partida, para cada alvo em alvos.ALVOS — soma casa+fora.
-    'gols' usa o placar oficial (scores), mais preciso. Alvos em
-    ALVOS_POR_EVENTO usam contagem de eventos (mais confiável que trends pra
-    esses casos). Os demais usam o último ponto dos trends (MINUTO_FINAL),
-    que já é buscado mesmo assim para os checkpoints de 15-90 min.
+
+    Ordem de preferência da fonte, por alvo:
+      1. 'gols': placar oficial (scores) — mais preciso, não muda.
+      2. alvos em ALVOS_POR_EVENTO ('cartoes'): contagem de eventos.
+      3. demais alvos: `statistics` (MESMA fonte que o painel ao vivo lê e que
+         a apuração de resultado usa), caindo para o último ponto dos `trends`
+         só quando o campo não vem em `statistics`.
+
+    O passo 3 é a correção do desalinhamento treino-vs-apuração descrito em
+    totais_de_statistics: antes desta mudança o rótulo de treino saía SEMPRE
+    dos trends, enquanto a aposta era apurada contra statistics.
+
+    O fallback para trends é raro (medido em 120 fixtures: `Corners` e
+    `Shots On Target` nunca faltaram, `Shots Total` faltou em 3) mas não é
+    silencioso — cada fixture registra em "_fonte_rotulo" qual fonte foi
+    usada por alvo, pra dar pra auditar depois e pra dar pra medir a
+    sensibilidade dos resultados a esses casos.
     """
+    totais_stats = totais_de_statistics(statistics)
     resultado = {"gols": gols_casa_final + gols_fora_final}
+    fontes = {}
     for alvo_id, definicao in alvos.ALVOS.items():
         if alvo_id == "gols":
             continue
@@ -190,18 +236,33 @@ def resultados_finais_dos_alvos(trends, events, candidatas_resolvidas, tipos_dis
                 eventos_ate_minuto(events, home_id, MINUTO_FINAL, type_ids)
                 + eventos_ate_minuto(events, away_id, MINUTO_FINAL, type_ids)
             )
+            fontes[alvo_id] = "eventos"
             continue
-        total = 0.0
-        for campo in definicao["campos_base"]:
-            type_id = candidatas_resolvidas.get(campo)
-            if type_id is None:
-                total = None
-                break
-            total += (
-                valor_acumulado_no_minuto(trends, type_id, home_id, MINUTO_FINAL)
-                + valor_acumulado_no_minuto(trends, type_id, away_id, MINUTO_FINAL)
+
+        type_ids_do_alvo = [candidatas_resolvidas.get(c) for c in definicao["campos_base"]]
+        if not definicao["campos_base"] or any(t is None for t in type_ids_do_alvo):
+            # Sem campos_base (ex.: 'btts', injetado à parte) ou estatística
+            # não resolvida nesta liga — mesmo comportamento de antes.
+            resultado[alvo_id] = None if definicao["campos_base"] else 0.0
+            fontes[alvo_id] = "indisponivel"
+            continue
+
+        if all(t in totais_stats for t in type_ids_do_alvo):
+            resultado[alvo_id] = sum(totais_stats[t] for t in type_ids_do_alvo)
+            fontes[alvo_id] = "statistics"
+        else:
+            resultado[alvo_id] = sum(
+                valor_acumulado_no_minuto(trends, t, home_id, MINUTO_FINAL)
+                + valor_acumulado_no_minuto(trends, t, away_id, MINUTO_FINAL)
+                for t in type_ids_do_alvo
             )
-        resultado[alvo_id] = total
+            fontes[alvo_id] = "trends"
+
+    # Chave com "_" na frente pra nunca colidir com um alvo_id. Todo consumidor
+    # de resultados_alvo[fid] acessa por chave conhecida (gerar_regras_sinais,
+    # buscar_multiliga.dados_do_alvo, os backtests), nunca itera as chaves como
+    # se fossem alvos — conferido antes de adicionar este campo.
+    resultado["_fonte_rotulo"] = fontes
     return resultado
 
 
@@ -246,6 +307,7 @@ def processar_fixture(fixture_resumo, candidatas_resolvidas, goal_type_id, tipos
     resultados_alvo[fixture_id] = resultados_finais_dos_alvos(
         trends, events, candidatas_resolvidas, tipos_disponiveis,
         home["id"], away["id"], gols_casa_final, gols_fora_final,
+        statistics=fixture.get("statistics"),
     )
 
     for minuto in CHECKPOINTS:
