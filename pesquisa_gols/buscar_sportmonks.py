@@ -26,6 +26,16 @@ from matriz_padrao import CORRELACAO_GOLS_PADRAO
 
 CHECKPOINTS = [15, 30, 45, 60, 75, 90]
 MINUTO_FINAL = 999  # maior que qualquer minuto real — pega o último valor acumulado dos trends
+
+# Versão da LÓGICA DE RÓTULO (resultados_finais_dos_alvos). O checkpoint é
+# cache permanente: sem este marcador, mudar a fonte dos rótulos e rodar de
+# novo não recalcularia nada — as fixtures já estariam em "processados" e
+# seriam puladas, a busca terminaria "com sucesso" e os rótulos velhos
+# continuariam ali. Subir este número invalida os checkpoints e força o
+# rebusca. Suba sempre que resultados_finais_dos_alvos mudar de fonte/fórmula.
+#   1 = rótulos do último ponto dos trends
+#   2 = rótulos de `statistics`, com fallback por alvo pros trends
+VERSAO_ROTULO = 2
 ALLSVENSKAN_LEAGUE_ID = 573  # mesmo id já usado em ligas_live_app/config.py
 INTERVALO_ENTRE_FIXTURES_SEGUNDOS = 0.3
 INTERVALO_CHECKPOINT_FIXTURES = 20  # salva o progresso a cada N fixtures processadas
@@ -330,6 +340,7 @@ def _salvar_checkpoint(caminho, jogos, resultados_alvo, snapshots, processados, 
     tmp = caminho + ".tmp"
     with open(tmp, "w", encoding="utf-8") as fp:
         json.dump({
+            "versao_rotulo": VERSAO_ROTULO,
             "candidatas": sorted(candidatas_resolvidas),
             "jogos": {str(k): v for k, v in jogos.items()},
             "resultados_alvo": {str(k): v for k, v in resultados_alvo.items()},
@@ -350,6 +361,11 @@ def _carregar_checkpoint(caminho, candidatas_resolvidas):
         return None
     with open(caminho, encoding="utf-8") as fp:
         dados = json.load(fp)
+    versao_salva = dados.get("versao_rotulo", 1)  # sem o campo = checkpoint anterior ao versionamento
+    if versao_salva != VERSAO_ROTULO:
+        print(f"  [aviso] checkpoint em {caminho} tem rótulos da versão {versao_salva}, "
+              f"a atual é {VERSAO_ROTULO} — ignorando e buscando tudo de novo pra essa liga")
+        return None
     candidatas_salvas = dados.get("candidatas")
     if candidatas_salvas != sorted(candidatas_resolvidas):
         print(f"  [aviso] checkpoint em {caminho} foi salvo com candidatas diferentes das atuais "
@@ -381,7 +397,9 @@ def buscar(date_from, date_to, league_id=ALLSVENSKAN_LEAGUE_ID, tipos_disponivei
     retoma dali em vez de recomeçar do zero; (2) cache permanente — o
     arquivo nunca é apagado, então a PRÓXIMA chamada com o mesmo caminho só
     busca fixtures que ainda não estão nele. Invalidado automaticamente se o
-    conjunto de candidatas mudar (ver _carregar_checkpoint).
+    conjunto de candidatas OU a versão da lógica de rótulo mudar (ver
+    _carregar_checkpoint/VERSAO_ROTULO) — sem essa segunda invalidação, mudar
+    a fonte dos rótulos e rodar de novo não recalcularia nada.
     """
     if tipos_disponiveis is None:
         print("Buscando tipos de estatística...")
