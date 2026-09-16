@@ -2,3 +2,5 @@ fixture_id,tipo,liga,jogo,data_jogo,alvo,direcao,linha,minuto,probabilidade_esti
 19667158,sinal_chutes_totais_mais_de,Serie B,Juventude x Athletic Club,2026-09-13,chutes_totais,mais_de,22.5,77,73.3,1.36,,,,green,27.0,2026-09-13T22:40:09.267607+00:00,2026-09-14T08:10:07.440729+00:00,,,
 19667163,sinal_escanteios_menos_de,Serie B,Fortaleza x Ceará,2026-09-13,escanteios,menos_de,9.5,60,100.0,1.0,,,,green,7.0,2026-09-13T22:51:25.730881+00:00,2026-09-14T08:10:07.440729+00:00,,,
 19667161,sinal_chutes_totais_mais_de,Serie B,Avaí x Vila Nova,2026-09-15,chutes_totais,mais_de,24.5,33,78.4,1.28,,,,red,19.0,2026-09-15T01:06:45.615669+00:00,2026-09-15T08:10:32.426643+00:00,,,
+19667159,sinal_chutes_totais_menos_de,Serie B,CRB x Sport Recife,2026-09-16,chutes_totais,menos_de,24.5,31,78.0,1.28,,,,red,33.0,2026-09-16T00:32:52.977808+00:00,2026-09-16T08:10:36+00:00,,,
+19667159,sinal_escanteios_mais_de,Serie B,CRB x Sport Recife,2026-09-16,escanteios,mais_de,8.5,46,70.7,1.42,,,,red,8.0,2026-09-16T01:11:29.096030+00:00,2026-09-16T08:10:36+00:00,,,
