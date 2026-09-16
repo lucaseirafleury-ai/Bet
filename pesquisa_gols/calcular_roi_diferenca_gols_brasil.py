@@ -1,24 +1,25 @@
 """
-ROI real (contra odds da bet365) das candidatas confirmadas no piloto de
-diferença de gols (experimento_diferenca_gols.py completo) — só escanteios e
-chutes_totais têm confirmadas (cartões e chutes_no_alvo: 0).
+ROI real (contra odds da bet365) das candidatas de diferença de gols no
+Brasil que confirmam nas 3 fontes independentes (herdado, nativo Série
+A->B, nativo Série B->A) -- mesmo piso (confirmacoes>=3) usado em produção
+pra region=brasil.
+
+Simplificação assumida (documentada, não é a réplica exata de
+gerar_regras_sinais.py::_selecionar_brasil_por_confianca): aqui a interseção
+das 3 fontes é feita por chave exata (alvo, minuto, diferenca_gols, mercado,
+condições) -- sem o agrupamento por "família" que escolhe a melhor variação
+de linha vizinha dentro do mesmo grupo. Suficiente pra medir ROI real
+(responde "vale a pena?"), não pra gerar o conjunto definitivo de regras.
 
 Reaproveita 100% de dados já baixados, zero custo de API:
-- snapshots: dados/diffgols_full/.checkpoint_{573,579,447}.json (têm o campo
-  diferenca_gols, ao contrário dos checkpoints reais)
-- odds reais: dados/cache_odds_historico/ (populado no backtest de
-  confirmações=1, cobre as mesmas 5 ligas incluindo as 3 nórdicas)
-- resultado final de cada jogo: mesmos checkpoints acima (resultados_alvo)
+- candidatas confirmadas: resultados/diffgols_brasil/*_confirmacao_*.csv
+- snapshots: dados/diffgols_brasil/.checkpoint_{648,651}.json (diferenca_gols)
+- odds reais: dados/cache_odds_historico/ (já cobre Série A/B)
 
-Replica a MESMA lógica de matching de mercado corrigida de
-backtest_odds_reais_v2.py (linha inteira 3-vias da bet365 pra escanteios via
-market_id 68, não só a linha .5 direta) — sem essa correção, o resultado
-"zera" artificialmente pra escanteios, como já aconteceu antes nesta sessão.
+Réplica a mesma lógica de matching de mercado corrigida de
+backtest_odds_reais_v2.py (linha inteira 3-vias da bet365 pra escanteios).
 
-Regras candidatas são só um conjunto TEMPORÁRIO de teste — não escreve nem
-modifica ligas_live_app/regras_sinais.json nem nenhum arquivo real.
-
-Uso: python3 calcular_roi_diferenca_gols.py
+Uso: python3 calcular_roi_diferenca_gols_brasil.py
 """
 import csv
 import json
@@ -26,20 +27,19 @@ import os
 from collections import defaultdict
 from datetime import datetime, timedelta
 
-DADOS_DIR = os.path.join(os.path.dirname(__file__), "dados")
-RESULTADOS_DIR = os.path.join(os.path.dirname(__file__), "resultados", "diffgols")
-CACHE_ODDS_DIR = os.path.join(DADOS_DIR, "cache_odds_historico")
-CHECKPOINTS_DIFFGOLS_DIR = os.path.join(DADOS_DIR, "diffgols_full")
+DADOS_DIR = os.path.join(os.path.dirname(__file__), "dados", "diffgols_brasil")
+RESULTADOS_DIR = os.path.join(os.path.dirname(__file__), "resultados", "diffgols_brasil")
+CACHE_ODDS_DIR = os.path.join(os.path.dirname(__file__), "dados", "cache_odds_historico")
 
-LIGAS_NOME = {573: "Allsvenskan", 579: "Superettan", 447: "1. Division"}
+LIGAS_NOME = {648: "Série A", 651: "Série B"}
 LIGAS_ID = list(LIGAS_NOME)
+ALVOS_NATIVOS = ["escanteios", "chutes_totais", "chutes_no_alvo", "cartoes"]
 
-MARKET_ID_POR_ALVO = {"escanteios": 67, "chutes_totais": 292}
+MARKET_ID_POR_ALVO = {"escanteios": 67, "cartoes": 255, "chutes_totais": 292, "chutes_no_alvo": 291}
 MARKET_ID_FALLBACK_ESCANTEIOS = 68
 
 
 def _tentativas_mercado(alvo, direcao, linha):
-    """Réplica exata de odds_ao_vivo._tentativas_mercado / backtest_odds_reais_v2."""
     market_id = MARKET_ID_POR_ALVO.get(alvo)
     if market_id is None:
         return []
@@ -53,20 +53,26 @@ def _tentativas_mercado(alvo, direcao, linha):
 
 
 def _parse_mercado(mercado_str):
-    """'+7.5' -> ('mais_de', 7.5); '-10.5' -> ('menos_de', 10.5)."""
     sinal, valor = mercado_str[0], float(mercado_str[1:])
     return ("mais_de" if sinal == "+" else "menos_de"), valor
 
 
-IMPACTO_MINIMO_PP = 5.0  # mesmo piso de gerar_regras_sinais.py -- BUG real encontrado
-# depois (ver calcular_roi_diferenca_gols_brasil.py): sem este filtro, confirmado_bh=True
-# sozinho deixa passar efeito estatisticamente real mas economicamente trivial. Este script
-# tinha o mesmo bug -- corrigido, precisa ser re-rodado.
+def _chave(alvo, minuto, diferenca, mercado_str, condset):
+    return (alvo, minuto, diferenca, mercado_str, condset)
 
 
-def _carregar_confirmadas(alvo):
-    regras = []
-    caminho_1 = os.path.join(RESULTADOS_DIR, f"{alvo}_confirmacao_1stat.csv")
+IMPACTO_MINIMO_PP = 5.0  # mesmo piso de gerar_regras_sinais.py -- sem isso, confirmado_bh=True
+# sozinho deixa passar efeito estatisticamente real mas economicamente trivial (achado real:
+# primeira tentativa sem este filtro deu probabilidade média == 0.5 exato, min 0 max 1 --
+# assinatura de threshold sem filtro de tamanho de efeito, não um edge de verdade).
+
+
+def _carregar_fonte(alvo, sufixo):
+    """sufixo: 'brasil' (herdado), 'serieB' (nativo A->B), 'serieA' (nativo B->A).
+    Devolve {chave: linha_dict} só das confirmadas (confirmado_bh=True) E com
+    impacto >= IMPACTO_MINIMO_PP (mesmo piso usado pra "sinal forte" em produção)."""
+    achadas = {}
+    caminho_1 = os.path.join(RESULTADOS_DIR, f"{alvo}_confirmacao_{sufixo}_1stat.csv")
     if os.path.exists(caminho_1):
         with open(caminho_1, newline="", encoding="utf-8") as f:
             for r in csv.DictReader(f):
@@ -74,14 +80,11 @@ def _carregar_confirmadas(alvo):
                     continue
                 if abs(float(r["impacto_outras_ligas_pp"])) < IMPACTO_MINIMO_PP:
                     continue
-                direcao, linha = _parse_mercado(r["mercado"])
-                regras.append({
-                    "alvo": alvo, "minuto": int(r["minuto"]), "diferenca_gols": int(r["gols_momento"]),
-                    "mercado": {"direcao": direcao, "linha": linha},
-                    "condicoes": [{"stat": r["stat"], "operador": r["operador"], "limite": float(r["limite"])}],
-                    "prob_condicao": float(r["p_final_outras_ligas"]),
-                })
-    caminho_2 = os.path.join(RESULTADOS_DIR, f"{alvo}_confirmacao_2stats.csv")
+                condset = frozenset({(r["stat"], r["operador"], float(r["limite"]))})
+                chave = _chave(alvo, int(r["minuto"]), int(r["gols_momento"]), r["mercado"], condset)
+                achadas[chave] = {"tipo": "1stat", "condicoes": [dict(stat=r["stat"], operador=r["operador"], limite=float(r["limite"]))],
+                                   "prob_condicao": float(r["p_final_outras_ligas"])}
+    caminho_2 = os.path.join(RESULTADOS_DIR, f"{alvo}_confirmacao_{sufixo}_2stats.csv")
     if os.path.exists(caminho_2):
         with open(caminho_2, newline="", encoding="utf-8") as f:
             for r in csv.DictReader(f):
@@ -90,16 +93,33 @@ def _carregar_confirmadas(alvo):
                 impacto_pp = (float(r["p_conjunta_outras_ligas"]) - float(r["p_base_outras_ligas"])) * 100
                 if abs(impacto_pp) < IMPACTO_MINIMO_PP:
                     continue
-                direcao, linha = _parse_mercado(r["mercado"])
-                regras.append({
-                    "alvo": alvo, "minuto": int(r["minuto"]), "diferenca_gols": int(r["gols_momento"]),
-                    "mercado": {"direcao": direcao, "linha": linha},
-                    "condicoes": [
-                        {"stat": r["stat1"], "operador": r["operador1"], "limite": float(r["limite1"])},
-                        {"stat": r["stat2"], "operador": r["operador2"], "limite": float(r["limite2"])},
-                    ],
-                    "prob_condicao": float(r["p_conjunta_outras_ligas"]),
-                })
+                condset = frozenset({(r["stat1"], r["operador1"], float(r["limite1"])), (r["stat2"], r["operador2"], float(r["limite2"]))})
+                chave = _chave(alvo, int(r["minuto"]), int(r["gols_momento"]), r["mercado"], condset)
+                achadas[chave] = {"tipo": "2stats",
+                                   "condicoes": [dict(stat=r["stat1"], operador=r["operador1"], limite=float(r["limite1"])),
+                                                 dict(stat=r["stat2"], operador=r["operador2"], limite=float(r["limite2"]))],
+                                   "prob_condicao": float(r["p_conjunta_outras_ligas"])}
+    return achadas
+
+
+def _montar_regras_confirmacoes_3():
+    regras = []
+    for alvo in ALVOS_NATIVOS:
+        herdado = _carregar_fonte(alvo, "brasil")
+        nativo_ab = _carregar_fonte(alvo, "serieB")  # descobre Série A, confirma Série B
+        nativo_ba = _carregar_fonte(alvo, "serieA")  # descobre Série B, confirma Série A
+        chaves_comuns = set(herdado) & set(nativo_ab) & set(nativo_ba)
+        for chave in chaves_comuns:
+            _, minuto, diferenca, mercado_str, _condset = chave
+            direcao, linha = _parse_mercado(mercado_str)
+            # usa a probabilidade média das 3 fontes como estimativa de EV
+            probs = [herdado[chave]["prob_condicao"], nativo_ab[chave]["prob_condicao"], nativo_ba[chave]["prob_condicao"]]
+            regras.append({
+                "alvo": alvo, "minuto": minuto, "diferenca_gols": diferenca,
+                "mercado": {"direcao": direcao, "linha": linha},
+                "condicoes": herdado[chave]["condicoes"],
+                "prob_condicao": sum(probs) / len(probs),
+            })
     return regras
 
 
@@ -150,17 +170,19 @@ def _bucket_vazio():
 
 
 def rodar():
-    regras = _carregar_confirmadas("escanteios") + _carregar_confirmadas("chutes_totais")
-    print(f"{len(regras)} candidatas confirmadas (diferença de gols) entram no teste "
-          f"({sum(1 for r in regras if r['alvo']=='escanteios')} escanteios, "
-          f"{sum(1 for r in regras if r['alvo']=='chutes_totais')} chutes totais)\n")
+    regras = _montar_regras_confirmacoes_3()
+    print(f"{len(regras)} candidatas com confirmacoes>=3 (diferença de gols, Brasil) entram no teste")
+    for alvo in ALVOS_NATIVOS:
+        n = sum(1 for r in regras if r["alvo"] == alvo)
+        print(f"  {alvo}: {n}")
+    print()
     if not regras:
-        print("Nenhuma candidata confirmada — nada a testar.")
+        print("Nenhuma candidata com confirmação tripla — nada a testar.")
         return
 
     dados_por_liga = {}
     for lid in LIGAS_ID:
-        caminho = os.path.join(CHECKPOINTS_DIFFGOLS_DIR, f".checkpoint_{lid}.json")
+        caminho = os.path.join(DADOS_DIR, f".checkpoint_{lid}.json")
         dados_por_liga[lid] = json.load(open(caminho, encoding="utf-8"))
 
     bucket = _bucket_vazio()
@@ -226,7 +248,7 @@ def rodar():
     taxa = 100 * bucket["green"] / n if n else 0.0
     roi = 100 * bucket["soma_retorno"] / n if n else 0.0
     print(f"{'bucket':30s} {'disparos':>9s} {'odd_real':>9s} {'ev+':>6s} {'green':>6s} {'red':>5s} {'taxa%':>7s} {'roi%':>7s}")
-    print(f"{'diferenca_gols (nordicas)':30s} {bucket['disparos']:9d} {bucket['odd_encontrada']:9d} "
+    print(f"{'diferenca_gols (brasil, conf>=3)':30s} {bucket['disparos']:9d} {bucket['odd_encontrada']:9d} "
           f"{bucket['ev_positivo']:6d} {bucket['green']:6d} {bucket['red']:5d} {taxa:7.1f} {roi:7.1f}")
 
 
