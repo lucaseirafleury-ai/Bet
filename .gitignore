@@ -7,6 +7,8 @@ pesquisa_gols/resultados/*.csv
 pesquisa_gols/resultados/poolgols/
 pesquisa_gols/dados/.checkpoint_*.json
 pesquisa_gols/dados/cache_odds_historico/
+pesquisa_gols/dados/diffgols_full/
+pesquisa_gols/resultados/diffgols/
 pesquisa_gols/dados/backtest_odds_reais_detalhe_*.csv
 ligas_live_app/backtest_run.log
 ligas_live_app/painel_historico.html

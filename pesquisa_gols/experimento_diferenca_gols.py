@@ -197,5 +197,43 @@ def main():
     )
 
 
+def main_completo():
+    """
+    Expansão do piloto: descoberta na Allsvenskan (reaproveita o cache do
+    piloto rápido, copiado pra dados/diffgols_full/.checkpoint_573.json —
+    zero custo de API pra essa parte) + confirmação cross-liga em Superettan
+    e 1.Division (rebuscadas do zero em dados/diffgols_full/, com o mesmo
+    patch de processar_fixture — essa parte SIM gasta API real, ~1448
+    fixtures nunca vistas com gols_casa/gols_fora separados).
+
+    Roda o pipeline real (buscar_multiliga.rodar) só com bucket redirecionado
+    pra diferenca_gols, igual experimento_gols_momento.py já faz pra "sem
+    partição". Resultados em resultados/diffgols/ — não sobrescreve nada real.
+    """
+    alcancados = _patch()
+    print(f"processar_fixture patcheado; snapshots_do_bucket particiona por diferença em: {', '.join(alcancados)}\n")
+
+    dir_dados_exp = os.path.join(config.DIR_DADOS, "diffgols_full")
+    dir_resultados_exp = os.path.join(config.DIR_RESULTADOS, "diffgols")
+    os.makedirs(dir_dados_exp, exist_ok=True)
+    os.makedirs(dir_resultados_exp, exist_ok=True)
+    checkpoint_allsvenskan = os.path.join(dir_dados_exp, ".checkpoint_573.json")
+    if not os.path.exists(checkpoint_allsvenskan):
+        print(f"[aviso] {checkpoint_allsvenskan} não existe ainda — copie o checkpoint do piloto rápido "
+              f"({os.path.join(config.DIR_DADOS, '.checkpoint_573_diffgols.json')}) pra esse caminho antes "
+              f"de rodar, senão a Allsvenskan também será rebuscada do zero (mais API, sem necessidade).")
+
+    config.DIR_DADOS = dir_dados_exp
+    config.DIR_RESULTADOS = dir_resultados_exp
+    bm.config.DIR_DADOS = dir_dados_exp
+    bm.config.DIR_RESULTADOS = dir_resultados_exp
+    print(f"dados em {dir_dados_exp}/, resultados em {dir_resultados_exp}/ (nada real é tocado)\n")
+
+    bm.rodar()
+
+
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1 and sys.argv[1] == "completo":
+        main_completo()
+    else:
+        main()
