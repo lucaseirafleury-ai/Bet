@@ -815,14 +815,29 @@ def gerar():
         s["regiao"] = "brasil"
     _salvar_nao_incluidos(brasil_nao_incluidos, CAMINHO_AUDITORIA_BRASIL)
 
-    fortes = fortes + fortes_nordicas + fortes_brasil
+    # CORTE: regiao=universal e regiao=nordicas (confirmacoes=1, uma única
+    # fonte de descoberta) NUNCA entram nas regras publicadas — mantidas aqui
+    # só como `fortes_universal_e_nordicas` pra telemetria/contagem no print
+    # abaixo, não descartadas silenciosamente. Decisão baseada em backtest
+    # real contra odds da bet365 (dados/cache_odds_historico, ver
+    # backtest_odds_reais_v2.py): confirmacoes=1 rendeu ROI de -47,1%
+    # (nórdicas) e -49,6% (universal) contra +17,8% de confirmacoes=3
+    # (brasil) -- tóxico nas duas regiões, não um problema específico das
+    # nórdicas. Enquanto isso não mudar, só regiao=brasil (confirmacoes=3)
+    # vira regra ativa; as 3 ligas nórdicas atuais ficam sem sinal algum até
+    # serem trocadas por outras (ver conversa sobre troca de assinatura).
+    fortes_universal_e_nordicas = fortes + fortes_nordicas
+    fortes = fortes_brasil
 
-    print(f"sinais totais: {len(sinais)} | subconjunto forte (amostra>={AMOSTRA_MINIMA}, impacto>={IMPACTO_MINIMO_PP}pp): {len(fortes)}")
+    print(f"sinais totais: {len(sinais)} | subconjunto forte (amostra>={AMOSTRA_MINIMA}, impacto>={IMPACTO_MINIMO_PP}pp): "
+          f"{len(fortes) + len(fortes_universal_e_nordicas)} ({len(fortes)} publicadas, "
+          f"{len(fortes_universal_e_nordicas)} universal/nórdicas cortadas por ROI real negativo)")
     print(f"  ({len(brasil_nao_incluidos)} candidatos do Brasil de fonte única ficaram de fora, registrados em {CAMINHO_AUDITORIA_BRASIL})")
+    todos_para_telemetria = fortes + fortes_universal_e_nordicas
     for alvo_id in ALVOS:
-        n_universal = sum(1 for s in fortes if s["alvo_id"] == alvo_id and s["regiao"] == "universal")
-        n_nordicas = sum(1 for s in fortes if s["alvo_id"] == alvo_id and s["regiao"] == "nordicas")
-        n_brasil = sum(1 for s in fortes if s["alvo_id"] == alvo_id and s["regiao"] == "brasil")
+        n_universal = sum(1 for s in todos_para_telemetria if s["alvo_id"] == alvo_id and s["regiao"] == "universal")
+        n_nordicas = sum(1 for s in todos_para_telemetria if s["alvo_id"] == alvo_id and s["regiao"] == "nordicas")
+        n_brasil = sum(1 for s in todos_para_telemetria if s["alvo_id"] == alvo_id and s["regiao"] == "brasil")
         if n_universal or n_nordicas or n_brasil:
             extras = []
             if n_nordicas:
@@ -830,7 +845,7 @@ def gerar():
             if n_brasil:
                 extras.append(f"{n_brasil} só Brasil")
             sufixo_extra = f" (+ {', '.join(extras)})" if extras else ""
-            print(f"  {ALVO_TITULO[alvo_id]}: {n_universal}{sufixo_extra}")
+            print(f"  {ALVO_TITULO[alvo_id]}: {n_universal} universal/nórdicas cortadas{sufixo_extra}")
 
     campos_usados = set()
     for s in fortes:
@@ -842,14 +857,16 @@ def gerar():
     regras = montar_regras(fortes)
 
     payload = {
-        "criterio": f"amostra_confirmacao >= {AMOSTRA_MINIMA} e impacto_pp >= {IMPACTO_MINIMO_PP}; "
-                    "regiao=universal confirmado nas nórdicas E no Brasil; regiao=nordicas confirmado só "
-                    "nas ligas nórdicas (aplicadas só a Allsvenskan/Superettan/1.Division); regiao=brasil "
-                    f"exige confirmacoes >= {CONFIRMACOES_MINIMAS_BRASIL} (as três fontes de descoberta "
-                    "independentes do Brasil concordando: herdado da Allsvenskan, nativo Série A->B e "
-                    "nativo Série B->A — piso calibrado por backtest retroativo contra odds reais de "
-                    "mercado, ver CONFIRMACOES_MINIMAS_BRASIL) (alvos "
-                    f"{ALVOS_REGIAO_BRASIL}, aplicadas só a jogos de Série A/B)",
+        "criterio": f"amostra_confirmacao >= {AMOSTRA_MINIMA} e impacto_pp >= {IMPACTO_MINIMO_PP}; só "
+                    f"regiao=brasil publicada, exige confirmacoes >= {CONFIRMACOES_MINIMAS_BRASIL} (as três "
+                    "fontes de descoberta independentes do Brasil concordando: herdado da Allsvenskan, "
+                    "nativo Série A->B e nativo Série B->A) (alvos "
+                    f"{ALVOS_REGIAO_BRASIL}, aplicadas só a jogos de Série A/B). regiao=universal "
+                    "(confirmado nas nórdicas E no Brasil) e regiao=nordicas (confirmado só nas ligas "
+                    "nórdicas) são CORTADAS desde este regen — confirmacoes=1 rendeu ROI real negativo "
+                    "contra odds da bet365 nas duas regiões (-47,1% nórdicas, -49,6% universal, ver "
+                    "backtest_odds_reais_v2.py), contra +17,8% de regiao=brasil (confirmacoes=3). "
+                    "Enquanto isso não mudar, as 3 ligas nórdicas atuais ficam sem regra ativa nenhuma.",
         "fonte": "pesquisa_gols/resultados/*_confirmacao_*.csv (nórdicas) + *_confirmacao_brasil_*.csv "
                  "(herdado) + *_confirmacao_serieB_*.csv (nativo, descobrir_nativo_brasil.py) — todos "
                  "confirmado_bh=True — + recalibração por valor atual do alvo (universal: pool de todas "
