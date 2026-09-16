@@ -167,6 +167,17 @@ def calcular_cartoes(lista_stats):
     return extrair_stat(lista_stats, CAMPO_YELLOW) + extrair_stat(lista_stats, CAMPO_RED)
 
 
+def houve_cartao_vermelho(stats_home, stats_away):
+    """
+    True se algum dos dois lados já tomou cartão vermelho até agora — usado
+    por live_monitor.py pra suprimir sinais de cartões/menos_de (ver conversa,
+    medir_efeito_vermelho.py: caem de 59.1% pra 26.2% de acerto depois de um
+    vermelho, pior que cara-ou-coroa — o próprio vermelho já conta como
+    cartão, e o time em desvantagem numérica costuma cometer mais faltas).
+    """
+    return extrair_stat(stats_home, CAMPO_RED) > 0 or extrair_stat(stats_away, CAMPO_RED) > 0
+
+
 def calcular_escanteios(lista_stats):
     return extrair_stat(lista_stats, CAMPO_CORNERS)
 

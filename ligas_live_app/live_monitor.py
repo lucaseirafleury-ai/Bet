@@ -33,7 +33,7 @@ from xg_pressure import (
     calcular_xg_proxy, calcular_pressao, calcular_cartoes,
     calcular_escanteios, calcular_eficiencia, calcular_momentum,
     extrair_stats_completas, extrair_minuto, extrair_stats_para_regras,
-    formatar_minuto_exibicao,
+    formatar_minuto_exibicao, houve_cartao_vermelho,
 )
 from live_poisson import (
     probabilidades_ao_vivo, probabilidade_escanteios,
@@ -693,6 +693,19 @@ LIGAS_REGIAO_NORDICAS = {"Allsvenskan", "Superettan", "1. Division"}
 ALVOS_RESTRITOS_SERIE_A = {"chutes_totais", "chutes_no_alvo"}
 LIGAS_SERIE_A = {"Serie A", "Série A"}
 
+# (alvo, direção) suprimidos quando o jogo já teve cartão vermelho — ver
+# conversa/pesquisa_gols/medir_efeito_vermelho.py: medido nos dados pooled
+# das 5 ligas contra as regras publicadas hoje, o efeito é forte e
+# DIRECIONAL, não geral. Cartões/menos_de cai de 59.1% pra 26.2% de acerto
+# (-32.9pp) depois de um vermelho já confirmado — pior que cara-ou-coroa,
+# bem abaixo de qualquer probabilidade prometida (o próprio vermelho já
+# conta como cartão, e o time em desvantagem numérica costuma cometer mais
+# faltas). Cartões/mais_de faz o oposto — melhora de 56.3% pra 84.3%
+# (+28.0pp) — por isso NÃO entra aqui, seria descartar sinal bom por
+# excesso de cautela. Escanteios (ambas direções) e chutes não mostraram
+# efeito preocupante na mesma medição, também ficam de fora.
+COMBOS_SUPRIMIDOS_POS_VERMELHO = {("cartoes", "menos_de")}
+
 
 def _regra_vale_para_liga(regra, liga, aplicar_restricao_mercado=True):
     if aplicar_restricao_mercado and regra.get("alvo") in ALVOS_RESTRITOS_SERIE_A and liga not in LIGAS_SERIE_A:
@@ -748,7 +761,7 @@ def _direcoes_ja_disparadas(insights_existentes, fixture_id):
     return disparadas
 
 
-def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto, estado_confirmacao_odd, minuto_exibicao=None):
+def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto, estado_confirmacao_odd, minuto_exibicao=None, ja_teve_vermelho=False):
     """
     Agrupa as regras que bateram por (alvo, direção do mercado) — várias
     condições diferentes costumam apontar pro MESMO mercado ao mesmo tempo
@@ -793,6 +806,32 @@ def _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto
             continue  # contradiria um sinal já mostrado pra esse alvo nesta partida
 
         melhor_regra, melhor_stats = max(itens, key=lambda par: par[1]["impacto_pp"])
+
+        if ja_teve_vermelho and (alvo, direcao) in COMBOS_SUPRIMIDOS_POS_VERMELHO:
+            # Suprime incondicionalmente — não é uma questão de odd/EV, é o
+            # próprio modelo de probabilidade que fica errado nesse regime
+            # (ver COMBOS_SUPRIMIDOS_POS_VERMELHO). Nunca chega a buscar odd
+            # real nem calcular EV pra essa combinação nesse jogo.
+            suprimidos.append({
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "fixture_id": relatorio["fixture_id"],
+                "jogo": f"{relatorio['home']} x {relatorio['away']}",
+                "liga": relatorio["liga"],
+                "minuto": minuto,
+                "alvo": alvo,
+                "direcao": direcao,
+                "linha": melhor_regra["mercado"]["linha"],
+                "linha_original_sinal": None,
+                "probabilidade": round(melhor_stats["p_condicao"] * 100, 1),
+                "odd_real": None,
+                "odd_real_casa": None,
+                "probabilidade_implicita_real": None,
+                "ev_pct": None,
+                "rotulo_condicao": melhor_regra["rotulo"],
+                "motivo": "vermelho_ja_ocorreu",
+            })
+            continue
+
         n_condicoes = len(itens)
         reforco = (
             f" Confirmado por {n_condicoes} condições independentes (a mais forte: {melhor_regra['rotulo']})."
@@ -1028,7 +1067,7 @@ def _candidatas_para_conjunto(regras_por_checkpoint, relatorio, minuto, gols_tot
     return candidatas
 
 
-def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combinados, insights_existentes, fixture_id, estado_confirmacao_odd, minuto_exibicao=None):
+def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combinados, insights_existentes, fixture_id, estado_confirmacao_odd, minuto_exibicao=None, ja_teve_vermelho=False):
     """
     Um insight por (alvo, direção) confirmada que bate com o jogo agora — não
     mais um por regra, ver _consolidar_candidatas. No máximo uma vez por
@@ -1041,10 +1080,10 @@ def checar_sinais_confirmados(relatorio, minuto, gols_totais_jogo, valores_combi
         REGRAS_POR_CHECKPOINT_PLACAR, relatorio, minuto, gols_totais_jogo, valores_combinados
     )
     direcoes_ja_disparadas = _direcoes_ja_disparadas(insights_existentes, fixture_id)
-    return _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto, estado_confirmacao_odd, minuto_exibicao)
+    return _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto, estado_confirmacao_odd, minuto_exibicao, ja_teve_vermelho)
 
 
-def checar_sinais_sombra(nome_perfil, relatorio, minuto, gols_totais_jogo, valores_combinados, sinais_sombra_existentes, fixture_id, estado_confirmacao_odd):
+def checar_sinais_sombra(nome_perfil, relatorio, minuto, gols_totais_jogo, valores_combinados, sinais_sombra_existentes, fixture_id, estado_confirmacao_odd, ja_teve_vermelho=False):
     """
     Mesma lógica de checar_sinais_confirmados (match + odd real + EV — ver
     _consolidar_candidatas), mas contra um conjunto de regras "sombra"
@@ -1061,7 +1100,7 @@ def checar_sinais_sombra(nome_perfil, relatorio, minuto, gols_totais_jogo, valor
         aplicar_restricao_mercado=False,
     )
     direcoes_ja_disparadas = _direcoes_ja_disparadas(sinais_sombra_existentes, fixture_id)
-    return _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto, estado_confirmacao_odd)
+    return _consolidar_candidatas(relatorio, candidatas, direcoes_ja_disparadas, minuto, estado_confirmacao_odd, ja_teve_vermelho=ja_teve_vermelho)
 
 
 # ── Ciclo principal ────────────────────────────────────────────
@@ -1231,6 +1270,7 @@ def ciclo():
         stats = f.get("statistics", [])
         stats_home = [s for s in stats if s.get("participant_id") == home["id"]]
         stats_away = [s for s in stats if s.get("participant_id") == away["id"]]
+        ja_teve_vermelho = houve_cartao_vermelho(stats_home, stats_away)
 
         xg_home = calcular_xg_proxy(stats_home)
         xg_away = calcular_xg_proxy(stats_away)
@@ -1387,7 +1427,7 @@ def ciclo():
         # por isso extend em vez de um único item na lista.
         candidatos, suprimidos = checar_sinais_confirmados(
             relatorio, minuto, gols_totais_jogo, valores_regras_combinados, insights, fixture_id,
-            estado_confirmacao_odd, minuto_exibicao,
+            estado_confirmacao_odd, minuto_exibicao, ja_teve_vermelho,
         )
 
         for c in candidatos:
@@ -1422,7 +1462,7 @@ def ciclo():
         for nome in PERFIS_SOMBRA:
             candidatos_sombra, suprimidos_sombra = checar_sinais_sombra(
                 nome, relatorio, minuto, gols_totais_jogo, valores_regras_combinados,
-                estado_sombra[nome]["ativos"], fixture_id, estado_confirmacao_odd,
+                estado_sombra[nome]["ativos"], fixture_id, estado_confirmacao_odd, ja_teve_vermelho,
             )
             for c in candidatos_sombra:
                 if c is None:
