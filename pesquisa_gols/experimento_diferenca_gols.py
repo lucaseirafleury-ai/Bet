@@ -104,13 +104,8 @@ def _processar_fixture_com_diferenca(fixture_resumo, candidatas_resolvidas, goal
 
 
 def _bucket_por_diferenca(snapshots, gols_finais, minuto, gols_momento, fixture_ids=None):
-    """Mesma assinatura de snapshots_do_bucket (pra encaixar sem mudar quem
-    chama), mas filtra por diferenca_gols em vez de gols_momento. O código
-    que já existe (buscar_condicoes.py, buscar_multiliga.py) sempre chama
-    isso passando o valor de gols_momento que ele mesmo tirou de um snapshot
-    anterior — então quando ele itera "todo gols_momento visto", ele está na
-    prática iterando todo valor de diferenca_gols visto (o dicionário de
-    buckets é populado a partir dos próprios snapshots, ver buckets_minuto_placar)."""
+    """Mesma assinatura de snapshots_do_bucket, mas filtra por diferenca_gols
+    em vez de gols_momento."""
     resultado = []
     for snap in snapshots:
         if snap["minuto"] != minuto or snap["diferenca_gols"] != gols_momento:
@@ -123,9 +118,33 @@ def _bucket_por_diferenca(snapshots, gols_finais, minuto, gols_momento, fixture_
     return resultado
 
 
+def _buckets_minuto_por_diferenca(snapshots, fixture_ids):
+    """
+    BUG real encontrado depois de já ter rodado o piloto inteiro (pilotos
+    rápido E completo): buscar_condicoes.buckets_minuto_placar é uma função
+    SEPARADA de snapshots_do_bucket — lê snap["gols_momento"] direto pra
+    montar o dicionário de buckets de TREINO, sem passar pelo patch. O treino
+    então bucketava por total de gols (não por diferença), enquanto o
+    reteste no conjunto de teste (_testar_no_teste -> snapshots_do_bucket,
+    esse sim patcheado) filtrava por diferença — comparando um valor de
+    "gols_momento" (0,1,2,3...) contra snap["diferenca_gols"], que tem a
+    MESMA faixa de valores mas significado diferente (silenciosamente
+    incoerente, não dava erro). Os dois pilotos já rodados estão contaminados
+    por isso — precisam ser refeitos com este patch a mais.
+    """
+    buckets = {}
+    for snap in snapshots:
+        if snap["fixture_id"] not in fixture_ids:
+            continue
+        chave = (snap["minuto"], snap["diferenca_gols"])
+        buckets.setdefault(chave, []).append(snap)
+    return buckets
+
+
 def _patch():
     bs.processar_fixture = _processar_fixture_com_diferenca
     probabilidades.snapshots_do_bucket = _bucket_por_diferenca
+    buscar_condicoes.buckets_minuto_placar = _buckets_minuto_por_diferenca
     alcancados = ["probabilidades"]
     for nome, mod in list(sys.modules.items()):
         if mod is None or not hasattr(mod, "snapshots_do_bucket"):
@@ -149,6 +168,12 @@ def main():
     gols_finais = {1: 2, 2: 2, 3: 2}
     assert len(_bucket_por_diferenca(snaps, gols_finais, 30, 1)) == 2
     assert len(_bucket_por_diferenca(snaps, gols_finais, 30, 0)) == 1
+    # Confere buckets_minuto_placar TAMBÉM (bug real: essa é uma função
+    # separada de snapshots_do_bucket, usada pra montar o dicionário de
+    # treino em buscar_1stat -- ficou de fora do patch original).
+    buckets = _buckets_minuto_por_diferenca(snaps, {1, 2, 3})
+    assert set(buckets.keys()) == {(30, 0), (30, 1)}
+    assert len(buckets[(30, 1)]) == 2
     print("sanidade ok\n")
 
     alcancados = _patch()
