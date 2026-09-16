@@ -35,6 +35,8 @@ import probabilidades
 import buscar_sportmonks as bs
 import buscar_condicoes
 import buscar_multiliga as bm
+import descobrir_nativo_brasil as dnb
+import descobrir_nativo_serieB as dnsb
 import alvos
 
 ALLSVENSKAN_LEAGUE_ID = 573
@@ -257,8 +259,44 @@ def main_completo():
     bm.rodar()
 
 
+def main_brasil():
+    """
+    Testa diferença de gols na metodologia NATIVA do Brasil (Série A<->Série
+    B, mesma usada pelas 72 regras reais em produção — confirmação cruzada
+    sem depender da Allsvenskan). Diferente do teste nórdico: aqui não tem
+    cache pré-existente com diferenca_gols, então Série A E Série B são
+    rebuscadas do zero (~2.284 fixtures, ~15-25min de API real).
+
+    Roda descobrir_nativo_brasil.rodar() (descobre na Série A, confirma na
+    Série B) e descobrir_nativo_serieB.rodar() (espelho) com o bucket
+    redirecionado pra diferença de gols. Resultados em
+    resultados/diffgols_brasil/, dados em dados/diffgols_brasil/ — não
+    sobrescreve nada real (os scripts reais usam .checkpoint_648.json/
+    .checkpoint_651.json e resultados/*_serieA_*.csv direto em resultados/,
+    caminhos completamente diferentes).
+    """
+    alcancados = _patch()
+    print(f"processar_fixture patcheado; snapshots_do_bucket particiona por diferença em: {', '.join(alcancados)}\n")
+
+    dir_dados_exp = os.path.join(config.DIR_DADOS, "diffgols_brasil")
+    dir_resultados_exp = os.path.join(config.DIR_RESULTADOS, "diffgols_brasil")
+    os.makedirs(dir_dados_exp, exist_ok=True)
+    os.makedirs(dir_resultados_exp, exist_ok=True)
+    config.DIR_DADOS = dir_dados_exp
+    config.DIR_RESULTADOS = dir_resultados_exp
+    print(f"dados em {dir_dados_exp}/, resultados em {dir_resultados_exp}/ (nada real é tocado)\n")
+
+    print(f"{'='*70}\nParte 1/2: descobrir_nativo_brasil (Série A descobre, Série B confirma)\n{'='*70}")
+    dnb.rodar()
+
+    print(f"\n{'='*70}\nParte 2/2: descobrir_nativo_serieB (Série B descobre, Série A confirma)\n{'='*70}")
+    dnsb.rodar()
+
+
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "completo":
         main_completo()
+    elif len(sys.argv) > 1 and sys.argv[1] == "brasil":
+        main_brasil()
     else:
         main()
