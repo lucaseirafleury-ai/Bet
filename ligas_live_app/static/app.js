@@ -375,13 +375,20 @@ function svgSparklineRoi(pontos, largura = 100, altura = 26) {
 
 function renderHistorico(data) {
   const r = data.resumo;
+  // r.n_total/greens/reds/roi_pct agora só contam sinais com ODD REAL
+  // confirmada (ver historico_analytics.resumo_geral) -- os de odd sintética
+  // ficam em r.n_observacao, mostrados à parte (nunca somem do painel: seguem
+  // na tabela "Histórico completo" e em "ROI por origem da odd" mais abaixo).
+  const notaObservacao = r.n_observacao > 0
+    ? `<div class="nota">+${r.n_observacao} em observação (odd sintética, sem confirmação de mercado — ver "ROI por origem da odd")</div>`
+    : "";
   $("#hist-kpis").innerHTML = `
     <div class="kpi">
-      <div class="label">ROI (stake fixo 1u)</div>
+      <div class="label">ROI (odd real)</div>
       <div class="valor ${r.roi_pct >= 0 ? "pos" : "neg"}">${r.roi_pct >= 0 ? "+" : ""}${r.roi_pct.toFixed(1)}%</div>
       <div class="nota">${r.lucro_total_un >= 0 ? "+" : ""}${r.lucro_total_un.toFixed(2)}u em ${r.n_total} entrada${r.n_total !== 1 ? "s" : ""}</div>
     </div>
-    <div class="kpi"><div class="label">Entradas fechadas</div><div class="valor">${r.n_total}</div></div>
+    <div class="kpi"><div class="label">Entradas c/ odd real</div><div class="valor">${r.n_total}</div>${notaObservacao}</div>
     <div class="kpi"><div class="label">Green</div><div class="valor pos">${r.greens}</div></div>
     <div class="kpi"><div class="label">Red</div><div class="valor neg">${r.reds}</div></div>
   `;

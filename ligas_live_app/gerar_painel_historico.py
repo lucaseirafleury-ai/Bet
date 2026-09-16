@@ -16,7 +16,7 @@ Gera ligas_live_app/painel_historico.html — publique manualmente via Artifact
 import os
 from datetime import datetime, timezone
 
-from historico_analytics import carregar_linhas, agrupar_por_tipo, curva_roi_acumulado, resumo_por_fonte
+from historico_analytics import carregar_linhas, agrupar_por_tipo, curva_roi_acumulado, resumo_por_fonte, resumo_geral
 
 CAMINHO_SAIDA = os.path.join(os.path.dirname(__file__), "painel_historico.html")
 
@@ -50,12 +50,15 @@ def gerar_html():
     linhas = carregar_linhas()
     resumo_tipos = agrupar_por_tipo(linhas)
     por_fonte = resumo_por_fonte(linhas)
-    n_total = len(linhas)
-    greens_total = sum(1 for r in linhas if r["resultado"] == "green")
-    reds_total = n_total - greens_total
-    roi_total_pct = (sum(r["lucro"] for r in linhas) / n_total * 100) if n_total else 0.0
-    lucro_total_un = sum(r["lucro"] for r in linhas)
-    pontos_roi = curva_roi_acumulado(linhas)
+    # KPI de topo: só odd real confirmada (ver historico_analytics.resumo_geral
+    # — antes este arquivo calculava manualmente, misturando odd real e
+    # sintética no mesmo número; agora usa a mesma função que /api/historico-
+    # sinais, pra não divergir entre o Artifact standalone e a aba do painel).
+    r = resumo_geral(linhas)
+    n_total, greens_total, reds_total = r["n_total"], r["greens"], r["reds"]
+    roi_total_pct, lucro_total_un, n_observacao = r["roi_pct"], r["lucro_total_un"], r["n_observacao"]
+    linhas_odd_real = [x for x in linhas if x["fonte_odd"] == "real"]
+    pontos_roi = curva_roi_acumulado(linhas_odd_real)
     agora = datetime.now(timezone.utc).strftime("%d/%m/%Y, %H:%M UTC")
 
     linhas_tipo_html = "".join(f"""
@@ -169,13 +172,14 @@ def gerar_html():
 
   <div class="kpis">
     <div class="kpi">
-      <div class="label">ROI (stake fixo 1u)</div>
+      <div class="label">ROI (odd real)</div>
       <div class="valor {'pos' if roi_total_pct >= 0 else 'neg'}">{roi_total_pct:+.1f}%</div>
       <div class="nota">{lucro_total_un:+.2f}u em {n_total} entrada{'s' if n_total != 1 else ''}</div>
     </div>
     <div class="kpi">
-      <div class="label">Entradas fechadas</div>
+      <div class="label">Entradas c/ odd real</div>
       <div class="valor">{n_total}</div>
+      {f'<div class="nota">+{n_observacao} em observação (odd sintética)</div>' if n_observacao else ''}
     </div>
     <div class="kpi">
       <div class="label">Green</div>
@@ -230,7 +234,7 @@ def gerar_html():
 
   <footer>
     Stake fixo de 1 unidade em toda entrada · Odd usada = odd real ao vivo da casa de apostas quando encontrada no momento do sinal, senão odd mínima sintética (1 / probabilidade estimada da amostra histórica) — a origem de cada odd aparece embaixo dela na tabela.<br>
-    ROI com odd sintética não é "lucro real" — é a odd de equilíbrio da própria probabilidade estimada, então tende a 0% se o modelo estiver bem calibrado (nem edge, nem prejuízo, só confere se a taxa de acerto bate com o previsto). O ROI que importa de verdade é o de "odd real": esse sim mede valor contra o mercado de apostas de fato.<br>
+    O KPI de topo (ROI, entradas, green/red) conta só sinais com ODD REAL confirmada — é o único número que mede valor de verdade contra o mercado de apostas. Sinais só com odd sintética entram como "em observação": continuam nesta página (tabela completa abaixo e "ROI por origem da odd"), só não entram no ROI principal, porque essa odd é a de equilíbrio da própria probabilidade estimada (tende a 0% se o modelo estiver bem calibrado — não é edge nem prejuízo, só confere a calibração).<br>
     Fonte: ligas_live_app/historico_sinais.csv, atualizado diariamente pela rotina de checagem de sinais. Este painel é só uma camada de leitura agregada — o histórico linha a linha completo continua sendo mantido no CSV pelas rotinas, independente deste painel existir.
   </footer>
 </div>
