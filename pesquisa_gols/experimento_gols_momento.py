@@ -45,8 +45,27 @@ _bucket_original = probabilidades.snapshots_do_bucket
 
 
 def _bucket_sem_particao(snapshots, gols_finais, minuto, gols_momento, fixture_ids=None):
-    """Idêntico ao original, menos o filtro por gols_momento."""
-    return _bucket_original(snapshots, gols_finais, minuto, None, fixture_ids)
+    """
+    Idêntico ao original, menos o filtro por gols_momento.
+
+    BUG pego pelo sanity check abaixo antes da primeira tentativa de rodar
+    isto: delegar pro original com gols_momento=None não funciona, porque o
+    original compara `snap["gols_momento"] != gols_momento` — com None, essa
+    comparação é True pra TODO snapshot real (nenhum tem gols_momento=None),
+    então tudo era descartado (0 resultados, não "sem filtro"). Tem que
+    reimplementar o corpo sem essa comparação, não tentar contornar via
+    argumento.
+    """
+    resultado = []
+    for snap in snapshots:
+        if snap["minuto"] != minuto:
+            continue
+        if fixture_ids is not None and snap["fixture_id"] not in fixture_ids:
+            continue
+        if snap["fixture_id"] not in gols_finais:
+            continue
+        resultado.append(snap)
+    return resultado
 
 
 def _patch_bucket():
