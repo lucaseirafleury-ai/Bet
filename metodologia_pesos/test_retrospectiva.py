@@ -181,6 +181,41 @@ def test_prever_jogo_calcula_os_12_mercados_pro_contra(df_fabricado):
     assert resultado["mercados"]["gols_pro"]["pred"] == resultado["gf_pred"]
 
 
+def test_prever_jogo_mercado_nao_obrigatorio_com_real_ausente_ainda_traz_pred(df_fabricado):
+    # Bug real (16/09/2026): jogo do dia (ainda não jogado) tem cartões/escanteios/etc.
+    # sentinelados como -1 (dado real ainda não existe) — antes desta correção, isso
+    # fazia o campo inteiro sumir de `mercados`, e por tabela o critério
+    # Cartões+Árbitro (que só precisa do `pred`) nunca mais gerava sugestão nova.
+    # Gols continua OBRIGATÓRIO (real sempre precisa existir) — só os mercados
+    # secundários (cartões/escanteios/chutes/gols_1t) devem aparecer com `pred`
+    # mesmo sem `real` ainda.
+    df = df_fabricado.copy()
+    ultimo = df.index[-1]
+    for col in ("home_team_yellow_cards", "home_team_red_cards", "away_team_yellow_cards", "away_team_red_cards"):
+        df.loc[ultimo, col] = -1
+    linha_futura = df.loc[ultimo]
+
+    resultado = prever_jogo(
+        linha_futura, df, params=dict(filtro_aderencia=0.0),
+        min_jogos_historico=5, min_jogos_estilo=5,
+    )
+    assert resultado is not None
+    # gols continua exigindo real (comportamento inalterado)
+    assert resultado["mercados"]["gols_pro"]["real"] is not None
+    assert resultado["mercados"]["gols_contra"]["real"] is not None
+    # cartões: pred disponível, real/erro None (dado ainda não existe) — é o fix
+    assert "cartoes_pro" in resultado["mercados"]
+    assert "cartoes_contra" in resultado["mercados"]
+    assert resultado["mercados"]["cartoes_pro"]["pred"] is not None
+    assert resultado["mercados"]["cartoes_pro"]["real"] is None
+    assert resultado["mercados"]["cartoes_pro"]["erro"] is None
+    assert resultado["mercados"]["cartoes_contra"]["pred"] is not None
+    assert resultado["mercados"]["cartoes_contra"]["real"] is None
+    # mercado não afetado (escanteios) segue com real normal, prova que só o
+    # sentinelado muda de comportamento
+    assert resultado["mercados"]["escanteios_pro"]["real"] is not None
+
+
 def test_prever_jogo_nunca_olha_o_futuro(df_fabricado):
     # se eu embaralhar o timestamp da última linha pra trás no tempo, ela some do "passado"
     # disponível — prova indireta de que o corte é por timestamp, não por posição na lista
@@ -314,6 +349,26 @@ def test_rodar_retrospectiva_agrega_mae_por_mercado(df_fabricado):
     # inclusão) -> soma dos dois MAEs bate exatamente com mae_gols_total
     mae_gols_pro_contra = relatorio["mercados"]["gols_pro"]["mae"] + relatorio["mercados"]["gols_contra"]["mae"]
     assert mae_gols_pro_contra == pytest.approx(relatorio["mae_gols_total"])
+
+
+def test_rodar_retrospectiva_mae_por_mercado_ignora_jogos_sem_real_ainda(df_fabricado):
+    # Mesmo bug de `test_prever_jogo_mercado_nao_obrigatorio_com_real_ausente_ainda_traz_pred`,
+    # visto no nível da agregação: um jogo sem `real` de cartões (sentinelado) continua
+    # sendo AVALIADO (pred existe, entra no `n` total), mas não pode contaminar a média/MAE
+    # de cartões com um "real" inexistente.
+    df_sentinelado = df_fabricado.copy()
+    ultimo = df_sentinelado.index[-1]
+    for col in ("home_team_yellow_cards", "home_team_red_cards", "away_team_yellow_cards", "away_team_red_cards"):
+        df_sentinelado.loc[ultimo, col] = -1
+
+    normal = rodar_retrospectiva(df_fabricado, params=dict(filtro_aderencia=0.0), min_jogos_historico=5, min_jogos_estilo=5)
+    sentinelado = rodar_retrospectiva(df_sentinelado, params=dict(filtro_aderencia=0.0), min_jogos_historico=5, min_jogos_estilo=5)
+
+    assert sentinelado["n"] == normal["n"]  # o jogo continua sendo avaliado
+    assert sentinelado["mercados"]["cartoes_pro"]["n"] == normal["mercados"]["cartoes_pro"]["n"] - 1
+    assert sentinelado["mercados"]["cartoes_contra"]["n"] == normal["mercados"]["cartoes_contra"]["n"] - 1
+    # mercado não tocado mantém a mesma contagem nos dois cenários
+    assert sentinelado["mercados"]["escanteios_pro"]["n"] == normal["mercados"]["escanteios_pro"]["n"]
 
 
 def test_rodar_retrospectiva_sem_dado_suficiente_retorna_vazio(df_fabricado):

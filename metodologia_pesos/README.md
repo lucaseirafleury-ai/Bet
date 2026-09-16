@@ -993,6 +993,30 @@ atualizada, esta lista aqui não é mantida em detalhe:
    (`registrar_novas_sugestoes`/`recalcular_pendentes`/`resolver_pendentes`
    já são idempotentes, seguros pra rodar mais vezes ao dia).
 
+62. **Cartões+Árbitro ficou 19 dias sem gerar sugestão nova — bug real,
+   corrigido (16/09/2026)**: Lucas notou (5 sinais 27-28/08, depois
+   nada). Causa: efeito colateral do próprio fix do sentinela `-1` do
+   item 56 — `retrospectiva.prever_jogo` exigia o resultado REAL
+   (`real`) não-nulo pra incluir QUALQUER mercado em `mercados`,
+   inclusive os não-obrigatórios (cartões/escanteios/chutes/gols_1t).
+   Isso é certo pra backtest (jogo já terminou), mas um jogo FUTURO
+   nunca tem `real` de cartões — antes do fix do sentinela, a coluna
+   ausente caía pra `0` "por acidente" e passava; depois do fix (correto
+   pra backtest), virou `None` de verdade, e todo jogo futuro de
+   Cartões+Árbitro passou a ser descartado ANTES de calcular edge,
+   silenciosamente, desde 02/09. Gols não tem esse problema (placar não
+   passa pelo sentinela de estatística de detalhe), por isso BTTS/Over
+   2.5 nunca pararam. Corrigido: só gols continua exigindo `real`
+   sempre; mercados secundários entram em `mercados` assim que `pred`
+   existe, com `real`/`erro=None` quando o resultado ainda não existe —
+   dois consumidores de backtest (`rodar_retrospectiva`,
+   `checar_decaimento._checagem_cartoes_arbitro`) ajustados pra
+   continuar filtrando `real is not None` explicitamente, preservando o
+   comportamento de backtest 100% igual (confirmado: n cresceu só
+   organicamente, 208→218, mesmo padrão de sempre; BTTS/Over 2.5
+   idênticos). 2 testes novos de regressão. Ver
+   `docs/retrospectiva_cartoes_sem_sugestao_2026-09-16.md`.
+
 ## O que ainda falta
 - Série B Over 2.5 e as linhas Over 1.5/3.5/4.5 (as duas ligas) seguem
   sem qualquer edge defensável — não apostar por este critério.

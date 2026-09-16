@@ -264,10 +264,26 @@ def prever_jogo(row, df, params=None, min_jogos_historico=10, min_jogos_estilo=N
         ind = indicador_pro_contra(
             [j[campo] for j in validos], pesos_lista, limite_campo, params["multiplicador_dp"]
         )
-        real = _valor_real(row, campo)
-        if ind["media_final"] is None or real is None:
+        if ind["media_final"] is None:
             continue
-        mercados[campo] = dict(pred=ind["media_final"], real=real, erro=abs(ind["media_final"] - real))
+        real = _valor_real(row, campo)
+        if campo in ("gols_pro", "gols_contra") and real is None:
+            continue  # gols é o mercado obrigatório, sempre precisa do resultado real
+        # Pra todo campo NÃO obrigatório (cartões/escanteios/chutes/gols_1t), `real` pode
+        # ser `None` mesmo com `pred` disponível — é exatamente o caso de um jogo FUTURO
+        # (ainda não jogado): o modelo já consegue prever, mas o resultado real não existe
+        # ainda (ou foi sentinelado como ausente). Incluir o campo mesmo assim é o que
+        # permite previsão ao vivo desses mercados (ex.: `previsao_dia.avaliar_cartoes_arbitro`,
+        # que só usa `pred`) — quem consome esse mercado pra AVALIAR resultado (backtest)
+        # precisa checar `real is not None` explicitamente antes de usar (ver
+        # `rodar_retrospectiva`/`checar_decaimento._checagem_cartoes_arbitro`). Bug real
+        # encontrado 16/09/2026: antes desta mudança, todo jogo futuro de Cartões+Árbitro
+        # ficava sem `mercados["cartoes_pro"/"cartoes_contra"]` (porque o sentinela `-1`
+        # corretamente marca cartão ainda não jogado como "sem dado real"), então o
+        # critério nunca mais gerava sugestão nova desde a correção do sentinela
+        # (02/09/2026) — ver `docs/retrospectiva_cartoes_sem_sugestao_2026-09-16.md`.
+        erro = abs(ind["media_final"] - real) if real is not None else None
+        mercados[campo] = dict(pred=ind["media_final"], real=real, erro=erro)
 
     if "gols_pro" not in mercados or "gols_contra" not in mercados:
         return None  # gols é o mercado obrigatório (mantém compatibilidade com os relatórios anteriores)
@@ -516,7 +532,10 @@ def rodar_retrospectiva(df, params=None, min_jogos_historico=10, min_jogos_estil
 
     mercados_agg = {}
     for campo in STAT_KEY_MAP:
-        pontos = [j["mercados"][campo] for j in avaliados if campo in j["mercados"]]
+        # `real is not None` filtra jogos onde o mercado só tem previsão (sem resultado
+        # real conhecido ainda) — ver comentário em `prever_jogo` sobre mercados não
+        # obrigatórios podendo aparecer sem `real`.
+        pontos = [j["mercados"][campo] for j in avaliados if campo in j["mercados"] and j["mercados"][campo]["real"] is not None]
         if not pontos:
             continue
         mae = sum(p["erro"] for p in pontos) / len(pontos)

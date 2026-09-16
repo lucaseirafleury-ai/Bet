@@ -132,7 +132,9 @@ def _checagem_cartoes_arbitro(corte_recente):
     for jogo in rel["jogos"]:
         m_pro = jogo["mercados"].get("cartoes_pro")
         m_contra = jogo["mercados"].get("cartoes_contra")
-        if not m_pro or not m_contra:
+        # `real` pode ser `None` (mercado não obrigatório sem resultado conhecido — ver
+        # `retrospectiva.prever_jogo`); backtest só usa jogos com resultado real conhecido.
+        if not m_pro or not m_contra or m_pro["real"] is None or m_contra["real"] is None:
             continue
         pred_time = m_pro["pred"] + m_contra["pred"]
         real_total = m_pro["real"] + m_contra["real"]
