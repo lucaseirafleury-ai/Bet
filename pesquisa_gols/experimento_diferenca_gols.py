@@ -30,6 +30,8 @@ Uso: python3 experimento_diferenca_gols.py
 import os
 import sys
 
+import shutil
+
 import config
 import probabilidades
 import buscar_sportmonks as bs
@@ -37,6 +39,7 @@ import buscar_condicoes
 import buscar_multiliga as bm
 import descobrir_nativo_brasil as dnb
 import descobrir_nativo_serieB as dnsb
+import confirmar_brasil as cb
 import alvos
 
 ALLSVENSKAN_LEAGUE_ID = 573
@@ -293,10 +296,59 @@ def main_brasil():
     dnsb.rodar()
 
 
+def main_brasil_herdado():
+    """
+    Terceira via (falta pra fechar as 3 que compõem confirmacoes>=3 em
+    produção): candidatas descobertas na Allsvenskan por diferença de gols
+    (já prontas em resultados/diffgols/{alvo}_allsvenskan_condicoes_*.csv,
+    do piloto nórdico anterior) confirmadas contra o Brasil.
+
+    PRÉ-REQUISITO: rodar `main_brasil` (modo "brasil") primeiro até completar
+    — este passo reaproveita os checkpoints de Série A/B com diferenca_gols
+    que aquele roda deixa em dados/diffgols_brasil/ (zero custo de API aqui,
+    contanto que já estejam completos).
+    """
+    alcancados = _patch()
+    print(f"processar_fixture patcheado; snapshots_do_bucket particiona por diferença em: {', '.join(alcancados)}\n")
+
+    dir_dados_exp = os.path.join(config.DIR_DADOS, "diffgols_brasil")
+    dir_resultados_exp = os.path.join(config.DIR_RESULTADOS, "diffgols_brasil")
+    if not os.path.exists(os.path.join(dir_dados_exp, ".checkpoint_648.json")):
+        print(f"[erro] {dir_dados_exp}/.checkpoint_648.json não existe — rode `experimento_diferenca_gols.py "
+              f"brasil` até completar antes desta etapa (senão rebusca tudo de novo à toa).")
+        return
+
+    # Semeia as candidatas da Allsvenskan (diferença de gols, já descobertas
+    # no piloto nórdico) no mesmo diretório de leitura/escrita que
+    # confirmar_brasil.py usa — DIR_RESULTADOS serve pros dois lados
+    # (lê "{alvo}_allsvenskan_condicoes_*.csv", escreve
+    # "{alvo}_confirmacao_brasil_*.csv"), não dá pra apontar pra dois lugares.
+    origem_allsvenskan = os.path.join(config.DIR_RESULTADOS, "diffgols")
+    os.makedirs(dir_resultados_exp, exist_ok=True)
+    copiados = 0
+    for alvo_id in alvos.ALVOS:
+        for sufixo in ("condicoes_1stat.csv", "condicoes_2stats.csv"):
+            nome = f"{alvo_id}_allsvenskan_{sufixo}"
+            origem = os.path.join(origem_allsvenskan, nome)
+            if os.path.exists(origem):
+                shutil.copy(origem, os.path.join(dir_resultados_exp, nome))
+                copiados += 1
+    print(f"{copiados} arquivos de candidatas da Allsvenskan (diferença de gols) copiados de {origem_allsvenskan} "
+          f"pra {dir_resultados_exp}\n")
+
+    config.DIR_DADOS = dir_dados_exp
+    config.DIR_RESULTADOS = dir_resultados_exp
+    print(f"dados em {dir_dados_exp}/, resultados em {dir_resultados_exp}/ (nada real é tocado)\n")
+
+    cb.rodar()
+
+
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "completo":
         main_completo()
     elif len(sys.argv) > 1 and sys.argv[1] == "brasil":
         main_brasil()
+    elif len(sys.argv) > 1 and sys.argv[1] == "brasil-herdado":
+        main_brasil_herdado()
     else:
         main()
