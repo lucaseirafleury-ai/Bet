@@ -152,11 +152,15 @@ def api_suprimidos():
 @app.route("/api/historico-sinais")
 def api_historico_sinais():
     linhas = historico_analytics.carregar_linhas()
+    # curva_roi acompanha o mesmo recorte do headline (resumo_geral): só odd
+    # real, pra não ter um ROI acumulado (sparkline) contando sinais que o
+    # KPI de cima não conta — ver docstring de resumo_geral.
+    linhas_odd_real = [r for r in linhas if r["fonte_odd"] == "real"]
     return jsonify({
         "atualizado_em": datetime.now(timezone.utc).isoformat(),
         "resumo": historico_analytics.resumo_geral(linhas),
         "resumo_por_fonte": historico_analytics.resumo_por_fonte(linhas),
-        "curva_roi": historico_analytics.curva_roi_acumulado(linhas),
+        "curva_roi": historico_analytics.curva_roi_acumulado(linhas_odd_real),
         "por_tipo": historico_analytics.agrupar_por_tipo(linhas),
         "historico": list(reversed(linhas)),
     })

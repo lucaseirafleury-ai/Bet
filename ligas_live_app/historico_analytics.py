@@ -103,12 +103,35 @@ def resumo_por_fonte(linhas):
 
 
 def resumo_geral(linhas):
-    n_total = len(linhas)
-    greens = sum(1 for r in linhas if r["resultado"] == "green")
-    reds = n_total - greens
-    lucro_total = sum(r["lucro"] for r in linhas)
-    roi_pct = (lucro_total / n_total * 100) if n_total else 0.0
+    """
+    Headline (KPI de topo do painel). Só sobre sinais com ODD REAL confirmada
+    no mercado — sinais com odd sintética (1/probabilidade, sem checagem
+    nenhuma contra o mercado) entram como "n_observacao", fora do ROI/taxa de
+    acerto principal, mas SEM sumir do painel: continuam visíveis na tabela
+    "Histórico completo" e na quebra "ROI por origem da odd" (resumo_por_fonte).
+
+    Antes, isto misturava as duas fontes num único número — o ROI de odd
+    sintética tende a 0% por CONSTRUÇÃO quando o modelo está bem calibrado
+    (é a odd de equilíbrio da própria probabilidade estimada, não um preço de
+    mercado), então blendado com o ROI de odd real ele diluía/mascarava se
+    havia edge real ou não. Medido nos primeiros 20 sinais fechados: odd
+    real n=5, 80% acerto, ROI +32,8%; odd sintética n=15, 66,7%, ROI -15,9%
+    — números bem diferentes, que o KPI único escondia. Ver auditoria de
+    metodologia de 15/09/2026.
+    """
+    reais = [r for r in linhas if r["fonte_odd"] == "real"]
+    n_odd_real = len(reais)
+    greens = sum(1 for r in reais if r["resultado"] == "green")
+    reds = n_odd_real - greens
+    lucro_total = sum(r["lucro"] for r in reais)
+    roi_pct = (lucro_total / n_odd_real * 100) if n_odd_real else 0.0
+    n_observacao = len(linhas) - n_odd_real
     return {
-        "n_total": n_total, "greens": greens, "reds": reds,
+        # Nomes mantidos (n_total/greens/reds/roi_pct/lucro_total_un) pra não
+        # quebrar os dois consumidores (app.py e gerar_painel_historico.py)
+        # sem precisar tocar os dois ao mesmo tempo — só o QUE eles significam
+        # mudou (de "todos os sinais" pra "só os com odd real confirmada").
+        "n_total": n_odd_real, "greens": greens, "reds": reds,
         "lucro_total_un": round(lucro_total, 3), "roi_pct": round(roi_pct, 1),
+        "n_observacao": n_observacao,
     }
