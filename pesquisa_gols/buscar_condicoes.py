@@ -145,15 +145,31 @@ def buscar_1stat(dados, treino_ids, teste_ids):
             "amostra_condicao_teste": resultado_teste["amostra_condicao"],
         })
 
-    # validados (achado individual "de verdade"): barra alta + Benjamini-Hochberg + confirmação no teste
-    candidatos_altos = [c for c in candidatos_brutos if abs(c["impacto_treino_pp"]) >= config.IMPACTO_MINIMO_PP]
+    # validados (achado individual "de verdade"): Benjamini-Hochberg + barra
+    # alta de impacto + confirmação no teste.
+    #
+    # CORREÇÃO (achado da auditoria de metodologia, 15/09/2026): antes, o BH
+    # rodava só sobre candidatos_altos (já filtrados por impacto >= 5pp), não
+    # sobre candidatos_brutos inteiro. Isso faz `m` (o tamanho da família de
+    # testes, usado no denominador k/m da correção) ser MENOR do que o número
+    # real de comparações feitas — todo candidato_bruto testado é uma
+    # comparação real, tenha ele passado no filtro de impacto ou não. Corrigir
+    # com uma família menor do que a testada de verdade deixa a correção mais
+    # frouxa (mais falsos positivos escapam) do que o alfa nominal promete.
+    #
+    # Agora o BH roda sobre candidatos_brutos (a família verdadeira — a função
+    # já ignora p_valor=None internamente, então não precisa filtrar antes),
+    # e SÓ DEPOIS disso o filtro de impacto é aplicado, sobre quem já
+    # sobreviveu à correção. Duas exigências independentes, na ordem certa:
+    # significância estatística sobre a família real, E magnitude de efeito.
     chaves_significativas = estatistica.corrigir_benjamini_hochberg(
-        [(i, c["p_valor"]) for i, c in enumerate(candidatos_altos)], config.ALFA
+        [(i, c["p_valor"]) for i, c in enumerate(candidatos_brutos)], config.ALFA
     )
+    candidatos_significativos = [candidatos_brutos[i] for i in chaves_significativas]
+    candidatos_altos = [c for c in candidatos_significativos if abs(c["impacto_treino_pp"]) >= config.IMPACTO_MINIMO_PP]
 
     validados = []
-    for i in chaves_significativas:
-        c = candidatos_altos[i]
+    for c in candidatos_altos:
         resultado_teste = _testar_no_teste(snapshots, gols_finais, teste_ids, c)
         if resultado_teste is None:
             continue

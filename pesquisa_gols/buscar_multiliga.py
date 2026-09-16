@@ -70,6 +70,12 @@ def confirmar_1stat(cond, dados_conf):
         "p_final_outras_ligas": r["p_final"][cond["mercado"]],
         "p_base_outras_ligas": r["p_base"][cond["mercado"]],
         "impacto_outras_ligas_pp": impacto * 100,
+        # Transparencia (auditoria 15/09/2026): impacto vs quem NAO cumpre a
+        # condicao, nao vs a base (que ja inclui a condicao e dilui o numero).
+        # p_complemento ja era calculado por avaliar_condicao_1stat, so nao
+        # era persistido. Nao afeta selecao/BH em nenhum lugar.
+        "p_complemento_outras_ligas": r["p_complemento"][cond["mercado"]],
+        "impacto_vs_complemento_outras_ligas_pp": (r["p_final"][cond["mercado"]] - r["p_complemento"][cond["mercado"]]) * 100,
         "mesma_direcao": (impacto > 0) == (cond["impacto_treino_pp"] > 0),
         "p_valor_outras_ligas": p_valor,
     }
@@ -99,6 +105,9 @@ def confirmar_2stats(cond, dados_conf):
         "amostra_outras_ligas": n_g,
         "p_conjunta_outras_ligas": p_g[cond["mercado"]],
         "p_base_outras_ligas": p_base[cond["mercado"]],
+        # Transparencia (auditoria 15/09/2026), mesmo raciocinio do confirmar_1stat.
+        "p_complemento_outras_ligas": p_c[cond["mercado"]],
+        "impacto_vs_complemento_outras_ligas_pp": (p_g[cond["mercado"]] - p_c[cond["mercado"]]) * 100,
         "p_valor_outras_ligas": p_valor,
     }
 

@@ -328,6 +328,14 @@ def recalibrar_por_valor_atual(regras):
         # p_condicao/p_base de verdade (ver docstring acima).
         casos_condicao_por_delta = {}
         casos_base_por_delta = {}
+        # Complemento = "NAO cumpre a condicao" (subconjunto proprio da base,
+        # que inclui a condicao) -- achado da auditoria de metodologia
+        # (15/09/2026): medir impacto contra a base dilui o numero, porque a
+        # base ja contem o grupo condicao dentro dela. Guardado so pra
+        # transparencia (impacto_vs_complemento_pp abaixo); o portao ao vivo
+        # (IMPACTO_MINIMO_PP_VALOR_ATUAL em live_monitor.py) continua
+        # comparando contra impacto_pp (vs base), sem mudanca de comportamento.
+        casos_complemento_por_delta = {}
 
         for fid, snaps in snaps_por_fixture.items():
             if fixtures_desta_regiao is not None and fid not in fixtures_desta_regiao:
@@ -348,9 +356,12 @@ def recalibrar_por_valor_atual(regras):
                 if condicao_ok:
                     casos_condicao_por_valor[off].setdefault(valor_atual, []).append(bateu)
                     casos_condicao_por_delta.setdefault(delta, []).append(bateu)
+                else:
+                    casos_complemento_por_delta.setdefault(delta, []).append(bateu)
 
         tabela_condicao_por_delta = _tabela_com_fallback(casos_condicao_por_delta)
         tabela_base_por_delta = _tabela_com_fallback(casos_base_por_delta)
+        tabela_complemento_por_delta = _tabela_com_fallback(casos_complemento_por_delta)
 
         por_valor_atual = {}
         for valor, casos_deste_valor in casos_condicao_por_valor[0].items():
@@ -366,20 +377,31 @@ def recalibrar_por_valor_atual(regras):
                 entrada_delta = tabela_condicao_por_delta[delta_off]
                 p_off = entrada_delta["p"]
                 p_base_off = tabela_base_por_delta.get(delta_off, {"p": p_base})["p"]
+                p_complemento_off = tabela_complemento_por_delta.get(delta_off, {"p": p_base_off})["p"]
                 linhas_vizinhas[str(off)] = {
                     "linha": linhas_a_calcular[off],
                     "n": len(casos_off_deste_valor),
                     "n_usado": entrada_delta["n_usado"],
                     "p_condicao": round(p_off, 4),
                     "impacto_pp": round((p_off - p_base_off) * 100, 2),
+                    "impacto_vs_complemento_pp": round((p_off - p_complemento_off) * 100, 2),
                     "odd_minima": round(1 / p_off, 2) if p_off > 0 else None,
                 }
+            p_complemento = tabela_complemento_por_delta.get(delta_0, {"p": p_base})["p"]
             por_valor_atual[str(valor)] = {
                 "n": len(casos_deste_valor),
                 "n_usado": tabela_condicao_por_delta[delta_0]["n_usado"],
                 "p_condicao": round(p_condicao, 4),
                 "p_base": round(p_base, 4),
                 "impacto_pp": round((p_condicao - p_base) * 100, 2),
+                # Transparencia (ver auditoria 15/09/2026): impacto contra quem
+                # NAO cumpre a condicao, nao contra a base (que ja inclui a
+                # condicao dentro dela e por isso dilui o numero). NAO e usado
+                # em nenhum portao/selecao -- so pra leitura humana de quanto o
+                # efeito realmente vale. p_base usado como fallback quando o
+                # delta nao tem amostra propria de complemento.
+                "p_complemento": round(p_complemento, 4),
+                "impacto_vs_complemento_pp": round((p_condicao - p_complemento) * 100, 2),
                 "odd_minima": round(1 / p_condicao, 2) if p_condicao > 0 else None,
                 "linhas_vizinhas": linhas_vizinhas,
             }
@@ -414,12 +436,17 @@ def _carregar_brutas(alvos_lista, sufixo="", origem=None):
                 "p_base": float(r["p_base_outras_ligas"]),
                 "p_condicao": float(r["p_final_outras_ligas"]),
                 "impacto": float(r["impacto_outras_ligas_pp"]),
+                # Transparencia (auditoria 15/09/2026) -- .get() com fallback
+                # pro proprio impacto (vs base) protege contra CSV antigo
+                # (gerado antes desta mudanca) sem a coluna nova.
+                "impacto_vs_complemento": float(r["impacto_vs_complemento_outras_ligas_pp"]) if "impacto_vs_complemento_outras_ligas_pp" in r else float(r["impacto_outras_ligas_pp"]),
                 "p_valor": float(r["p_valor_outras_ligas"]),
                 "origem": origem,
             })
         for r in ler_csv(f"{BASE}/{alvo_id}_confirmacao{sufixo}_2stats.csv"):
             p_base = float(r["p_base_outras_ligas"])
             p_cond = float(r["p_conjunta_outras_ligas"])
+            impacto = (p_cond - p_base) * 100
             brutas.append({
                 "alvo_id": alvo_id,
                 "minuto": int(r["minuto"]),
@@ -434,7 +461,8 @@ def _carregar_brutas(alvos_lista, sufixo="", origem=None):
                 "amostra": int(r["amostra_outras_ligas"]),
                 "p_base": p_base,
                 "p_condicao": p_cond,
-                "impacto": (p_cond - p_base) * 100,
+                "impacto": impacto,
+                "impacto_vs_complemento": float(r["impacto_vs_complemento_outras_ligas_pp"]) if "impacto_vs_complemento_outras_ligas_pp" in r else impacto,
                 "p_valor": float(r["p_valor_outras_ligas"]),
                 "origem": origem,
             })
@@ -703,6 +731,11 @@ def montar_regras(fortes):
             "prob_base_confirmacao": round(s["p_base"], 4),
             "prob_condicao_confirmacao": round(s["p_condicao"], 4),
             "impacto_pp": round(s["impacto"], 2),
+            # Transparencia (auditoria 15/09/2026): impacto contra quem NAO
+            # cumpre a condicao, nao contra a base (que ja inclui a condicao
+            # e por isso dilui o numero -- medido ~1,85x menor em media).
+            # NAO e usado em nenhum filtro/portao, so pra leitura humana.
+            "impacto_vs_complemento_pp": round(s.get("impacto_vs_complemento", s["impacto"]), 2),
             "p_valor_confirmacao": s["p_valor"],
             "odd_minima_referencia": round(1 / s["p_condicao"], 2) if s["p_condicao"] > 0 else None,
             "rotulo": rotulo,
