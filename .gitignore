@@ -4,6 +4,7 @@ __pycache__/
 ligas_live_app/data/*.json
 ligas_live_app/data/*.csv
 pesquisa_gols/resultados/*.csv
+pesquisa_gols/resultados/poolgols/
 pesquisa_gols/dados/.checkpoint_*.json
 pesquisa_gols/dados/cache_odds_historico/
 pesquisa_gols/dados/backtest_odds_reais_detalhe_*.csv
