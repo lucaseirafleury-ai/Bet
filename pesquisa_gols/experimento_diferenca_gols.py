@@ -338,6 +338,17 @@ def main_brasil_herdado():
 
     config.DIR_DADOS = dir_dados_exp
     config.DIR_RESULTADOS = dir_resultados_exp
+
+    # BUG real encontrado depois de já ter rodado isto uma vez: CAMINHO_LOG_RESUMO
+    # e CAMINHO_RESUMO_ADOTADAS são constantes calculadas na IMPORTAÇÃO de
+    # confirmar_brasil.py (linha "= os.path.join(config.DIR_RESULTADOS, ...)"),
+    # antes deste redirecionamento acontecer -- então cb.rodar() escrevia
+    # direto em resultados/resumo_confirmacao_brasil.txt (o de verdade,
+    # rastreado no git) mesmo com config.DIR_RESULTADOS já redirecionado.
+    # Isso sobrescreveu o arquivo real uma vez (restaurado via git checkout).
+    # Repatchear as constantes do módulo aqui evita que aconteça de novo.
+    cb.CAMINHO_LOG_RESUMO = os.path.join(dir_resultados_exp, "resumo_confirmacao_brasil.txt")
+    cb.CAMINHO_RESUMO_ADOTADAS = os.path.join(dir_resultados_exp, "regras_adotadas_vs_brasil.csv")
     print(f"dados em {dir_dados_exp}/, resultados em {dir_resultados_exp}/ (nada real é tocado)\n")
 
     cb.rodar()
