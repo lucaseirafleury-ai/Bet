@@ -30,6 +30,7 @@ em vez de perder tudo e recomeçar.
 
 Uso: python3 backtest_odds_reais.py
 """
+import csv
 import json
 import os
 import sys
@@ -64,6 +65,24 @@ nome_arquivo_progresso = (
     else f"checkpoint_backtest_odds_reais_{SUFIXO_PROGRESSO}.json"
 )
 CAMINHO_PROGRESSO = os.path.join(DADOS_DIR, f".{nome_arquivo_progresso}")
+
+# Detalhe por aposta (uma linha por disparo com EV positivo), pra permitir
+# quebrar o ROI por confirmacoes/alvo/regiao/regra depois de rodar — a
+# rodada anterior (só contadores agregados em stats) deu ROI -5,1% no
+# total mas não permitia saber se isso é uniforme ou concentrado num
+# subconjunto (ex.: confirmacoes=1), que é exatamente o corte que
+# justificou a tripla confirmação originalmente (-12,3% / -8,1% / +5,6%).
+NOME_ARQUIVO_DETALHE = (
+    "backtest_odds_reais_detalhe.csv" if SUFIXO_PROGRESSO is None
+    else f"backtest_odds_reais_detalhe_{SUFIXO_PROGRESSO}.csv"
+)
+CAMINHO_DETALHE = os.path.join(DADOS_DIR, NOME_ARQUIVO_DETALHE)
+CAMPOS_DETALHE = [
+    "fixture_id", "liga_id", "regra_id", "alvo", "direcao", "linha",
+    "minuto", "gols_momento", "regiao", "confirmacoes", "p_condicao",
+    "odd", "ev_pct", "bateu", "retorno",
+]
+
 
 FREQ_SALVAMENTO = 25  # jogos entre cada save do progresso
 MAX_TENTATIVAS = 4  # retry pra erro de rede/rate-limit, mesmo padrão de sportmonks.py::_get
@@ -214,6 +233,16 @@ def rodar():
     regras = [r for r in payload["regras"] if r["alvo"] in MARKETS_POR_ALVO]
     print(f"{len(regras)} regras de escanteios/cartões (de {payload['total_regras']} totais) entram no teste")
 
+    # Modo append: se a execução for interrompida e retomada, linhas de
+    # fixtures já gravadas antes do crash podem duplicar (o checkpoint de
+    # `processados` só salva a cada 25 jogos) — a análise depois dedupe por
+    # (fixture_id, regra_id), que é uma chave estável e determinística.
+    detalhe_existe = os.path.exists(CAMINHO_DETALHE)
+    arquivo_detalhe = open(CAMINHO_DETALHE, "a", newline="", encoding="utf-8")
+    escritor_detalhe = csv.DictWriter(arquivo_detalhe, fieldnames=CAMPOS_DETALHE)
+    if not detalhe_existe:
+        escritor_detalhe.writeheader()
+
     dados_por_liga = {}
     for lid in LIGAS_ID:
         dados_por_liga[lid] = json.load(open(os.path.join(DADOS_DIR, f".checkpoint_{lid}.json"), encoding="utf-8"))
@@ -293,16 +322,28 @@ def rodar():
             bateu = (valor_final > linha) if direcao == "mais_de" else (valor_final < linha)
             if bateu:
                 stats["green"] += 1
-                stats["soma_retorno"] += (odd - 1)
+                retorno = odd - 1
+                stats["soma_retorno"] += retorno
             else:
                 stats["red"] += 1
-                stats["soma_retorno"] += -1
+                retorno = -1.0
+                stats["soma_retorno"] += retorno
+            escritor_detalhe.writerow({
+                "fixture_id": fid, "liga_id": lid, "regra_id": regra["id"],
+                "alvo": alvo, "direcao": direcao, "linha": linha,
+                "minuto": regra["minuto"], "gols_momento": regra["gols_momento"],
+                "regiao": regra.get("regiao"), "confirmacoes": regra.get("confirmacoes"),
+                "p_condicao": p_condicao, "odd": odd, "ev_pct": ev_pct,
+                "bateu": int(bateu), "retorno": retorno,
+            })
 
         processados.add(fid)
         if len(processados) % FREQ_SALVAMENTO == 0:
             _salvar_progresso({"processados": processados, "stats": stats, "erros_api": erros_api})
+            arquivo_detalhe.flush()
 
     _salvar_progresso({"processados": processados, "stats": stats, "erros_api": erros_api})
+    arquivo_detalhe.close()
 
     print(f"\n{'='*70}\nResumo do backtest ({len(processados)}/{len(candidatos)} jogos, {erros_api} erros de API)\n{'='*70}")
     print(f"Disparos de regra (condição bateu, independente de odd): {stats['disparos']}")
