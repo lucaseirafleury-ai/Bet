@@ -191,7 +191,7 @@ def rodar(league_ids=None):
                          caminho_checkpoint=os.path.join(config.DIR_DADOS, f".checkpoint_{lid}.json"))
 
     print("\nCarregando Brasil (fonte da via herdada)...")
-    brasil = bs.juntar([carregar(SERIE_A_ID), carregar(SERIE_B_ID)])
+    brasil = bs.mesclar([carregar(SERIE_A_ID), carregar(SERIE_B_ID)])
     print(f"  Brasil pooled: {len(brasil['gols_finais'])} jogos com resultado")
 
     resumo = defaultdict(dict)
