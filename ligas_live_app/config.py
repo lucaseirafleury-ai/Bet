@@ -11,10 +11,32 @@ SPORTMONKS_TOKEN = os.environ.get("SPORTMONKS_TOKEN", "COLE_SEU_TOKEN_AQUI")
 BASE_URL = "https://api.sportmonks.com/v3/football"
 
 # ── Ligas monitoradas (id: nome) ─────────────────────────────
+# Superettan/Allsvenskan/1.Division saíram da assinatura Sportmonks
+# (17/09/2026) -- confirmacoes=1 lá tinha dado ROI real negativo (-47,1%),
+# então não faziam mais sentido continuar assinadas sem gerar regra alguma.
+# Substituídas por Championship (Inglaterra) -- sondagem via
+# pesquisa_gols/sondar_bet365.py achou escanteios E cartões cobertos pela
+# bet365 (15/15 nas duas, igual ao padrão do Brasil).
+#
+# Superliga (Dinamarca) e 2.Bundesliga (Alemanha) só tinham escanteios
+# (mesma limitação das nórdicas antigas) -- trocadas de novo (17/09/2026)
+# por MLS (EUA) e Liga Profesional Argentina, que sondagem confirmou com
+# escanteios E cartões (14-15/15 nas duas). Chutes nunca aparece AO VIVO em
+# nenhuma liga testada até agora (bet365 congela a linha ~1min depois do
+# apito e nunca mais reprecifica) -- só existe de verdade PRÉ-jogo, então
+# não é critério útil pro monitor ao vivo, só pra uma eventual análise
+# pré-live separada.
+#
+# MLS x Liga Profesional Argentina têm estilo de jogo bem diferente entre si
+# (MLS: mais físico/transição, grama sintética em parte dos estádios,
+# paridade forçada por salary cap; Argentina: futebol sul-americano, mais
+# parecido com o padrão do Brasil) -- cada uma deve ser tratada como região
+# própria na descoberta (gerar_regras_sinais.py), nunca cruzada uma com a
+# outra nem com brasil/nórdicas antigas como "universal".
 LIGAS_MONITORADAS = {
-    579: "Superettan",
-    573: "Allsvenskan",
-    447: "1. Division",
+    9: "Championship",
+    779: "Major League Soccer",
+    636: "Liga Profesional de Fútbol",
     648: "Série A",
     651: "Série B",
 }
