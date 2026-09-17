@@ -11,10 +11,19 @@ SPORTMONKS_TOKEN = os.environ.get("SPORTMONKS_TOKEN", "COLE_SEU_TOKEN_AQUI")
 BASE_URL = "https://api.sportmonks.com/v3/football"
 
 # ── Ligas monitoradas (id: nome) ─────────────────────────────
+# Superettan/Allsvenskan/1.Division saíram da assinatura Sportmonks
+# (17/09/2026) -- confirmacoes=1 lá tinha dado ROI real negativo (-47,1%),
+# então não faziam mais sentido continuar assinadas sem gerar regra alguma.
+# Substituídas por Championship (Inglaterra), Superliga (Dinamarca) e
+# 2. Bundesliga (Alemanha) -- sondagem via pesquisa_gols/sondar_bet365.py
+# (17/09/2026) achou Championship com escanteios E cartões cobertos pela
+# bet365 (15/15 nas duas, igual ao padrão do Brasil -- a melhor das 3);
+# Superliga e 2.Bundesliga só têm escanteios (mesma limitação que as
+# nórdicas antigas tinham).
 LIGAS_MONITORADAS = {
-    579: "Superettan",
-    573: "Allsvenskan",
-    447: "1. Division",
+    9: "Championship",
+    271: "Superliga",
+    85: "2. Bundesliga",
     648: "Série A",
     651: "Série B",
 }
