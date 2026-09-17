@@ -33,6 +33,12 @@ DATE_TO = "2026-12-31"
 LIGAS = {
     779: "Major League Soccer",
     636: "Liga Profesional de Fútbol",
+    # Championship entrou na assinatura antes das outras duas (no lugar das
+    # nórdicas) e já está em ligas_live_app/config.py, mas os dados nunca
+    # tinham sido buscados — sem checkpoint dela, ficaria de fora do estudo
+    # por omissão. Tem round_id preenchido em 552/556 fixtures, então o split
+    # cronológico por rodada funciona nativamente (ao contrário da MLS).
+    9: "Championship",
 }
 
 

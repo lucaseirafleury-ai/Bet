@@ -51,7 +51,7 @@ import sportmonks as sm
 DATE_FROM = "2024-01-01"
 DATE_TO = "2026-12-31"
 
-LIGAS_NOVAS = {779: "mls", 636: "argentina"}
+LIGAS_NOVAS = {779: "mls", 636: "argentina", 9: "championship"}
 SERIE_A_ID, SERIE_B_ID = 648, 651
 ALVOS_ESTUDADOS = ["escanteios", "chutes_totais", "chutes_no_alvo", "cartoes"]
 
@@ -178,7 +178,11 @@ def rodar_via(alvo_id, dados_descoberta, dados_confirmacao, prefixo, rotulo):
     return {"validados": len(validados_1stat) + len(validados_2stats), "confirmados": n1 + n2}
 
 
-def rodar():
+def rodar(league_ids=None):
+    """league_ids=None roda todas; passe uma lista pra rodar só parte delas
+    (útil quando os dados de uma liga ainda estão sendo baixados)."""
+    ligas = {lid: p for lid, p in LIGAS_NOVAS.items() if league_ids is None or lid in league_ids}
+    print(f"Ligas nesta execução: {', '.join(ligas.values())}")
     print("Buscando tipos de estatística...")
     tipos = sm.mapa_types()
 
@@ -191,7 +195,7 @@ def rodar():
     print(f"  Brasil pooled: {len(brasil['gols_finais'])} jogos com resultado")
 
     resumo = defaultdict(dict)
-    for league_id, prefixo in LIGAS_NOVAS.items():
+    for league_id, prefixo in ligas.items():
         print(f"\n{'='*70}\n{prefixo.upper()} ({league_id})\n{'='*70}")
         dados = carregar(league_id)
         print(f"  {len(dados['gols_finais'])} jogos com resultado")
@@ -214,4 +218,6 @@ def rodar():
 
 
 if __name__ == "__main__":
-    rodar()
+    import sys
+    ids = [int(a) for a in sys.argv[1:]] or None
+    rodar(ids)
