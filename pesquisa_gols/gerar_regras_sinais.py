@@ -15,7 +15,11 @@ import csv
 import glob
 import json
 import os
+import sys
 from collections import defaultdict
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from buscar_sportmonks import VERSAO_ROTULO
 
 BASE = os.path.join(os.path.dirname(__file__), "resultados")
 DADOS_DIR = os.path.join(os.path.dirname(__file__), "dados")
@@ -114,21 +118,41 @@ LIGAS_NORDICAS = {573, 579, 447}  # Allsvenskan, Superettan, 1. Division
 
 def _carregar_dados_pooled():
     """fixture_id -> {minuto: snapshot}, fixture_id -> resultados_alvo, fixture_id -> league_id
-    (extraído do próprio nome do arquivo .checkpoint_<league_id>.json) — todas as ligas juntas."""
+    (extraído do próprio nome do arquivo .checkpoint_<league_id>.json) — todas as ligas juntas.
+
+    Só entram checkpoints cujos rótulos estão na versão ATUAL
+    (buscar_sportmonks.VERSAO_ROTULO). Misturar versões aqui é silencioso e
+    caro: uma regra de região "universal" recalibra sobre o pool inteiro
+    (fixtures_desta_regiao = None em recalibrar_por_valor_atual), então
+    checkpoints de ligas que não foram rebuscadas — ex.: 405/408, de
+    explorações antigas, ~1.115 jogos — entrariam com rótulos da fonte velha
+    (`trends`) no cálculo da probabilidade publicada, justamente a fonte que
+    a correção de rótulo existe pra parar de usar."""
     snaps_por_fixture = {}
     resultados = {}
     liga_por_fixture = {}
+    ignorados = []
     for caminho in glob.glob(f"{DADOS_DIR}/.checkpoint_*.json"):
         sufixo = os.path.basename(caminho).removeprefix(".checkpoint_").removesuffix(".json")
         if not sufixo.isdigit():
             continue  # não é checkpoint de liga (ex.: checkpoints dos scripts de backtest)
         league_id = int(sufixo)
         d = json.load(open(caminho, encoding="utf-8"))
+        versao = d.get("versao_rotulo", 1)
+        if versao != VERSAO_ROTULO:
+            ignorados.append((league_id, versao, len(d["resultados_alvo"])))
+            continue
         for fid_str, res in d["resultados_alvo"].items():
             resultados[int(fid_str)] = res
             liga_por_fixture[int(fid_str)] = league_id
         for snap in d["snapshots"]:
             snaps_por_fixture.setdefault(snap["fixture_id"], {})[snap["minuto"]] = snap
+    if ignorados:
+        for league_id, versao, n in sorted(ignorados):
+            print(f"  [aviso] liga {league_id} ignorada no pool: rótulos na versão {versao}, "
+                  f"a atual é {VERSAO_ROTULO} ({n} jogos fora)")
+    print(f"  pool: {len(resultados)} jogos de {len(set(liga_por_fixture.values()))} ligas "
+          f"(rótulos versão {VERSAO_ROTULO})")
     return snaps_por_fixture, resultados, liga_por_fixture
 
 
@@ -304,6 +328,14 @@ def recalibrar_por_valor_atual(regras):
         # p_condicao/p_base de verdade (ver docstring acima).
         casos_condicao_por_delta = {}
         casos_base_por_delta = {}
+        # Complemento = "NAO cumpre a condicao" (subconjunto proprio da base,
+        # que inclui a condicao) -- achado da auditoria de metodologia
+        # (15/09/2026): medir impacto contra a base dilui o numero, porque a
+        # base ja contem o grupo condicao dentro dela. Guardado so pra
+        # transparencia (impacto_vs_complemento_pp abaixo); o portao ao vivo
+        # (IMPACTO_MINIMO_PP_VALOR_ATUAL em live_monitor.py) continua
+        # comparando contra impacto_pp (vs base), sem mudanca de comportamento.
+        casos_complemento_por_delta = {}
 
         for fid, snaps in snaps_por_fixture.items():
             if fixtures_desta_regiao is not None and fid not in fixtures_desta_regiao:
@@ -324,9 +356,12 @@ def recalibrar_por_valor_atual(regras):
                 if condicao_ok:
                     casos_condicao_por_valor[off].setdefault(valor_atual, []).append(bateu)
                     casos_condicao_por_delta.setdefault(delta, []).append(bateu)
+                else:
+                    casos_complemento_por_delta.setdefault(delta, []).append(bateu)
 
         tabela_condicao_por_delta = _tabela_com_fallback(casos_condicao_por_delta)
         tabela_base_por_delta = _tabela_com_fallback(casos_base_por_delta)
+        tabela_complemento_por_delta = _tabela_com_fallback(casos_complemento_por_delta)
 
         por_valor_atual = {}
         for valor, casos_deste_valor in casos_condicao_por_valor[0].items():
@@ -342,20 +377,31 @@ def recalibrar_por_valor_atual(regras):
                 entrada_delta = tabela_condicao_por_delta[delta_off]
                 p_off = entrada_delta["p"]
                 p_base_off = tabela_base_por_delta.get(delta_off, {"p": p_base})["p"]
+                p_complemento_off = tabela_complemento_por_delta.get(delta_off, {"p": p_base_off})["p"]
                 linhas_vizinhas[str(off)] = {
                     "linha": linhas_a_calcular[off],
                     "n": len(casos_off_deste_valor),
                     "n_usado": entrada_delta["n_usado"],
                     "p_condicao": round(p_off, 4),
                     "impacto_pp": round((p_off - p_base_off) * 100, 2),
+                    "impacto_vs_complemento_pp": round((p_off - p_complemento_off) * 100, 2),
                     "odd_minima": round(1 / p_off, 2) if p_off > 0 else None,
                 }
+            p_complemento = tabela_complemento_por_delta.get(delta_0, {"p": p_base})["p"]
             por_valor_atual[str(valor)] = {
                 "n": len(casos_deste_valor),
                 "n_usado": tabela_condicao_por_delta[delta_0]["n_usado"],
                 "p_condicao": round(p_condicao, 4),
                 "p_base": round(p_base, 4),
                 "impacto_pp": round((p_condicao - p_base) * 100, 2),
+                # Transparencia (ver auditoria 15/09/2026): impacto contra quem
+                # NAO cumpre a condicao, nao contra a base (que ja inclui a
+                # condicao dentro dela e por isso dilui o numero). NAO e usado
+                # em nenhum portao/selecao -- so pra leitura humana de quanto o
+                # efeito realmente vale. p_base usado como fallback quando o
+                # delta nao tem amostra propria de complemento.
+                "p_complemento": round(p_complemento, 4),
+                "impacto_vs_complemento_pp": round((p_condicao - p_complemento) * 100, 2),
                 "odd_minima": round(1 / p_condicao, 2) if p_condicao > 0 else None,
                 "linhas_vizinhas": linhas_vizinhas,
             }
@@ -390,12 +436,17 @@ def _carregar_brutas(alvos_lista, sufixo="", origem=None):
                 "p_base": float(r["p_base_outras_ligas"]),
                 "p_condicao": float(r["p_final_outras_ligas"]),
                 "impacto": float(r["impacto_outras_ligas_pp"]),
+                # Transparencia (auditoria 15/09/2026) -- .get() com fallback
+                # pro proprio impacto (vs base) protege contra CSV antigo
+                # (gerado antes desta mudanca) sem a coluna nova.
+                "impacto_vs_complemento": float(r["impacto_vs_complemento_outras_ligas_pp"]) if "impacto_vs_complemento_outras_ligas_pp" in r else float(r["impacto_outras_ligas_pp"]),
                 "p_valor": float(r["p_valor_outras_ligas"]),
                 "origem": origem,
             })
         for r in ler_csv(f"{BASE}/{alvo_id}_confirmacao{sufixo}_2stats.csv"):
             p_base = float(r["p_base_outras_ligas"])
             p_cond = float(r["p_conjunta_outras_ligas"])
+            impacto = (p_cond - p_base) * 100
             brutas.append({
                 "alvo_id": alvo_id,
                 "minuto": int(r["minuto"]),
@@ -410,7 +461,8 @@ def _carregar_brutas(alvos_lista, sufixo="", origem=None):
                 "amostra": int(r["amostra_outras_ligas"]),
                 "p_base": p_base,
                 "p_condicao": p_cond,
-                "impacto": (p_cond - p_base) * 100,
+                "impacto": impacto,
+                "impacto_vs_complemento": float(r["impacto_vs_complemento_outras_ligas_pp"]) if "impacto_vs_complemento_outras_ligas_pp" in r else impacto,
                 "p_valor": float(r["p_valor_outras_ligas"]),
                 "origem": origem,
             })
@@ -631,6 +683,38 @@ def _chave_brasil(item):
     return (item["alvo_id"], item["minuto"], item["gols_momento"], mercado, condset)
 
 
+# Auditoria manual do usuário (17/09/2026, Excel com todos os sinais/jogos que
+# validaram as regras publicadas) achou 4 regras region=brasil com problemas
+# reais, identificadas por _chave_brasil (não pelo id numérico "escanteios_004"
+# etc. — esse id é reatribuído a cada regeneração, então travar nele quebraria
+# silenciosamente assim que o conjunto de regras mudasse de tamanho/ordem).
+#
+# chutes_totais_036 e escanteios_023: nunca mostraram EV positivo contra odds
+# reais da bet365 em toda a auditoria (chutes_totais_036: prob publicada
+# 33.3%, 0 apostas de EV+ no dataset inteiro; escanteios_023: prob publicada
+# 44.9%, só 2 apostas de EV+). Uma prob<50% por si só não é um problema (pode
+# bater o mercado), mas essas duas nunca demonstraram isso na prática — saem
+# do painel até serem re-auditadas com mais dado.
+ASSINATURAS_EXCLUIDAS_SEM_EV = {
+    ("chutes_totais", 15, 0, "-22.5", frozenset({("accurate_crosses", "<=", 1.0), ("successful_dribbles_percentage", "<=", 50.0)})),
+    ("escanteios", 30, 0, "+11.5", frozenset({("shots_insidebox", ">=", 3.0), ("total_crosses", ">=", 10.0)})),
+}
+
+# escanteios_004 e escanteios_005: a "melhor" variação guardada por
+# _selecionar_brasil_por_confianca (maior impacto entre as 3 origens) veio do
+# processo nativo_AB (descobre na Série A, confirma na Série B) — ou seja,
+# prob_condicao_confirmacao/amostra_confirmacao publicados são uma estatística
+# só da Série B, não do pool Série A+B, mesmo a regra tendo sido confirmada
+# (confirmacoes=3) nas três fontes. A auditoria manual achou taxa real de só
+# ~40% em jogos de Série A (contra ~54-55% em Série B, o número publicado) —
+# a regra nunca foi validada pra Série A. Restringe ao painel só disparar em
+# Série B, a única liga onde de fato foi medida.
+ASSINATURAS_RESTRITAS_SERIE_B = {
+    ("escanteios", 15, 0, "+11.5", frozenset({("dangerous_attacks", ">=", 10.0), ("total_crosses", ">=", 6.0)})),
+    ("escanteios", 15, 0, "+11.5", frozenset({("shots_insidebox", ">=", 1.0), ("total_crosses", ">=", 6.0)})),
+}
+
+
 def montar_regras(fortes):
     """
     (lista de "sinais" já filtrados/deduplicados, cada um com "regiao" e
@@ -679,6 +763,11 @@ def montar_regras(fortes):
             "prob_base_confirmacao": round(s["p_base"], 4),
             "prob_condicao_confirmacao": round(s["p_condicao"], 4),
             "impacto_pp": round(s["impacto"], 2),
+            # Transparencia (auditoria 15/09/2026): impacto contra quem NAO
+            # cumpre a condicao, nao contra a base (que ja inclui a condicao
+            # e por isso dilui o numero -- medido ~1,85x menor em media).
+            # NAO e usado em nenhum filtro/portao, so pra leitura humana.
+            "impacto_vs_complemento_pp": round(s.get("impacto_vs_complemento", s["impacto"]), 2),
             "p_valor_confirmacao": s["p_valor"],
             "odd_minima_referencia": round(1 / s["p_condicao"], 2) if s["p_condicao"] > 0 else None,
             "rotulo": rotulo,
@@ -694,6 +783,15 @@ def montar_regras(fortes):
             # 1 processo de descoberta (Allsvenskan), então o campo aqui é só
             # informativo, default 1.
             "confirmacoes": s.get("confirmacoes", 1),
+            # Restrição adicional, mais granular que "regiao" — a regra pode
+            # ter confirmacoes>=3 (as três fontes concordam) mas a MELHOR
+            # variação guardada (maior impacto) ter vindo de um processo que só
+            # mede uma das duas ligas do Brasil (ver ASSINATURAS_RESTRITAS_
+            # SERIE_B acima); nesse caso o painel só deve disparar na liga onde
+            # a probabilidade publicada foi de fato medida. None = sem
+            # restrição extra (vale em qualquer liga da própria "regiao").
+            # Ver live_monitor.py::_regra_vale_para_liga.
+            "liga_restrita": s.get("liga_restrita"),
         })
 
     print("recalibrando cada regra por valor atual do próprio alvo (escanteios/chutes já ocorridos)...")
@@ -758,14 +856,44 @@ def gerar():
         s["regiao"] = "brasil"
     _salvar_nao_incluidos(brasil_nao_incluidos, CAMINHO_AUDITORIA_BRASIL)
 
-    fortes = fortes + fortes_nordicas + fortes_brasil
+    # Correções da auditoria manual (ver ASSINATURAS_EXCLUIDAS_SEM_EV/
+    # ASSINATURAS_RESTRITAS_SERIE_B acima) — aplicadas aqui, sobre o conjunto
+    # já selecionado por confiança, pra não interferir na lógica de escolha
+    # de "melhor variação por família".
+    n_excluidas_sem_ev = sum(1 for s in fortes_brasil if _chave_brasil(s) in ASSINATURAS_EXCLUIDAS_SEM_EV)
+    fortes_brasil = [s for s in fortes_brasil if _chave_brasil(s) not in ASSINATURAS_EXCLUIDAS_SEM_EV]
+    n_restritas_serie_b = 0
+    for s in fortes_brasil:
+        if _chave_brasil(s) in ASSINATURAS_RESTRITAS_SERIE_B:
+            s["liga_restrita"] = "serie_b"
+            n_restritas_serie_b += 1
+    if n_excluidas_sem_ev or n_restritas_serie_b:
+        print(f"  auditoria manual (17/09/2026): {n_excluidas_sem_ev} regra(s) excluída(s) por nunca "
+              f"mostrar EV positivo real, {n_restritas_serie_b} restrita(s) a jogos de Série B")
 
-    print(f"sinais totais: {len(sinais)} | subconjunto forte (amostra>={AMOSTRA_MINIMA}, impacto>={IMPACTO_MINIMO_PP}pp): {len(fortes)}")
+    # CORTE: regiao=universal e regiao=nordicas (confirmacoes=1, uma única
+    # fonte de descoberta) NUNCA entram nas regras publicadas — mantidas aqui
+    # só como `fortes_universal_e_nordicas` pra telemetria/contagem no print
+    # abaixo, não descartadas silenciosamente. Decisão baseada em backtest
+    # real contra odds da bet365 (dados/cache_odds_historico, ver
+    # backtest_odds_reais_v2.py): confirmacoes=1 rendeu ROI de -47,1%
+    # (nórdicas) e -49,6% (universal) contra +17,8% de confirmacoes=3
+    # (brasil) -- tóxico nas duas regiões, não um problema específico das
+    # nórdicas. Enquanto isso não mudar, só regiao=brasil (confirmacoes=3)
+    # vira regra ativa; as 3 ligas nórdicas atuais ficam sem sinal algum até
+    # serem trocadas por outras (ver conversa sobre troca de assinatura).
+    fortes_universal_e_nordicas = fortes + fortes_nordicas
+    fortes = fortes_brasil
+
+    print(f"sinais totais: {len(sinais)} | subconjunto forte (amostra>={AMOSTRA_MINIMA}, impacto>={IMPACTO_MINIMO_PP}pp): "
+          f"{len(fortes) + len(fortes_universal_e_nordicas)} ({len(fortes)} publicadas, "
+          f"{len(fortes_universal_e_nordicas)} universal/nórdicas cortadas por ROI real negativo)")
     print(f"  ({len(brasil_nao_incluidos)} candidatos do Brasil de fonte única ficaram de fora, registrados em {CAMINHO_AUDITORIA_BRASIL})")
+    todos_para_telemetria = fortes + fortes_universal_e_nordicas
     for alvo_id in ALVOS:
-        n_universal = sum(1 for s in fortes if s["alvo_id"] == alvo_id and s["regiao"] == "universal")
-        n_nordicas = sum(1 for s in fortes if s["alvo_id"] == alvo_id and s["regiao"] == "nordicas")
-        n_brasil = sum(1 for s in fortes if s["alvo_id"] == alvo_id and s["regiao"] == "brasil")
+        n_universal = sum(1 for s in todos_para_telemetria if s["alvo_id"] == alvo_id and s["regiao"] == "universal")
+        n_nordicas = sum(1 for s in todos_para_telemetria if s["alvo_id"] == alvo_id and s["regiao"] == "nordicas")
+        n_brasil = sum(1 for s in todos_para_telemetria if s["alvo_id"] == alvo_id and s["regiao"] == "brasil")
         if n_universal or n_nordicas or n_brasil:
             extras = []
             if n_nordicas:
@@ -773,7 +901,7 @@ def gerar():
             if n_brasil:
                 extras.append(f"{n_brasil} só Brasil")
             sufixo_extra = f" (+ {', '.join(extras)})" if extras else ""
-            print(f"  {ALVO_TITULO[alvo_id]}: {n_universal}{sufixo_extra}")
+            print(f"  {ALVO_TITULO[alvo_id]}: {n_universal} universal/nórdicas cortadas{sufixo_extra}")
 
     campos_usados = set()
     for s in fortes:
@@ -785,14 +913,21 @@ def gerar():
     regras = montar_regras(fortes)
 
     payload = {
-        "criterio": f"amostra_confirmacao >= {AMOSTRA_MINIMA} e impacto_pp >= {IMPACTO_MINIMO_PP}; "
-                    "regiao=universal confirmado nas nórdicas E no Brasil; regiao=nordicas confirmado só "
-                    "nas ligas nórdicas (aplicadas só a Allsvenskan/Superettan/1.Division); regiao=brasil "
-                    f"exige confirmacoes >= {CONFIRMACOES_MINIMAS_BRASIL} (as três fontes de descoberta "
-                    "independentes do Brasil concordando: herdado da Allsvenskan, nativo Série A->B e "
-                    "nativo Série B->A — piso calibrado por backtest retroativo contra odds reais de "
-                    "mercado, ver CONFIRMACOES_MINIMAS_BRASIL) (alvos "
-                    f"{ALVOS_REGIAO_BRASIL}, aplicadas só a jogos de Série A/B)",
+        "criterio": f"amostra_confirmacao >= {AMOSTRA_MINIMA} e impacto_pp >= {IMPACTO_MINIMO_PP}; só "
+                    f"regiao=brasil publicada, exige confirmacoes >= {CONFIRMACOES_MINIMAS_BRASIL} (as três "
+                    "fontes de descoberta independentes do Brasil concordando: herdado da Allsvenskan, "
+                    "nativo Série A->B e nativo Série B->A) (alvos "
+                    f"{ALVOS_REGIAO_BRASIL}, aplicadas só a jogos de Série A/B). regiao=universal "
+                    "(confirmado nas nórdicas E no Brasil) e regiao=nordicas (confirmado só nas ligas "
+                    "nórdicas) são CORTADAS desde este regen — confirmacoes=1 rendeu ROI real negativo "
+                    "contra odds da bet365 nas duas regiões (-47,1% nórdicas, -49,6% universal, ver "
+                    "backtest_odds_reais_v2.py), contra +17,8% de regiao=brasil (confirmacoes=3). "
+                    "Enquanto isso não mudar, as 3 ligas nórdicas atuais ficam sem regra ativa nenhuma. "
+                    "Auditoria manual (17/09/2026, ver ASSINATURAS_EXCLUIDAS_SEM_EV/ASSINATURAS_RESTRITAS_"
+                    "SERIE_B): 2 regras excluídas por nunca mostrar EV positivo real (chutes_totais e "
+                    "escanteios aos 15'/30' com prob publicada 33.3%/44.9%), 2 regras de escanteios aos 15' "
+                    "restritas a jogos de Série B (campo liga_restrita) porque a variação guardada só foi "
+                    "de fato medida lá, apesar de confirmacoes=3.",
         "fonte": "pesquisa_gols/resultados/*_confirmacao_*.csv (nórdicas) + *_confirmacao_brasil_*.csv "
                  "(herdado) + *_confirmacao_serieB_*.csv (nativo, descobrir_nativo_brasil.py) — todos "
                  "confirmado_bh=True — + recalibração por valor atual do alvo (universal: pool de todas "
