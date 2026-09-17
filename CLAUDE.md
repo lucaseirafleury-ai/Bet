@@ -31,6 +31,20 @@ arquivo compartilhado**. `buscar_sportmonks.buscar()` grava no checkpoint
 quando encontra fixture nova; vários processos gravando no mesmo arquivo o
 corrompem. Consolide com uma execução sequencial antes, e faça backup.
 
+### Nunca lançar processo longo com `nohup ... &`
+
+Use sempre o backgrounding nativo do harness (`run_in_background: true` na
+chamada Bash). Processo lançado com `nohup`/`disown` fica órfão, fora da
+supervisão do harness, e **morre silenciosamente** — já aconteceu duas vezes
+neste projeto: com a busca multi-liga em sessão anterior, e com os 4 processos
+de descoberta + o download de odds, que morreram todos juntos sem deixar erro
+no log (os logs simplesmente param no meio de uma linha de progresso).
+
+Sintoma: `pgrep` devolve menos processos do que deveria, os logs param sem
+traceback, e não há OOM (memória livre). Se isso acontecer, relance com
+backgrounding nativo — e prefira scripts que retomam de onde pararam (cache por
+arquivo, como o download de odds faz).
+
 ### Validar durante a execução, não só no fim
 
 Execuções longas já produziram bugs descobertos só no fim. Em toda execução
