@@ -197,11 +197,25 @@ def confirmar(alvo_id, validados_1stat, validados_2stats, dados_confirmacao, pre
     return {"validados": len(validados_1stat) + len(validados_2stats), "confirmados": n1 + n2}
 
 
-def rodar(league_ids=None):
-    """league_ids=None roda todas; passe uma lista pra rodar só parte delas
-    (útil quando os dados de uma liga ainda estão sendo baixados)."""
+def rodar(league_ids=None, alvo_ids=None):
+    """
+    league_ids/alvo_ids=None roda todos; passe listas pra rodar só parte.
+
+    Rodar por ALVO é o eixo de paralelização (ver --alvo no CLI): os alvos são
+    independentes entre si e cada processo grava em arquivos com o alvo no
+    nome, então 4 processos simultâneos não colidem. Paralelizar por LIGA
+    seria pior — a descoberta no Brasil é compartilhada entre as ligas e
+    voltaria a ser refeita em cada processo.
+
+    CUIDADO ao rodar em paralelo: bs.buscar() grava no checkpoint quando acha
+    fixture nova (novas > 0), e vários processos gravando no mesmo arquivo o
+    corrompem. Garanta que os checkpoints estão consolidados antes (uma
+    execução sequencial qualquer basta) — aí os paralelos só leem.
+    """
     ligas = {lid: p for lid, p in LIGAS_NOVAS.items() if league_ids is None or lid in league_ids}
+    alvos_rodada = [a for a in ALVOS_ESTUDADOS if alvo_ids is None or a in alvo_ids]
     print(f"Ligas nesta execução: {', '.join(ligas.values())}")
+    print(f"Alvos nesta execução: {', '.join(alvos_rodada)}")
     print("Buscando tipos de estatística...")
     tipos = sm.mapa_types()
 
@@ -217,7 +231,7 @@ def rodar(league_ids=None):
     # (ver docstring de `descobrir`). É a etapa cara da execução inteira.
     print(f"\n{'='*70}\nDESCOBERTA NO BRASIL (via herdada) — uma vez por alvo\n{'='*70}")
     descobertas_brasil = {}
-    for alvo_id in ALVOS_ESTUDADOS:
+    for alvo_id in alvos_rodada:
         print(f"\n  --- {alvos.ALVOS[alvo_id]['nome']} ({alvo_id}) ---")
         descobertas_brasil[alvo_id] = descobrir(alvo_id, brasil, "brasil")
 
@@ -229,7 +243,7 @@ def rodar(league_ids=None):
         metade1, metade2 = particionar_cronologico(dados)
         _conferir_particao(prefixo, metade1, metade2, dados)
 
-        for alvo_id in ALVOS_ESTUDADOS:
+        for alvo_id in alvos_rodada:
             print(f"\n  --- {alvos.ALVOS[alvo_id]['nome']} ({alvo_id}) ---")
             v1_br, v2_br = descobertas_brasil[alvo_id]
             herdado = confirmar(alvo_id, v1_br, v2_br, dados, f"{prefixo}_herdado", "herdado")
@@ -252,6 +266,10 @@ def rodar(league_ids=None):
 
 
 if __name__ == "__main__":
-    import sys
-    ids = [int(a) for a in sys.argv[1:]] or None
-    rodar(ids)
+    import argparse
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--liga", type=int, action="append", help="league_id (repetível); padrão: todas")
+    ap.add_argument("--alvo", action="append", choices=ALVOS_ESTUDADOS,
+                    help="alvo (repetível); padrão: todos. Eixo de paralelização — ver docstring de rodar()")
+    a = ap.parse_args()
+    rodar(a.liga, a.alvo)
