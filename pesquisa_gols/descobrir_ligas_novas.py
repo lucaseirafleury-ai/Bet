@@ -141,27 +141,47 @@ def particionar_cronologico(dados):
     return _filtrar_dataset(dados, ids1), _filtrar_dataset(dados, ids2)
 
 
-def rodar_via(alvo_id, dados_descoberta, dados_confirmacao, prefixo, rotulo):
+def descobrir(alvo_id, dados_descoberta, rotulo):
     """
-    Uma via de descoberta+confirmação: descobre em dados_descoberta (split
-    cronológico interno treino/teste + Benjamini-Hochberg) e confirma em
-    dados_confirmacao (teste de duas proporções + BH). Mesmas funções que
-    descobrir_nativo_brasil.py usa — só muda de onde vêm os dois conjuntos.
+    Etapa CARA: descobre condições num dataset (split cronológico interno
+    treino/teste + Benjamini-Hochberg), usando o mesmo motor de
+    buscar_condicoes que descobrir_nativo_brasil.py usa.
+
+    Separada de `confirmar` de propósito: o resultado NÃO depende de onde a
+    condição vai ser confirmada depois, então a descoberta no Brasil (a mais
+    cara — 1.435 jogos de treino, ~35min por alvo, contra ~2min de uma metade
+    de liga nova) roda UMA vez por alvo e é reaproveitada pelas três ligas.
+    Antes dessa separação o mesmo trabalho era refeito 12 vezes (4 alvos x 3
+    ligas), o que projetava ~7,8h de execução.
     """
     config.MERCADOS = alvos.mercados_do_alvo(alvo_id)
     desc = bm.dados_do_alvo(dados_descoberta, alvo_id)
-    conf = bm.dados_do_alvo(dados_confirmacao, alvo_id)
 
     treino_ids, teste_ids, criterio = _split_cronologico(desc["jogos"], desc["gols_finais"])
-    print(f"    [{rotulo}] split por {criterio}: {len(treino_ids)} treino / {len(teste_ids)} teste "
-          f"| confirmação: {len(conf['gols_finais'])} jogos")
+    print(f"    [descoberta:{rotulo}] split por {criterio}: {len(treino_ids)} treino / {len(teste_ids)} teste")
     if not treino_ids or not teste_ids:
         print(f"    [ABORTA] split degenerado em {rotulo} — nada seria testado")
-        return {"validados": 0, "confirmados": 0}
+        return [], []
 
-    val_1 = buscar_condicoes.buscar_1stat(desc, treino_ids, teste_ids)
-    validados_1stat, pool, exploratorios = val_1
+    validados_1stat, pool, _exploratorios = buscar_condicoes.buscar_1stat(desc, treino_ids, teste_ids)
     validados_2stats = buscar_condicoes.buscar_2stats(desc, pool, treino_ids, teste_ids)
+    print(f"    [descoberta:{rotulo}] validadas: {len(validados_1stat)} (1stat) + {len(validados_2stats)} (2stats)")
+    return validados_1stat, validados_2stats
+
+
+def confirmar(alvo_id, validados_1stat, validados_2stats, dados_confirmacao, prefixo, rotulo):
+    """
+    Etapa BARATA: reavalia condições já descobertas contra outro dataset
+    (teste de duas proporções + BH).
+
+    config.MERCADOS é setado aqui de novo, não só em `descobrir`: é estado
+    GLOBAL lido lá dentro de probabilidades.py, e como a descoberta de todos
+    os alvos roda antes das confirmações, sem isso a confirmação de escanteios
+    usaria os mercados do último alvo descoberto — resultado errado, sem erro
+    nenhum na tela.
+    """
+    config.MERCADOS = alvos.mercados_do_alvo(alvo_id)
+    conf = bm.dados_do_alvo(dados_confirmacao, alvo_id)
 
     conf_1 = [c for c in (bm.confirmar_1stat(c, conf) for c in validados_1stat) if c]
     conf_1 = bm.aplicar_bh_confirmacao(conf_1)
@@ -170,8 +190,7 @@ def rodar_via(alvo_id, dados_descoberta, dados_confirmacao, prefixo, rotulo):
 
     n1 = sum(1 for c in conf_1 if c["confirmado_bh"])
     n2 = sum(1 for c in conf_2 if c["confirmado_bh"])
-    print(f"    [{rotulo}] validadas: {len(validados_1stat)} (1stat) + {len(validados_2stats)} (2stats) "
-          f"-> confirmadas BH: {n1} + {n2}")
+    print(f"    [{rotulo}] confirmação em {len(conf['gols_finais'])} jogos -> confirmadas BH: {n1} + {n2}")
 
     bm.salvar_csv(os.path.join(config.DIR_RESULTADOS, f"{alvo_id}_{prefixo}_confirmacao_1stat.csv"), conf_1)
     bm.salvar_csv(os.path.join(config.DIR_RESULTADOS, f"{alvo_id}_{prefixo}_confirmacao_2stats.csv"), conf_2)
@@ -194,6 +213,14 @@ def rodar(league_ids=None):
     brasil = bs.mesclar([carregar(SERIE_A_ID), carregar(SERIE_B_ID)])
     print(f"  Brasil pooled: {len(brasil['gols_finais'])} jogos com resultado")
 
+    # Descoberta no Brasil: uma vez por alvo, reaproveitada por todas as ligas
+    # (ver docstring de `descobrir`). É a etapa cara da execução inteira.
+    print(f"\n{'='*70}\nDESCOBERTA NO BRASIL (via herdada) — uma vez por alvo\n{'='*70}")
+    descobertas_brasil = {}
+    for alvo_id in ALVOS_ESTUDADOS:
+        print(f"\n  --- {alvos.ALVOS[alvo_id]['nome']} ({alvo_id}) ---")
+        descobertas_brasil[alvo_id] = descobrir(alvo_id, brasil, "brasil")
+
     resumo = defaultdict(dict)
     for league_id, prefixo in ligas.items():
         print(f"\n{'='*70}\n{prefixo.upper()} ({league_id})\n{'='*70}")
@@ -204,10 +231,17 @@ def rodar(league_ids=None):
 
         for alvo_id in ALVOS_ESTUDADOS:
             print(f"\n  --- {alvos.ALVOS[alvo_id]['nome']} ({alvo_id}) ---")
+            v1_br, v2_br = descobertas_brasil[alvo_id]
+            herdado = confirmar(alvo_id, v1_br, v2_br, dados, f"{prefixo}_herdado", "herdado")
+
+            v1, v2 = descobrir(alvo_id, metade1, "nativo_12")
+            nativo_12 = confirmar(alvo_id, v1, v2, metade2, f"{prefixo}_nativo12", "nativo_12")
+
+            v1, v2 = descobrir(alvo_id, metade2, "nativo_21")
+            nativo_21 = confirmar(alvo_id, v1, v2, metade1, f"{prefixo}_nativo21", "nativo_21")
+
             resumo[prefixo][alvo_id] = {
-                "herdado": rodar_via(alvo_id, brasil, dados, f"{prefixo}_herdado", "herdado"),
-                "nativo_12": rodar_via(alvo_id, metade1, metade2, f"{prefixo}_nativo12", "nativo_12"),
-                "nativo_21": rodar_via(alvo_id, metade2, metade1, f"{prefixo}_nativo21", "nativo_21"),
+                "herdado": herdado, "nativo_12": nativo_12, "nativo_21": nativo_21,
             }
 
     print(f"\n{'='*70}\nRESUMO\n{'='*70}")
