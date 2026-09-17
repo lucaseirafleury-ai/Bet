@@ -683,6 +683,38 @@ def _chave_brasil(item):
     return (item["alvo_id"], item["minuto"], item["gols_momento"], mercado, condset)
 
 
+# Auditoria manual do usuário (17/09/2026, Excel com todos os sinais/jogos que
+# validaram as regras publicadas) achou 4 regras region=brasil com problemas
+# reais, identificadas por _chave_brasil (não pelo id numérico "escanteios_004"
+# etc. — esse id é reatribuído a cada regeneração, então travar nele quebraria
+# silenciosamente assim que o conjunto de regras mudasse de tamanho/ordem).
+#
+# chutes_totais_036 e escanteios_023: nunca mostraram EV positivo contra odds
+# reais da bet365 em toda a auditoria (chutes_totais_036: prob publicada
+# 33.3%, 0 apostas de EV+ no dataset inteiro; escanteios_023: prob publicada
+# 44.9%, só 2 apostas de EV+). Uma prob<50% por si só não é um problema (pode
+# bater o mercado), mas essas duas nunca demonstraram isso na prática — saem
+# do painel até serem re-auditadas com mais dado.
+ASSINATURAS_EXCLUIDAS_SEM_EV = {
+    ("chutes_totais", 15, 0, "-22.5", frozenset({("accurate_crosses", "<=", 1.0), ("successful_dribbles_percentage", "<=", 50.0)})),
+    ("escanteios", 30, 0, "+11.5", frozenset({("shots_insidebox", ">=", 3.0), ("total_crosses", ">=", 10.0)})),
+}
+
+# escanteios_004 e escanteios_005: a "melhor" variação guardada por
+# _selecionar_brasil_por_confianca (maior impacto entre as 3 origens) veio do
+# processo nativo_AB (descobre na Série A, confirma na Série B) — ou seja,
+# prob_condicao_confirmacao/amostra_confirmacao publicados são uma estatística
+# só da Série B, não do pool Série A+B, mesmo a regra tendo sido confirmada
+# (confirmacoes=3) nas três fontes. A auditoria manual achou taxa real de só
+# ~40% em jogos de Série A (contra ~54-55% em Série B, o número publicado) —
+# a regra nunca foi validada pra Série A. Restringe ao painel só disparar em
+# Série B, a única liga onde de fato foi medida.
+ASSINATURAS_RESTRITAS_SERIE_B = {
+    ("escanteios", 15, 0, "+11.5", frozenset({("dangerous_attacks", ">=", 10.0), ("total_crosses", ">=", 6.0)})),
+    ("escanteios", 15, 0, "+11.5", frozenset({("shots_insidebox", ">=", 1.0), ("total_crosses", ">=", 6.0)})),
+}
+
+
 def montar_regras(fortes):
     """
     (lista de "sinais" já filtrados/deduplicados, cada um com "regiao" e
@@ -751,6 +783,15 @@ def montar_regras(fortes):
             # 1 processo de descoberta (Allsvenskan), então o campo aqui é só
             # informativo, default 1.
             "confirmacoes": s.get("confirmacoes", 1),
+            # Restrição adicional, mais granular que "regiao" — a regra pode
+            # ter confirmacoes>=3 (as três fontes concordam) mas a MELHOR
+            # variação guardada (maior impacto) ter vindo de um processo que só
+            # mede uma das duas ligas do Brasil (ver ASSINATURAS_RESTRITAS_
+            # SERIE_B acima); nesse caso o painel só deve disparar na liga onde
+            # a probabilidade publicada foi de fato medida. None = sem
+            # restrição extra (vale em qualquer liga da própria "regiao").
+            # Ver live_monitor.py::_regra_vale_para_liga.
+            "liga_restrita": s.get("liga_restrita"),
         })
 
     print("recalibrando cada regra por valor atual do próprio alvo (escanteios/chutes já ocorridos)...")
@@ -815,6 +856,21 @@ def gerar():
         s["regiao"] = "brasil"
     _salvar_nao_incluidos(brasil_nao_incluidos, CAMINHO_AUDITORIA_BRASIL)
 
+    # Correções da auditoria manual (ver ASSINATURAS_EXCLUIDAS_SEM_EV/
+    # ASSINATURAS_RESTRITAS_SERIE_B acima) — aplicadas aqui, sobre o conjunto
+    # já selecionado por confiança, pra não interferir na lógica de escolha
+    # de "melhor variação por família".
+    n_excluidas_sem_ev = sum(1 for s in fortes_brasil if _chave_brasil(s) in ASSINATURAS_EXCLUIDAS_SEM_EV)
+    fortes_brasil = [s for s in fortes_brasil if _chave_brasil(s) not in ASSINATURAS_EXCLUIDAS_SEM_EV]
+    n_restritas_serie_b = 0
+    for s in fortes_brasil:
+        if _chave_brasil(s) in ASSINATURAS_RESTRITAS_SERIE_B:
+            s["liga_restrita"] = "serie_b"
+            n_restritas_serie_b += 1
+    if n_excluidas_sem_ev or n_restritas_serie_b:
+        print(f"  auditoria manual (17/09/2026): {n_excluidas_sem_ev} regra(s) excluída(s) por nunca "
+              f"mostrar EV positivo real, {n_restritas_serie_b} restrita(s) a jogos de Série B")
+
     # CORTE: regiao=universal e regiao=nordicas (confirmacoes=1, uma única
     # fonte de descoberta) NUNCA entram nas regras publicadas — mantidas aqui
     # só como `fortes_universal_e_nordicas` pra telemetria/contagem no print
@@ -866,7 +922,12 @@ def gerar():
                     "nórdicas) são CORTADAS desde este regen — confirmacoes=1 rendeu ROI real negativo "
                     "contra odds da bet365 nas duas regiões (-47,1% nórdicas, -49,6% universal, ver "
                     "backtest_odds_reais_v2.py), contra +17,8% de regiao=brasil (confirmacoes=3). "
-                    "Enquanto isso não mudar, as 3 ligas nórdicas atuais ficam sem regra ativa nenhuma.",
+                    "Enquanto isso não mudar, as 3 ligas nórdicas atuais ficam sem regra ativa nenhuma. "
+                    "Auditoria manual (17/09/2026, ver ASSINATURAS_EXCLUIDAS_SEM_EV/ASSINATURAS_RESTRITAS_"
+                    "SERIE_B): 2 regras excluídas por nunca mostrar EV positivo real (chutes_totais e "
+                    "escanteios aos 15'/30' com prob publicada 33.3%/44.9%), 2 regras de escanteios aos 15' "
+                    "restritas a jogos de Série B (campo liga_restrita) porque a variação guardada só foi "
+                    "de fato medida lá, apesar de confirmacoes=3.",
         "fonte": "pesquisa_gols/resultados/*_confirmacao_*.csv (nórdicas) + *_confirmacao_brasil_*.csv "
                  "(herdado) + *_confirmacao_serieB_*.csv (nativo, descobrir_nativo_brasil.py) — todos "
                  "confirmado_bh=True — + recalibração por valor atual do alvo (universal: pool de todas "

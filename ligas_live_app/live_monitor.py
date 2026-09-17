@@ -692,6 +692,17 @@ LIGAS_REGIAO_NORDICAS = {"Allsvenskan", "Superettan", "1. Division"}
 # dado" são objetivos diferentes; só o primeiro precisa da restrição.
 ALVOS_RESTRITOS_SERIE_A = {"chutes_totais", "chutes_no_alvo"}
 LIGAS_SERIE_A = {"Serie A", "Série A"}
+LIGAS_SERIE_B = {"Serie B", "Série B"}
+
+# Restrição por-REGRA (não por alvo/região) — ver
+# pesquisa_gols/gerar_regras_sinais.py::ASSINATURAS_RESTRITAS_SERIE_B: uma
+# regra "regiao": "brasil" pode ter confirmacoes>=3 (as três fontes de
+# descoberta concordam) mas a variação de maior impacto que foi de fato
+# publicada (prob_condicao_confirmacao/amostra_confirmacao) ter vindo de um
+# processo que só mede UMA das duas ligas do Brasil — nesse caso a regra só
+# deve disparar onde a probabilidade publicada foi realmente medida. Chave
+# igual ao valor de "liga_restrita" no JSON.
+LIGAS_POR_RESTRICAO = {"serie_a": LIGAS_SERIE_A, "serie_b": LIGAS_SERIE_B}
 
 # (alvo, direção) suprimidos quando o jogo já teve cartão vermelho — ver
 # conversa/pesquisa_gols/medir_efeito_vermelho.py: medido nos dados pooled
@@ -709,6 +720,9 @@ COMBOS_SUPRIMIDOS_POS_VERMELHO = {("cartoes", "menos_de")}
 
 def _regra_vale_para_liga(regra, liga, aplicar_restricao_mercado=True):
     if aplicar_restricao_mercado and regra.get("alvo") in ALVOS_RESTRITOS_SERIE_A and liga not in LIGAS_SERIE_A:
+        return False
+    liga_restrita = regra.get("liga_restrita")
+    if liga_restrita and liga not in LIGAS_POR_RESTRICAO.get(liga_restrita, set()):
         return False
     regiao = regra.get("regiao")
     if regiao == "brasil":
