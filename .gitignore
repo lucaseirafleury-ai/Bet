@@ -12,6 +12,7 @@ pesquisa_gols/resultados/diffgols/
 pesquisa_gols/dados/diffgols_brasil/
 pesquisa_gols/resultados/diffgols_brasil/
 pesquisa_gols/dados/backtest_odds_reais_detalhe_*.csv
+pesquisa_gols/dados/roi_ligas_novas_detalhe.csv
 ligas_live_app/backtest_run.log
 ligas_live_app/painel_historico.html
 pesquisa_gols/dados/backup_checkpoints/
