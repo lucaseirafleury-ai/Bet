@@ -88,13 +88,13 @@ PREFIXO_POR_LIGA = LIGAS_NOVAS                      # {779: "mls", ...}
 LIGA_POR_PREFIXO = {v: k for k, v in LIGAS_NOVAS.items()}
 
 
-def familias_da_liga(prefixo):
+def familias_da_liga(prefixo, amostra_minima=None):
     """As famílias com as 3 vias concordando, já colapsadas, viradas em regra
     no mesmo formato que regras_sinais.json usa (é o que recalibrar_por_valor_
     atual e o backtest esperam)."""
     regras = []
     for alvo_id in ALVOS_COM_MERCADO:
-        _niveis, triplas, _por_via = cz.cruzar(alvo_id, prefixo)
+        _niveis, triplas, _por_via = cz.cruzar(alvo_id, prefixo, amostra_minima)
         for i, t in enumerate(triplas, 1):
             regras.append({
                 "id": f"{prefixo}_{alvo_id}_{i:03d}",

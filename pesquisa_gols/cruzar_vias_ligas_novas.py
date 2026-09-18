@@ -28,7 +28,7 @@ from descobrir_ligas_novas import ALVOS_ESTUDADOS, LIGAS_NOVAS
 VIAS = ["herdado", "nativo12", "nativo21"]
 
 
-def _ler_via(alvo_id, prefixo_liga, via):
+def _ler_via(alvo_id, prefixo_liga, via, amostra_minima=None):
     """CSVs de uma via -> mesma estrutura que gerar_regras_sinais._carregar_brutas
     produz, pra poder usar as funções de família dele sem adaptação.
 
@@ -37,6 +37,8 @@ def _ler_via(alvo_id, prefixo_liga, via):
     estatisticamente reais mas economicamente triviais, erro já cometido nesta
     sessão ao calcular ROI sem o piso de impacto.
     """
+    if amostra_minima is None:
+        amostra_minima = g.AMOSTRA_MINIMA
     brutas = []
     base = f"{alvo_id}_{prefixo_liga}_{via}_confirmacao"
 
@@ -44,7 +46,7 @@ def _ler_via(alvo_id, prefixo_liga, via):
     for r in g.ler_csv(caminho_1):
         amostra = int(r["amostra_outras_ligas"])
         impacto = float(r["impacto_outras_ligas_pp"])
-        if amostra < g.AMOSTRA_MINIMA or abs(impacto) < g.IMPACTO_MINIMO_PP:
+        if amostra < amostra_minima or abs(impacto) < g.IMPACTO_MINIMO_PP:
             continue
         brutas.append({
             "alvo_id": alvo_id, "minuto": int(r["minuto"]), "gols_momento": int(r["gols_momento"]),
@@ -62,7 +64,7 @@ def _ler_via(alvo_id, prefixo_liga, via):
         p_base = float(r["p_base_outras_ligas"])
         p_cond = float(r["p_conjunta_outras_ligas"])
         impacto = (p_cond - p_base) * 100
-        if amostra < g.AMOSTRA_MINIMA or abs(impacto) < g.IMPACTO_MINIMO_PP:
+        if amostra < amostra_minima or abs(impacto) < g.IMPACTO_MINIMO_PP:
             continue
         brutas.append({
             "alvo_id": alvo_id, "minuto": int(r["minuto"]), "gols_momento": int(r["gols_momento"]),
@@ -78,10 +80,10 @@ def _ler_via(alvo_id, prefixo_liga, via):
     return brutas
 
 
-def cruzar(alvo_id, prefixo_liga):
+def cruzar(alvo_id, prefixo_liga, amostra_minima=None):
     """Devolve (familias_por_nivel, detalhe) — quantas famílias tiveram 1, 2 ou
     3 vias confirmando, e a melhor variação de cada família com 3 vias."""
-    por_via = {via: g._colapsar(_ler_via(alvo_id, prefixo_liga, via)) for via in VIAS}
+    por_via = {via: g._colapsar(_ler_via(alvo_id, prefixo_liga, via, amostra_minima)) for via in VIAS}
     combinado = [item for itens in por_via.values() for item in itens]
     if not combinado:
         return {1: 0, 2: 0, 3: 0}, [], {v: 0 for v in VIAS}
@@ -101,17 +103,19 @@ def cruzar(alvo_id, prefixo_liga):
     return niveis, triplas, {v: len(por_via[v]) for v in VIAS}
 
 
-def rodar(ligas=None, alvos_sel=None):
+def rodar(ligas=None, alvos_sel=None, amostra_minima=None):
     prefixos = [p for p in LIGAS_NOVAS.values() if ligas is None or p in ligas]
     alvos_rodada = [a for a in ALVOS_ESTUDADOS if alvos_sel is None or a in alvos_sel]
 
+    print(f"piso de amostra: {amostra_minima if amostra_minima is not None else g.AMOSTRA_MINIMA}"
+          f"  (padrao do pipeline: {g.AMOSTRA_MINIMA})\n")
     print(f"{'liga':12s} {'alvo':16s} {'herdado':>8s} {'nat12':>7s} {'nat21':>7s} "
           f"| {'1 via':>6s} {'2 vias':>7s} {'3 vias':>7s}")
     print("-" * 82)
     total_triplas = defaultdict(list)
     for prefixo in prefixos:
         for alvo_id in alvos_rodada:
-            niveis, triplas, por_via = cruzar(alvo_id, prefixo)
+            niveis, triplas, por_via = cruzar(alvo_id, prefixo, amostra_minima)
             print(f"{prefixo:12s} {alvo_id:16s} {por_via['herdado']:8d} {por_via['nativo12']:7d} "
                   f"{por_via['nativo21']:7d} | {niveis.get(1,0):6d} {niveis.get(2,0):7d} {niveis.get(3,0):7d}")
             total_triplas[prefixo].extend(triplas)
@@ -130,5 +134,9 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--liga", action="append", help="prefixo da liga (mls/argentina/championship)")
     ap.add_argument("--alvo", action="append", choices=ALVOS_ESTUDADOS)
+    ap.add_argument("--amostra-minima", type=int, default=None,
+                    help="piso de amostra na confirmacao (padrao: gerar_regras_sinais.AMOSTRA_MINIMA). "
+                         "Os CSVs ja contem tudo com amostra >= config.AMOSTRA_MINIMA (30), entao baixar "
+                         "o piso NAO exige redescoberta -- so muda o que passa neste cruzamento.")
     a = ap.parse_args()
-    rodar(a.liga, a.alvo)
+    rodar(a.liga, a.alvo, a.amostra_minima)
