@@ -115,6 +115,20 @@ def ler_csv(caminho):
 LIGAS_BRASIL = {648, 651}  # Série A, Série B — ver REGIOES_REGRA abaixo
 LIGAS_NORDICAS = {573, 579, 447}  # Allsvenskan, Superettan, 1. Division
 
+# Ligas que entraram na assinatura em 17/09/2026. Cada uma é sua PRÓPRIA
+# região, nunca agrupada: MLS e Liga Profesional têm estilo de jogo bem
+# diferente entre si e do Brasil (ver ligas_live_app/config.py), então uma
+# condição confirmada numa não vale como confirmada na outra, e recalibrar
+# misturando as duas diluiria o efeito com dado de liga onde ele não se
+# sustentou — mesmo motivo de brasil e nordicas serem separadas.
+LIGAS_POR_REGIAO = {
+    "brasil": LIGAS_BRASIL,
+    "nordicas": LIGAS_NORDICAS,
+    "mls": {779},
+    "argentina": {636},
+    "championship": {9},
+}
+
 
 def _carregar_dados_pooled():
     """fixture_id -> {minuto: snapshot}, fixture_id -> resultados_alvo, fixture_id -> league_id
@@ -312,10 +326,9 @@ def recalibrar_por_valor_atual(regras):
         # errado misturado diluiria/distorceria o efeito real com dado de uma
         # região onde ele nem se sustentou. Regra "universal" usa o pool
         # inteiro, como sempre (ver REGIOES_REGRA).
-        if regra.get("regiao") == "brasil":
-            fixtures_desta_regiao = {fid for fid, lid in liga_por_fixture.items() if lid in LIGAS_BRASIL}
-        elif regra.get("regiao") == "nordicas":
-            fixtures_desta_regiao = {fid for fid, lid in liga_por_fixture.items() if lid in LIGAS_NORDICAS}
+        ligas_da_regiao = LIGAS_POR_REGIAO.get(regra.get("regiao"))
+        if ligas_da_regiao:
+            fixtures_desta_regiao = {fid for fid, lid in liga_por_fixture.items() if lid in ligas_da_regiao}
         else:
             fixtures_desta_regiao = None
 
