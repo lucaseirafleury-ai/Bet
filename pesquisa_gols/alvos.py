@@ -96,8 +96,21 @@ def mercados_do_alvo(alvo_id):
 # adversário. Deixar essas como "candidatas" não é achar um sinal preditivo,
 # é medir "resultado parcial de X prevê resultado final de X" — 57-78% das
 # condições "validadas" antes desta correção eram exatamente isso.
+#
+# key_passes entrou nesta lista em 18/09/2026, no estudo das ligas novas: 87%
+# das famílias com as 3 vias concordando dependiam dele. Key pass é, por
+# definição, passe que resulta em finalização — ou seja, contagem PARCIAL de
+# chutes, o mesmo vazamento descrito acima. Medido nas 5 ligas aos 30':
+# key_passes <= shots_total em ~99% dos snapshots, correlação 0,77-0,83 (todas
+# as outras candidatas ficam em 0,15-0,28) e razão key_passes/chutes 0,68-0,72.
+# Teste direto (MLS, 30', 0x0, alvo +24.5): "key_passes>=5" dá +35,3pp e o
+# shots_total cru (>=6) dá +38,8pp — é proxy PIOR do óbvio, não sinal novo.
+#
+# Só em chutes_totais: contra chutes_NO_ALVO a relação se inverte (correlação
+# 0,41-0,50, key_passes MAIOR que o alvo em ~82% dos snapshots, razão ~2,0).
+# Lá não há contenção mecânica, e excluir seria perder preditor legítimo.
 EXCLUSOES_EXTRAS = {
-    "chutes_totais": {"shots_on_target", "shots_insidebox", "shots_outsidebox", "shots_blocked", "goal_attempts", "saves"},
+    "chutes_totais": {"shots_on_target", "shots_insidebox", "shots_outsidebox", "shots_blocked", "goal_attempts", "saves", "key_passes"},
     "chutes_no_alvo": {"shots_total", "shots_insidebox", "shots_outsidebox", "shots_blocked", "goal_attempts", "saves"},
 }
 
