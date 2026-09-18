@@ -673,6 +673,33 @@ LIGAS_REGIAO_BRASIL = {"Serie A", "Série A", "Serie B", "Série B"}
 # acima).
 LIGAS_REGIAO_NORDICAS = {"Allsvenskan", "Superettan", "1. Division"}
 
+# Ligas que entraram na assinatura em 17/09/2026. Cada uma é sua PRÓPRIA
+# região (nunca agrupadas): MLS, Liga Profesional e Championship têm estilos
+# bem diferentes entre si e do Brasil, então uma condição confirmada numa não
+# vale como confirmada na outra -- mesmo raciocínio de brasil x nordicas.
+#
+# Nomes conferidos NA API (GET /leagues/<id>, 18/09/2026), não copiados de
+# config.LIGAS_MONITORADAS: é exatamente o cuidado que faltou no bug do
+# "Série A" acima. A API devolve 'Major League Soccer', 'Liga Profesional de
+# Fútbol' e 'Championship'. A variante sem acento de "Futbol" entra por
+# segurança, caso a API mude a grafia.
+LIGAS_REGIAO_MLS = {"Major League Soccer"}
+LIGAS_REGIAO_ARGENTINA = {"Liga Profesional de Fútbol", "Liga Profesional de Futbol"}
+LIGAS_REGIAO_CHAMPIONSHIP = {"Championship"}
+
+# Mapa único de região -> ligas. Região AUSENTE deste mapa cai no fallback
+# "vale em qualquer liga" (ver _regra_vale_para_liga) -- que é o comportamento
+# certo só pra "universal" e pra regra antiga sem o campo. Publicar uma regra
+# com região nova SEM registrá-la aqui faria ela disparar em TODAS as ligas,
+# inclusive nas do Brasil: é falha silenciosa, não erro.
+LIGAS_POR_REGIAO = {
+    "brasil": LIGAS_REGIAO_BRASIL,
+    "nordicas": LIGAS_REGIAO_NORDICAS,
+    "mls": LIGAS_REGIAO_MLS,
+    "argentina": LIGAS_REGIAO_ARGENTINA,
+    "championship": LIGAS_REGIAO_CHAMPIONSHIP,
+}
+
 # Alvos cuja aposta em si a casa não oferece fora da Série A — chutes totais/
 # no alvo não têm mercado ao vivo em nenhuma bookmaker aceita (bet365/1xbet)
 # nas ligas nórdicas nem na Série B (confirmado pelo usuário observando as
@@ -725,10 +752,9 @@ def _regra_vale_para_liga(regra, liga, aplicar_restricao_mercado=True):
     if liga_restrita and liga not in LIGAS_POR_RESTRICAO.get(liga_restrita, set()):
         return False
     regiao = regra.get("regiao")
-    if regiao == "brasil":
-        return liga in LIGAS_REGIAO_BRASIL
-    if regiao == "nordicas":
-        return liga in LIGAS_REGIAO_NORDICAS
+    ligas_da_regiao = LIGAS_POR_REGIAO.get(regiao)
+    if ligas_da_regiao is not None:
+        return liga in ligas_da_regiao
     return True  # "universal" (ou regra antiga sem o campo) vale em qualquer liga monitorada
 
 
