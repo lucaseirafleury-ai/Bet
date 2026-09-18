@@ -239,6 +239,20 @@ def rodar_liga_cartoes(chave, linhas):
 
 
 def main():
+    import sys as _sys
+
+    # `--ligas a,b` roda só essas ligas; `--enxuto` fixa os dois eixos de
+    # refinamento fino (dp/outlier) nos valores padrão, deixando só os eixos
+    # com motivo teórico de variar entre ligas (fator casa, estilo, filtro) —
+    # 48 combinações em vez de 192, ~4x mais rápido.
+    ligas = dict(LIGAS)
+    for i, arg in enumerate(_sys.argv):
+        if arg == "--ligas" and i + 1 < len(_sys.argv):
+            ligas = {k: LIGAS[k] for k in _sys.argv[i + 1].split(",")}
+    if "--enxuto" in _sys.argv:
+        GRADE["multiplicador_dp"] = [1.5]
+        GRADE["limite_unilateral"] = [2]
+
     linhas = [
         f"# Grid com holdout nas 3 ligas novas ({date.today()})",
         "",
@@ -258,13 +272,14 @@ def main():
     ]
     # Checkpoint a cada etapa: o grid inteiro leva horas, e um container
     # reciclado no meio não pode custar o trabalho todo.
-    parcial = f"docs/_parcial_grid_ligas_novas_{date.today()}.md"
+    sufixo = "_".join(ligas) if len(ligas) < len(LIGAS) else "todas"
+    parcial = f"docs/_parcial_grid_ligas_novas_{sufixo}_{date.today()}.md"
 
     def salvar(caminho_saida):
         with open(caminho_saida, "w") as fh:
             fh.write("\n".join(linhas) + "\n")
 
-    for chave, nome in LIGAS.items():
+    for chave, nome in ligas.items():
         print(f"== {nome} ==", flush=True)
         linhas += [f"## {nome}", ""]
         rodar_liga_gols(chave, linhas)
@@ -274,7 +289,7 @@ def main():
         salvar(parcial)
         print(f"  parcial salvo ({nome} completa)", flush=True)
 
-    saida = f"docs/retrospectiva_grid_ligas_novas_{date.today()}.md"
+    saida = f"docs/retrospectiva_grid_ligas_novas_{sufixo}_{date.today()}.md"
     salvar(saida)
     print(f"\nRelatório salvo em {saida}")
 
