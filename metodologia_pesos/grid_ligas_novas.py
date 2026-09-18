@@ -256,16 +256,26 @@ def main():
         "'sem amostra').",
         "",
     ]
+    # Checkpoint a cada etapa: o grid inteiro leva horas, e um container
+    # reciclado no meio não pode custar o trabalho todo.
+    parcial = f"docs/_parcial_grid_ligas_novas_{date.today()}.md"
+
+    def salvar(caminho_saida):
+        with open(caminho_saida, "w") as fh:
+            fh.write("\n".join(linhas) + "\n")
+
     for chave, nome in LIGAS.items():
         print(f"== {nome} ==", flush=True)
         linhas += [f"## {nome}", ""]
         rodar_liga_gols(chave, linhas)
-        print(f"  cartões...", flush=True)
+        salvar(parcial)
+        print("  cartões...", flush=True)
         rodar_liga_cartoes(chave, linhas)
+        salvar(parcial)
+        print(f"  parcial salvo ({nome} completa)", flush=True)
 
     saida = f"docs/retrospectiva_grid_ligas_novas_{date.today()}.md"
-    with open(saida, "w") as fh:
-        fh.write("\n".join(linhas) + "\n")
+    salvar(saida)
     print(f"\nRelatório salvo em {saida}")
 
 
