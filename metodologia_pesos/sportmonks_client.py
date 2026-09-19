@@ -116,11 +116,22 @@ def flatten_fixture(f):
     )
 
 
-def puxar_fixtures_finalizados(tok, league_id, out_path):
-    """Grava um JSONL (um fixture finalizado por linha) com todas as
-    temporadas disponíveis no plano (3 grátis + a atual). Sobrescreve
-    `out_path` a cada chamada — rodar de novo pra atualizar o dado."""
+def puxar_fixtures_finalizados(tok, league_id, out_path, desde_ano=None):
+    """Grava um JSONL (um fixture finalizado por linha) com as temporadas
+    disponíveis no plano. Sobrescreve `out_path` a cada chamada — rodar de
+    novo pra atualizar o dado.
+
+    `desde_ano` (int) descarta temporadas anteriores a esse ano. Com o
+    add-on de Historical Data o plano expõe 22 temporadas (2005+), mas a
+    profundidade ÚTIL é menor e depende do que se quer medir (medido em
+    19/09/2026, ver `docs/retrospectiva_historical_data_2026-09-19.md`):
+    odds só existem de ~2018 em diante (sem odd não dá pra medir edge);
+    estatística + árbitro existem de ~2015; antes de 2015 não vem nada.
+    Temporadas de formato "2016/2017" são comparadas pelo primeiro ano."""
     temporadas = descobrir_temporadas(tok, league_id)
+    if desde_ano is not None:
+        temporadas = {nome: sid for nome, sid in temporadas.items()
+                      if int(nome[:4]) >= desde_ano}
     total = 0
     with open(out_path, "w") as fh:
         for nome_temp, season_id in temporadas.items():
