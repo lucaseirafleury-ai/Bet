@@ -18,6 +18,8 @@ Uso: `python3 grid_ligas_novas.py`
 Saída: `docs/retrospectiva_grid_ligas_novas_<data>.md`
 """
 import itertools
+import multiprocessing as mp
+import os
 import statistics
 from collections import defaultdict
 from datetime import date, datetime
@@ -43,6 +45,8 @@ LIGAS = {
     "mls": "MLS (EUA/Canadá)",
 }
 ANO_HOLDOUT = 2026
+# Backtest é CPU puro: usa todos os núcleos disponíveis.
+N_PROCESSOS = os.cpu_count() or 1
 
 # Mesmo espaço de grid usado no Brasileirão (docs/retrospectiva_grid_completo_2026-08-25.md)
 GRADE = dict(
@@ -159,25 +163,43 @@ def _fmt(s):
     return f"n={s['n']} ROI={s['roi']*100:+.1f}% z={s['z']:+.2f}"
 
 
+def _init_worker(chave, bookmaker_id):
+    """Cada processo carrega o DataFrame UMA vez (em vez de serializar o df
+    inteiro a cada combinação)."""
+    global _DF_WORKER
+    _DF_WORKER = carregar_liga_sportmonks(caminho(chave), bookmaker_id=bookmaker_id)
+
+
+def _avaliar_combo_gols(args):
+    combo, chaves, cfg = args
+    params = dict(zip(chaves, combo))
+    try:
+        apostas = apostas_gols(_DF_WORKER, params, cfg)
+    except Exception:
+        return None
+    treino, holdout = _split(apostas)
+    s_t, s_h = stats(treino), stats(holdout)
+    if s_t["n"] < 15 or s_h["n"] < 15:
+        return None  # amostra mínima nos DOIS lados, senão não é avaliável
+    return (s_t["z"], params, s_t, s_h, apostas)
+
+
 def rodar_liga_gols(chave, linhas):
     combos = list(itertools.product(*GRADE.values()))
     chaves = list(GRADE.keys())
     for cfg in MERCADOS_GOLS:
-        df = carregar_liga_sportmonks(caminho(chave), bookmaker_id=cfg["bookmaker_id"])
-        resultados = []
-        for i, combo in enumerate(combos, 1):
-            params = dict(zip(chaves, combo))
-            try:
-                apostas = apostas_gols(df, params, cfg)
-            except Exception:
-                continue
-            treino, holdout = _split(apostas)
-            s_t, s_h = stats(treino), stats(holdout)
-            if s_t["n"] < 15 or s_h["n"] < 15:
-                continue  # amostra mínima nos DOIS lados, senão não é avaliável
-            resultados.append((s_t["z"], params, s_t, s_h, apostas))
-            if i % 48 == 0:
-                print(f"    {chave}/{cfg['nome']}: {i}/{len(combos)} combos", flush=True)
+        # Backtest é CPU puro e cada combinação é independente -> usa todos os
+        # núcleos. Single-thread, um grid de 192 combinações levava ~2,5h.
+        tarefas = [(combo, chaves, cfg) for combo in combos]
+        with mp.Pool(processes=N_PROCESSOS, initializer=_init_worker,
+                      initargs=(chave, cfg["bookmaker_id"])) as pool:
+            brutos = []
+            for i, r in enumerate(pool.imap_unordered(_avaliar_combo_gols, tarefas), 1):
+                if r is not None:
+                    brutos.append(r)
+                if i % 48 == 0:
+                    print(f"    {chave}/{cfg['nome']}: {i}/{len(combos)} combos", flush=True)
+        resultados = brutos
         resultados.sort(key=lambda r: r[0], reverse=True)
         linhas += [f"### {cfg['nome']} (casa {cfg['casa']}, edge>={cfg['limiar_edge']*100:.0f}%)", ""]
         if not resultados:
@@ -204,21 +226,25 @@ def rodar_liga_gols(chave, linhas):
                    "; ".join(f"{ano} {_fmt(s)}" for ano, s in _por_ano(melhor[4]).items()), ""]
 
 
+def _avaliar_combo_cartoes(args):
+    chave, params = args
+    try:
+        apostas = apostas_cartoes(chave, **params)
+    except Exception:
+        return None
+    treino, holdout = _split(apostas)
+    s_t, s_h = stats(treino), stats(holdout)
+    if s_t["n"] < 15 or s_h["n"] < 15:
+        return None
+    return (s_t["z"], params, s_t, s_h, apostas)
+
+
 def rodar_liga_cartoes(chave, linhas):
     combos = list(itertools.product(*GRADE_CARTOES.values()))
     chaves = list(GRADE_CARTOES.keys())
-    resultados = []
-    for combo in combos:
-        params = dict(zip(chaves, combo))
-        try:
-            apostas = apostas_cartoes(chave, **params)
-        except Exception:
-            continue
-        treino, holdout = _split(apostas)
-        s_t, s_h = stats(treino), stats(holdout)
-        if s_t["n"] < 15 or s_h["n"] < 15:
-            continue
-        resultados.append((s_t["z"], params, s_t, s_h, apostas))
+    tarefas = [(chave, dict(zip(chaves, combo))) for combo in combos]
+    with mp.Pool(processes=N_PROCESSOS) as pool:
+        resultados = [r for r in pool.map(_avaliar_combo_cartoes, tarefas) if r is not None]
     resultados.sort(key=lambda r: r[0], reverse=True)
     linhas += ["### Cartões+Árbitro (bet365, edge>=10%)", ""]
     if not resultados:
