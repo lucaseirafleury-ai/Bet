@@ -165,3 +165,27 @@ def test_flat_para_linha_odds_escanteios_ausente_retorna_lista_vazia():
     flat = _flat_base(odds={})
     linha = flat_para_linha(flat)
     assert linha["_odds_escanteios"] == []
+
+
+def test_total_da_odd_descarta_linha_quebrada():
+    """Temporada antiga traz linha quebrada estilo asiático ("1.5,2"):
+    float() derrubava o pipeline inteiro. Deve virar None (entrada
+    descartada), nunca ser convertida na força."""
+    from sportmonks_adapter import total_da_odd
+
+    assert total_da_odd({"total": "2.5"}) == 2.5
+    assert total_da_odd({"total": 3}) == 3.0
+    assert total_da_odd({"total": "1.5,2"}) is None
+    assert total_da_odd({"total": None}) is None
+    assert total_da_odd({}) is None
+
+
+def test_media_odd_ignora_linha_quebrada_e_usa_o_resto():
+    from sportmonks_adapter import _media_odd
+
+    entradas = [
+        {"label": "Over", "value": "1.80", "total": "2.5", "bookmaker_id": 2},
+        {"label": "Over", "value": "9.99", "total": "1.5,2", "bookmaker_id": 2},
+        {"label": "Over", "value": "2.00", "total": "2.5", "bookmaker_id": 2},
+    ]
+    assert _media_odd(entradas, "Over", total_alvo=2.5, bookmaker_id=2) == 1.90

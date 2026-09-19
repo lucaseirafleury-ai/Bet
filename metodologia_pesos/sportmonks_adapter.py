@@ -53,11 +53,30 @@ BOOKMAKER_BET365 = 2
 BOOKMAKER_SBO = 34  # Sbobet — usado só como base do Over 2.5 recalibrado (ver previsao_dia.py)
 
 
+def total_da_odd(entrada):
+    """Linha (`total`) de uma entrada de odd, como float — `None` quando
+    ausente ou em formato que não é uma linha simples.
+
+    O Sportmonks devolve linha QUEBRADA (estilo asiático) como string com
+    vírgula: `"1.5,2"` significa metade da aposta em 1.5 e metade em 2.0.
+    Aparece em temporadas antigas (visível só depois do add-on de
+    Historical Data, 19/09/2026) e não é um mercado que este motor
+    modela — a entrada é descartada, nunca convertida na força. Sem esse
+    tratamento, `float("1.5,2")` derruba o pipeline inteiro."""
+    total = entrada.get("total")
+    if total is None:
+        return None
+    try:
+        return float(total)
+    except (TypeError, ValueError):
+        return None
+
+
 def _media_odd(entradas, label, total_alvo=None, bookmaker_id=None):
     vals = [
         float(e["value"]) for e in entradas
         if e.get("label") == label and e.get("value") is not None
-        and (total_alvo is None or (e.get("total") is not None and float(e["total"]) == total_alvo))
+        and (total_alvo is None or total_da_odd(e) == total_alvo)
         and (bookmaker_id is None or e.get("bookmaker_id") == bookmaker_id)
     ]
     return sum(vals) / len(vals) if vals else None
