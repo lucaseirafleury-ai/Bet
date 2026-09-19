@@ -72,13 +72,52 @@ def total_da_odd(entrada):
         return None
 
 
+_ALIAS_LABEL = {"1": "Home", "X": "Draw", "2": "Away"}
+
+
+def normalizar_odd(entrada):
+    """`(label, total)` de uma entrada de odd, normalizados para a convenção
+    atual do Sportmonks.
+
+    O provedor mudou de convenção ao longo dos anos e o histórico profundo
+    (add-on Historical Data) mistura as duas — sem normalizar, temporada
+    antiga é descartada em silêncio. Derivas medidas em 19/09/2026 na
+    Série A:
+
+    - 1x2: `"1"/"X"/"2"` até 2022, `"Home"/"Draw"/"Away"` de 2023 em diante.
+      Era a pior: o favoritismo sai do 1x2 e `retrospectiva.prever_jogo`
+      descarta o jogo inteiro quando ele falta — 2017-2022 não gerava
+      nenhuma aposta, mesmo com odds de gols e BTTS presentes.
+    - Gols: `"Over "` com espaço à direita (1.066 entradas só em 2019).
+    - Cartões: linha embutida no rótulo (`"5.5 | Over"`) em vez do campo
+      `total` separado.
+    """
+    label = (entrada.get("label") or "").strip()
+    total = total_da_odd(entrada)
+    if "|" in label:  # "5.5 | Over" — linha no rótulo, formato antigo de cartões
+        parte_total, _, parte_label = label.partition("|")
+        label = parte_label.strip()
+        if total is None:
+            try:
+                total = float(parte_total.strip())
+            except ValueError:
+                total = None
+    return _ALIAS_LABEL.get(label, label), total
+
+
 def _media_odd(entradas, label, total_alvo=None, bookmaker_id=None):
-    vals = [
-        float(e["value"]) for e in entradas
-        if e.get("label") == label and e.get("value") is not None
-        and (total_alvo is None or total_da_odd(e) == total_alvo)
-        and (bookmaker_id is None or e.get("bookmaker_id") == bookmaker_id)
-    ]
+    vals = []
+    for e in entradas:
+        if e.get("value") is None:
+            continue
+        if bookmaker_id is not None and e.get("bookmaker_id") != bookmaker_id:
+            continue
+        e_label, e_total = normalizar_odd(e)
+        if e_label != label:
+            continue
+        if total_alvo is not None and e_total != total_alvo:
+            continue
+        vals.append(float(e["value"]))
     return sum(vals) / len(vals) if vals else None
 
 

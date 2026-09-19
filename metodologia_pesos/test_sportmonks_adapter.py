@@ -189,3 +189,33 @@ def test_media_odd_ignora_linha_quebrada_e_usa_o_resto():
         {"label": "Over", "value": "2.00", "total": "2.5", "bookmaker_id": 2},
     ]
     assert _media_odd(entradas, "Over", total_alvo=2.5, bookmaker_id=2) == 1.90
+
+
+def test_normalizar_odd_traduz_convencoes_antigas():
+    """O Sportmonks mudou rótulo ao longo dos anos e o histórico profundo
+    mistura as duas convenções. Sem traduzir, temporada antiga some em
+    silêncio — foi o que escondeu 2017-2022 na primeira revalidação."""
+    from sportmonks_adapter import normalizar_odd
+
+    # 1x2 antigo -> atual
+    assert normalizar_odd({"label": "1"}) == ("Home", None)
+    assert normalizar_odd({"label": "X"}) == ("Draw", None)
+    assert normalizar_odd({"label": "2"}) == ("Away", None)
+    # convenção atual passa intacta
+    assert normalizar_odd({"label": "Home"}) == ("Home", None)
+    # espaço à direita (gols 2019)
+    assert normalizar_odd({"label": "Over ", "total": "2.5"}) == ("Over", 2.5)
+    # cartões antigos: linha embutida no rótulo
+    assert normalizar_odd({"label": "5.5 | Over"}) == ("Over", 5.5)
+    # campo total explícito vence o rótulo
+    assert normalizar_odd({"label": "4.5 | Under", "total": "4.5"}) == ("Under", 4.5)
+
+
+def test_media_odd_soma_convencoes_misturadas():
+    from sportmonks_adapter import _media_odd
+
+    entradas = [
+        {"label": "1", "value": "2.00", "bookmaker_id": 2},
+        {"label": "Home", "value": "3.00", "bookmaker_id": 2},
+    ]
+    assert _media_odd(entradas, "Home", bookmaker_id=2) == 2.50

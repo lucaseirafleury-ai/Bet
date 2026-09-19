@@ -17,7 +17,7 @@ from collections import defaultdict
 from datetime import datetime
 
 from pesos import probabilidade_implicita_2vias, probabilidade_over
-from sportmonks_adapter import BOOKMAKER_BET365, flat_para_linha, total_da_odd
+from sportmonks_adapter import BOOKMAKER_BET365, flat_para_linha, normalizar_odd, total_da_odd
 
 
 def carregar_referees_cartoes(caminho, bookmaker_id=BOOKMAKER_BET365):
@@ -141,12 +141,12 @@ def linha_mais_liquida(jogo, market_id):
     contagem = defaultdict(set)
     odds_por_total = defaultdict(lambda: defaultdict(list))
     for e in entradas:
-        total = total_da_odd(e)
+        label, total = normalizar_odd(e)
         if total is None:
             continue  # linha quebrada ("1.5,2") ou ausente — ver total_da_odd
         contagem[total].add(e.get("bookmaker_id"))
         if e.get("value") is not None:
-            odds_por_total[total][e["label"]].append(float(e["value"]))
+            odds_por_total[total][label].append(float(e["value"]))
     if not contagem:
         return None
     max_bookmakers = max(len(s) for s in contagem.values())
@@ -171,10 +171,13 @@ def odd_media_na_linha(jogo, market_id, total_alvo, label):
     entradas = jogo.get("odds", {}).get(str(market_id)) or jogo.get("odds", {}).get(market_id)
     if not entradas:
         return None
-    valores = [
-        float(e["value"]) for e in entradas
-        if total_da_odd(e) == total_alvo and e["label"] == label and e.get("value") is not None
-    ]
+    valores = []
+    for e in entradas:
+        if e.get("value") is None:
+            continue
+        e_label, e_total = normalizar_odd(e)
+        if e_total == total_alvo and e_label == label:
+            valores.append(float(e["value"]))
     if not valores:
         return None
     return sum(valores) / len(valores)
