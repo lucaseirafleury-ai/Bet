@@ -12,3 +12,6 @@ fixture_id,tipo,liga,jogo,data_jogo,alvo,direcao,linha,minuto,probabilidade_esti
 19667159,sinal_chutes_totais_menos_de,Serie B,CRB x Sport Recife,2026-09-16,chutes_totais,menos_de,24.5,31,78.0,1.28,,,,red,33.0,2026-09-16T00:32:52.750402+00:00,2026-09-16T08:10:36+00:00,,,
 19667159,sinal_escanteios_mais_de,Serie B,CRB x Sport Recife,2026-09-16,escanteios,mais_de,8.5,46,70.7,1.42,,,,red,8.0,2026-09-16T01:11:28.892827+00:00,2026-09-16T08:10:36+00:00,,,
 19621878,sinal_chutes_totais_menos_de,Serie A,Botafogo x Grêmio,2026-09-16,chutes_totais,menos_de,24.5,32,78.0,1.28,,,,green,22.0,2026-09-16T23:03:03.996780+00:00,2026-09-17T08:10:30+00:00,,,
+19667153,sinal_chutes_totais_mais_de,Serie B,Ceará x Novorizontino,,chutes_totais,mais_de,22.5,30,88.1,1.13,,,,green,32.0,2026-09-19T00:02:13.126040+00:00,2026-09-19T08:08:38.314293+00:00,,,
+19667156,sinal_chutes_totais_mais_de,Serie B,São Bernardo x Atlético GO,,chutes_totais,mais_de,26.5,32,75.5,1.32,,,,green,30.0,2026-09-19T00:34:45.397641+00:00,2026-09-19T08:08:38.314293+00:00,,,
+19667156,sinal_escanteios_mais_de,Serie B,São Bernardo x Atlético GO,,escanteios,mais_de,9.5,47,84.3,1.19,1.25,bet365,5.4,green,12.0,2026-09-19T01:07:32.764056+00:00,2026-09-19T08:08:38.314293+00:00,2026-09-19 01:07:17,,
