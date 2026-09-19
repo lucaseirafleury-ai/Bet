@@ -18,7 +18,7 @@ import config
 import carregar_dados
 import estatistica
 from probabilidades import (
-    avaliar_condicao_1stat, limites_candidatos, mercado_bate,
+    avaliar_condicao_1stat, com_stats, limites_candidatos, mercado_bate,
     probabilidades_do_grupo, snapshots_do_bucket,
 )
 
@@ -205,6 +205,8 @@ def classificar_efeito_conjunto(p_conjunta, p_ind1, p_ind2, tolerancia):
 
 
 def _bate(snap, cond):
+    """Pressupõe que o snapshot TEM a stat — filtre o bucket com
+    probabilidades.com_stats antes de chamar (ver docstring de lá)."""
     op, lim, stat = cond["operador"], cond["limite"], cond["stat"]
     return (snap[stat] >= lim) if op == ">=" else (snap[stat] <= lim)
 
@@ -242,8 +244,11 @@ def buscar_2stats(dados, pool_pareamento, treino_ids, teste_ids):
                 continue
             vistos.add(par_id)
 
-            grupo_conjunto = [s for s in bucket_treino if _bate(s, v1) and _bate(s, v2)]
-            complemento_conjunto = [s for s in bucket_treino if not (_bate(s, v1) and _bate(s, v2))]
+            # Filtra ANTES de dividir (ver probabilidades.com_stats): jogo sem
+            # uma das duas stats sai da base, do grupo e do complemento juntos.
+            base_par = com_stats(bucket_treino, v1["stat"], v2["stat"])
+            grupo_conjunto = [s for s in base_par if _bate(s, v1) and _bate(s, v2)]
+            complemento_conjunto = [s for s in base_par if not (_bate(s, v1) and _bate(s, v2))]
             p_conjunta_treino, amostra_conjunta_treino = probabilidades_do_grupo(grupo_conjunto, gols_finais)
             p_complemento_treino, amostra_complemento_treino = probabilidades_do_grupo(complemento_conjunto, gols_finais)
             if amostra_conjunta_treino < config.AMOSTRA_MINIMA or amostra_complemento_treino < config.AMOSTRA_MINIMA:
@@ -280,6 +285,7 @@ def buscar_2stats(dados, pool_pareamento, treino_ids, teste_ids):
         minuto, gols_momento, mercado = c["minuto"], c["gols_momento"], c["mercado"]
         v1, v2 = c["v1"], c["v2"]
         bucket_teste = snapshots_do_bucket(snapshots, gols_finais, minuto, gols_momento, teste_ids)
+        bucket_teste = com_stats(bucket_teste, v1["stat"], v2["stat"])
         grupo_conjunto_teste = [s for s in bucket_teste if _bate(s, v1) and _bate(s, v2)]
         p_conjunta_teste, amostra_conjunta_teste = probabilidades_do_grupo(grupo_conjunto_teste, gols_finais)
         if amostra_conjunta_teste < config.AMOSTRA_MINIMA:

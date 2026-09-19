@@ -32,7 +32,7 @@ import buscar_condicoes
 import buscar_sportmonks as bs
 import estatistica
 import sportmonks as sm
-from probabilidades import avaliar_condicao_1stat, snapshots_do_bucket, probabilidades_do_grupo
+from probabilidades import avaliar_condicao_1stat, snapshots_do_bucket, probabilidades_do_grupo, com_stats
 
 DATE_FROM = "2024-01-01"
 DATE_TO = "2026-12-31"
@@ -83,6 +83,9 @@ def confirmar_1stat(cond, dados_conf):
 
 def confirmar_2stats(cond, dados_conf):
     bucket = snapshots_do_bucket(dados_conf["snapshots"], dados_conf["gols_finais"], cond["minuto"], cond["gols_momento"])
+    # Ver probabilidades.com_stats: jogo sem uma das duas stats sai da base, do
+    # grupo e do complemento juntos -- não entra no n de nenhum.
+    bucket = com_stats(bucket, cond["stat1"], cond["stat2"])
 
     def bate(s):
         v1 = (s[cond["stat1"]] >= cond["limite1"]) if cond["operador1"] == ">=" else (s[cond["stat1"]] <= cond["limite1"])

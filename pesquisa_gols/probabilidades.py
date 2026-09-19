@@ -21,6 +21,24 @@ def mercado_bate(valor_final, mercado):
     return valor_final < n
 
 
+def com_stats(bucket, *stats):
+    """Só os snapshots que TÊM todas as stats pedidas (chave presente e não-None).
+
+    Existe porque a cobertura de `trends` da Sportmonks varia por temporada: as
+    temporadas antigas das ligas novas não trazem algumas estatísticas
+    (total_crosses e key_passes faltam em 2022 inteiro, accurate_crosses falta
+    em 2023 na Argentina). Sem isto, `s[stat]` estoura KeyError ao misturar
+    temporadas.
+
+    REGRA DE OURO — filtre o bucket ANTES de dividir em condição/complemento,
+    nunca depois. Se a base for calculada sobre todos os jogos e a condição só
+    sobre os que têm a stat, os dois grupos medem populações diferentes e o
+    impacto (p_condicao - p_base) vira comparação inválida. Jogo sem a stat não
+    entra em NENHUM dos três grupos, e portanto não entra no n.
+    """
+    return [s for s in bucket if all(s.get(st) is not None for st in stats)]
+
+
 def _condicao_bate(valor, operador, limite):
     if operador == ">=":
         return valor >= limite
@@ -64,6 +82,9 @@ def avaliar_condicao_1stat(bucket_base, gols_finais, stat, operador, limite):
     inteiro) e o grupo complementar (quem NÃO cumpre — usado no teste
     estatístico, que precisa de dois grupos independentes).
     """
+    # Filtra ANTES de dividir (ver com_stats): quem não tem a stat sai da base,
+    # da condição e do complemento juntos.
+    bucket_base = com_stats(bucket_base, stat)
     grupo_condicao = [s for s in bucket_base if _condicao_bate(s[stat], operador, limite)]
     grupo_complemento = [s for s in bucket_base if not _condicao_bate(s[stat], operador, limite)]
 
@@ -89,7 +110,7 @@ def avaliar_condicao_1stat(bucket_base, gols_finais, stat, operador, limite):
 
 def limites_candidatos(bucket_base, stat, num_limites):
     """Limites derivados dos quantis observados do valor da estatística no próprio bucket."""
-    valores = sorted(s[stat] for s in bucket_base)
+    valores = sorted(s[stat] for s in com_stats(bucket_base, stat))
     if not valores:
         return []
     limites = set()
